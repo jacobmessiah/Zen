@@ -8,9 +8,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import ConnectDB from "./lib/db.js";
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 );
