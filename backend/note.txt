@@ -1,0 +1,9 @@
+todo//
+friendController --- addFriend
+socket.io. to emit request
+
+
+todo//
+add feature of something in conversation schema so users when a user delete a chat 
+their id is going to be added whenever you check for a user's converation list you check for the ones
+that the user's id  are not in the delete array. 
