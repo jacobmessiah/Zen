@@ -34,6 +34,7 @@ const userChatStore = create((set, get) => ({
   getAllConvo: async () => {
     const authUser = authUserStore.getState().authUser;
     const res = await axiosInstance.get("/conversations/all");
+    console.log(res);
     const refinedConvo = res.data.map((convo) => {
       const other = convo.participants.find((p) => p._id !== authUser._id);
 
@@ -69,7 +70,8 @@ const userChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get(`/messages/get/${convoId}`);
       set({ messages: res.data });
-    } catch {
+    } catch (err) {
+      console.error(err);
     } finally {
       set({ isFetchingMessage: false });
     }
@@ -101,7 +103,9 @@ const userChatStore = create((set, get) => ({
           ],
         });
       }
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
   },
 
   socketArrangeMessage: async (message) => {
@@ -166,7 +170,9 @@ const userChatStore = create((set, get) => ({
             fullConvo,
           ],
         });
-      } catch {}
+      } catch (err) {
+        console.error(err);
+      }
     }
   },
 
@@ -200,7 +206,8 @@ const userChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/conversations/add", convo);
       set({ convoSelected: res.data });
-    } catch {
+    } catch (err) {
+      console.error(err);
     } finally {
       set({ isGettingConvo: false });
     }

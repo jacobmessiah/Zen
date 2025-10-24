@@ -33,14 +33,15 @@ const RenderFriends = ({ renderCase }) => {
     sendFriendReq(addUsername);
   };
 
+  console.log(friends);
   useEffect(() => {
     if (friends.length < 1) return;
-
-    const onlineFriendsArray = friends.filter((person) =>
+    
+    const onlineFriendsArray = friends.filter((person) => {
       onlineFriends.includes(String(person._id))
-    );
+  });
     setFilteredOnline(onlineFriendsArray);
-  }, [friends]);
+  }, [friends, onlineFriends]);
 
 
  

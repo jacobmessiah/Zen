@@ -2,17 +2,17 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
-const Google_NODE_MAILER_PASS = process.env.Google_NODE_MAILER_PASS;
+const SMTP_PASS = process.env.SMTP_PASS;
+const SMTP_USER = process.env.SMTP_USER;
 
 const transport = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
   auth: {
-    pass: Google_NODE_MAILER_PASS,
-    user: "zencommunity.dev@gmail.com",
+    pass: SMTP_PASS,
+    user: SMTP_USER,
   },
 });
 
-
-export {transport}
+export { transport };
