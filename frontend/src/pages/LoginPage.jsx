@@ -109,7 +109,6 @@ const LoginPage = () => {
           </Button>
         </form>
 
-        <GoogleInitBtn />
 
         <Text fontSize='15px' mt='5px' >
          Don't have an Account <Link to='/signup' >Signup</Link>

@@ -107,7 +107,7 @@ const NameEmailStep = ({ formData, setFormData, setSteps }) => {
         </Button>
       </form>
 
-      <GoogleInitBtn />
+
     </Flex>
   );
 };
