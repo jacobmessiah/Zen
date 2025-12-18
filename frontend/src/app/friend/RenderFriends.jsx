@@ -33,7 +33,6 @@ const RenderFriends = ({ renderCase }) => {
     sendFriendReq(addUsername);
   };
 
-  console.log(friends);
   useEffect(() => {
     if (friends.length < 1) return;
     

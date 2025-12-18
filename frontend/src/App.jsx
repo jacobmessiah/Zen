@@ -4,15 +4,15 @@ import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { useColorMode } from "./components/ui/color-mode";
 import "./App.css";
 import { Navigate, Route, Routes } from "react-router-dom";
-import SignupPage from "./pages/SignupPage";
-import { Toaster } from "sonner";
-import GooglePage from "./pages/GooglePage";
-import LoginPage from "./pages/LoginPage";
-import ZenPage from "./pages/ZenPage";
+import { Toaster } from "sonner";;
+
 
 import FriendContainer from "./app/friend/FriendContainer.jsx";
 import HyperZenContainer from "./app/hyperzen/HyperZenContainer";
 import MessengerContainer from "./app/messenger/MessengerContainer";
+import AuthContainer from "./pages/auth/authContainer";
+import LoginContainer from "./pages/auth/login/loginContainer";
+import SignUpContainer from "./pages/auth/signup/signUpContainer";
 
 const App = () => {
   const { checkAuth, isCheckingAuth, authUser } = authUserStore();
@@ -70,13 +70,9 @@ const App = () => {
         position="top-center"
       />
       <Routes>
-        <Route
-          path="/signup"
-          element={authUser ? <Navigate to="/" /> : <SignupPage />}
-        />
+
 
         {/*Important Route */}
-
         <Route
           path="/"
           element={authUser ? <ZenPage /> : <Navigate to="/signup" />}
@@ -85,18 +81,14 @@ const App = () => {
           <Route path="hyperzen" element={<HyperZenContainer />} />
           <Route path="@me/:username" element={<MessengerContainer />} />
         </Route>
-
         {/*Important Route */}
 
-        <Route
-          path="/google"
-          element={authUser ? <Navigate to="/" /> : <GooglePage />}
-        />
 
-        <Route
-          path="/login"
-          element={authUser ? <Navigate to="/" /> : <LoginPage />}
-        />
+        <Route element={authUser ? <Navigate to="/zen" /> : <AuthContainer />} >
+          <Route index element={<LoginContainer />} />
+          <Route path="signup" element={<SignUpContainer />} />
+        </Route>
+
       </Routes>
     </div>
   );

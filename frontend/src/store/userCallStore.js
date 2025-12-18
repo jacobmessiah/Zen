@@ -13,7 +13,6 @@ const userCallStore = create((set, get) => ({
   },
 
   socketIncomingCall: (d) => {
-    console.log(d)
     set({ incomingCall: [...get().incomingCall, d] });
   },
 

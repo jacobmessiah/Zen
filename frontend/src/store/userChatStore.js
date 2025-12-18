@@ -34,7 +34,6 @@ const userChatStore = create((set, get) => ({
   getAllConvo: async () => {
     const authUser = authUserStore.getState().authUser;
     const res = await axiosInstance.get("/conversations/all");
-    console.log(res);
     const refinedConvo = res.data.map((convo) => {
       const other = convo.participants.find((p) => p._id !== authUser._id);
 
