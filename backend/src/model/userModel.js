@@ -15,7 +15,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       type: String,
     },
-    //All Profile Details like animations, profilepic, coverimage, chat plates are here
     profile: {
       profilePic: String,
       coverImage: String,

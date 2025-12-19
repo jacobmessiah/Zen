@@ -12,6 +12,7 @@
   "dependencies": {
     "@chakra-ui/react": "^3.24.0",
     "@emotion/react": "^11.14.0",
+    "@hcaptcha/react-hcaptcha": "^1.17.1",
     "axios": "^1.11.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^12.23.12",

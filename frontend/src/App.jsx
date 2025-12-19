@@ -23,7 +23,9 @@ const App = () => {
 
   const { colorMode } = useColorMode();
 
+
   if (isCheckingAuth) {
+
     return (
       <Flex
         direction="column"
@@ -36,17 +38,18 @@ const App = () => {
         <Box />
 
         <Image
+          draggable={false}
           userSelect="none"
           pointerEvents="none"
           onClick={(e) => e.preventDefault()}
           animation="pulse 1.5s ease-in-out infinite"
-          width="120px"
+          width="50px"
           filter={
             colorMode === "light"
               ? "drop-shadow(0 0 8px rgba(46, 51, 46, 0.6))"
               : "drop-shadow(0 0 8px rgba(201, 209, 201, 0.6))"
           }
-          src={colorMode === "light" ? "/black.png" : "/white.png"}
+          src={colorMode === "light" ? "/black.svg" : "/white.svg"}
         />
 
         <Text opacity={0} fontSize="12px" color="white" userSelect="none">
@@ -55,6 +58,7 @@ const App = () => {
       </Flex>
     );
   }
+
 
   return (
     <div>
@@ -75,7 +79,7 @@ const App = () => {
         {/*Important Route */}
         <Route
           path="/"
-          element={authUser ? <ZenPage /> : <Navigate to="/signup" />}
+          element={authUser ? <ZenPage /> : <Navigate to="/auth" />}
         >
           <Route index element={<FriendContainer />} />
           <Route path="hyperzen" element={<HyperZenContainer />} />
@@ -84,11 +88,14 @@ const App = () => {
         {/*Important Route */}
 
 
-        <Route element={authUser ? <Navigate to="/zen" /> : <AuthContainer />} >
+        <Route path="/auth" element={authUser ? <Navigate to="/zen" /> : <AuthContainer />} >
           <Route index element={<LoginContainer />} />
           <Route path="signup" element={<SignUpContainer />} />
         </Route>
 
+
+
+        {/*Alert Add Catch not found route here */}
       </Routes>
     </div>
   );
