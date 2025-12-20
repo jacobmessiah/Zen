@@ -70,7 +70,8 @@ export const login = async (req, res) => {
       $or: [{ username: handle }, { email: handle }],
     });
 
-    if (!user) return res.status(400).json({ message: "Invalid Credentials" });
+    if (!user)
+      return res.status(400).json({ message: "Handle or Password is invalid" });
     if (user.loginType !== "email")
       return res
         .status(400)
@@ -78,10 +79,10 @@ export const login = async (req, res) => {
 
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword)
-      return res.status(400).json({ message: "Invalid Credentials" });
+      return res.status(400).json({ message: "Handle or Password is invalid" });
 
     generateJwtToken(user._id, res);
-    res.status(200).json({ message: `You are Logged in as ${user.username}` });
+    res.status(200).json({ authUser: user });
   } catch (error) {
     console.log("Error on Login #userController.js", error.message);
     res.status(500).json({ message: "Internal server error" });

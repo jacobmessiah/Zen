@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 const authUserStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: true,
+  isLoginIn: false,
   socket: null,
 
   checkAuth: async () => {
@@ -22,7 +23,6 @@ const authUserStore = create((set, get) => ({
   permitEmail: false,
   isCheckingEmail: false,
 
-
   connectSocket: () => {
     const findSocket = get().socket;
     if (findSocket) {
@@ -37,7 +37,6 @@ const authUserStore = create((set, get) => ({
 
     set({ socket: socket });
   },
-
 }));
 
 export default authUserStore;

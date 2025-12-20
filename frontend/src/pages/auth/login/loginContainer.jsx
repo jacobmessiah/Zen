@@ -3,9 +3,16 @@ import { useState } from "react"
 import { IoEyeOffOutline } from "react-icons/io5"
 import { MdOutlineRemoveRedEye } from "react-icons/md"
 import { chakra } from "@chakra-ui/react"
+import { Link, useNavigate } from "react-router-dom"
+import { handleLogin } from "@/utils/authFunction"
+import authUserStore from "@/store/authUserStore"
 
 
 const LoginContainer = () => {
+
+
+  const { isLoginIn, authUser } = authUserStore()
+  const navigate = useNavigate()
 
 
   const [showPassword, setShowPassword] = useState(false)
@@ -20,7 +27,7 @@ const LoginContainer = () => {
       value: false,
       errorText: ""
     },
-    email: {
+    handle: {
       value: false,
       errorText: ""
     }
@@ -33,7 +40,14 @@ const LoginContainer = () => {
 
 
 
-  const handleSummitFunction = (event) => {
+  const handleSummitFunction = async (event) => {
+
+    if (isLoginIn) return
+
+    if (authUser) {
+      navigate("/zen")
+    }
+
     event.preventDefault();
     let isError = false;
     const identifier = loginDetails.handle.trim();
@@ -83,6 +97,24 @@ const LoginContainer = () => {
 
 
     if (isError) return;
+
+
+    const authFuncRes = await handleLogin(loginDetails)
+
+    if (authFuncRes.isError) {
+      setIsFormError((prev) => ({
+        ...prev, handle: {
+          errorText: authFuncRes.errorMessage, value: authFuncRes.isError
+        },
+        password: {
+          errorText: authFuncRes.errorMessage, value: authFuncRes.isError
+        }
+      }))
+    } else {
+      authUserStore.setState({ authUser: authFuncRes.authUser })
+      navigate("/")
+    }
+
   }
 
   const emailMaxLength = 54
@@ -95,7 +127,7 @@ const LoginContainer = () => {
 
     setLoginDetails(prev => ({ ...prev, handle: value }));
 
-    if (isFormError.email.value) {
+    if (isFormError.handle.value) {
       setIsFormError(prev => ({
         ...prev,
         handle: { value: false, errorText: "" }
@@ -136,13 +168,13 @@ const LoginContainer = () => {
           <Text>We're so excited to see you again!</Text>
         </Flex>
 
-       
+
 
         <chakra.form onSubmit={handleSummitFunction} w="full" display="flex" flexDir="column" gap="3" >
-          <Field.Root invalid={isFormError.email.value} >
+          <Field.Root invalid={isFormError.handle.value} >
             <Field.Label>Email or Username</Field.Label>
-            <Input size={{ base: "2xl", lg: "md" }} onChange={handleOnChangeHandle} maxLength={emailMaxLength} rounded="lg" pl="1.5" />
-            <Field.ErrorText>{isFormError.email.errorText}</Field.ErrorText>
+            <Input size="md" onChange={handleOnChangeHandle} maxLength={emailMaxLength} rounded="lg" pl="1.5" />
+            <Field.ErrorText>{isFormError.handle.errorText}</Field.ErrorText>
           </Field.Root>
 
           <Field.Root invalid={isFormError.password.value} >
@@ -150,16 +182,17 @@ const LoginContainer = () => {
             <InputGroup endElement={<IconButton onClick={toggleShowPassword} mr="5px" size="xs" variant="ghost" rounded="full" >
               {showPassword ? <IoEyeOffOutline /> : <MdOutlineRemoveRedEye />}
             </IconButton>}  >
-              <Input autoComplete="password" size={{ base: "2xl", lg: "md" }} type={showPassword ? "text" : "password"} onChange={handleOnchangePassword} maxLength={passwordMaxLength} w="full" rounded="lg" pl="1.5" />
+              <Input autoComplete="password" size="md" type={showPassword ? "text" : "password"} onChange={handleOnchangePassword} maxLength={passwordMaxLength} w="full" rounded="lg" pl="1.5" />
             </InputGroup>
             <Field.ErrorText>{isFormError.password.errorText}</Field.ErrorText>
           </Field.Root>
 
-          <Button size={{ base: "2xl", lg: "md" }} type="submit" w="full" rounded="lg"  >
+          <Button size="md" type="submit" w="full" rounded="lg"  >
             Login
           </Button>
         </chakra.form>
 
+        <Text>Need an Account?  <Link to={"signup"} >Signup</Link> </Text>
 
 
 
