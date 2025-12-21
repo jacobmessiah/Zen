@@ -42,13 +42,14 @@ const LoginContainer = () => {
 
   const handleSummitFunction = async (event) => {
 
+    event.preventDefault();
+
     if (isLoginIn) return
 
     if (authUser) {
       navigate("/zen")
     }
 
-    event.preventDefault();
     let isError = false;
     const identifier = loginDetails.handle.trim();
     const cleanPassword = loginDetails.password.trim();
@@ -57,25 +58,30 @@ const LoginContainer = () => {
       isError = true;
       setIsFormError(prev => ({
         ...prev,
-        email: { value: true, errorText: "Email or Username is required." }
+        handle: { value: true, errorText: "Email or Username is required." }
       }));
     } else {
       const isEmailAttempt = identifier.includes("@");
 
       if (isEmailAttempt) {
-        if (!emailRegEx.test(identifier)) {
+        const [localPart] = identifier.split("@");
+
+        if (localPart.length < 3 || !emailRegEx.test(identifier)) {
           isError = true;
           setIsFormError(prev => ({
             ...prev,
-            email: { value: true, errorText: "Please enter a valid email address." }
+            handle: { value: true, errorText: "Please enter a valid email address." }
           }));
         }
       } else {
-        if (!usernameRegEx.test(identifier)) {
+        if (identifier.length < 4 || !usernameRegEx.test(identifier)) {
           isError = true;
           setIsFormError(prev => ({
             ...prev,
-            email: { value: true, errorText: "Usernames must be 3-20 characters (letters, numbers, underscores)." }
+            handle: {
+              value: true,
+              errorText: "Usernames must be at least 4 characters (letters, numbers, underscores)."
+            }
           }));
         }
       }
@@ -95,26 +101,26 @@ const LoginContainer = () => {
       }));
     }
 
-
     if (isError) return;
-
 
     const authFuncRes = await handleLogin(loginDetails)
 
     if (authFuncRes.isError) {
       setIsFormError((prev) => ({
-        ...prev, handle: {
-          errorText: authFuncRes.errorMessage, value: authFuncRes.isError
+        ...prev,
+        handle: {
+          errorText: authFuncRes.errorMessage,
+          value: authFuncRes.isError
         },
         password: {
-          errorText: authFuncRes.errorMessage, value: authFuncRes.isError
+          errorText: authFuncRes.errorMessage,
+          value: authFuncRes.isError
         }
       }))
     } else {
       authUserStore.setState({ authUser: authFuncRes.authUser })
       navigate("/")
     }
-
   }
 
   const emailMaxLength = 54
@@ -156,6 +162,7 @@ const LoginContainer = () => {
   }
 
 
+
   return (
     <Flex alignItems="center"
       direction="column" w="full" h="full"
@@ -187,8 +194,9 @@ const LoginContainer = () => {
             <Field.ErrorText>{isFormError.password.errorText}</Field.ErrorText>
           </Field.Root>
 
-          <Button size="md" type="submit" w="full" rounded="lg"  >
-            Login
+          <Button rounded="lg" type="submit">
+            {isLoginIn ?
+              <BeatLoader color={useColorModeValue("white", "black")} size={8} loading /> : "Log in"}
           </Button>
         </chakra.form>
 

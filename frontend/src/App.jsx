@@ -7,12 +7,10 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";;
 
 
-import FriendContainer from "./app/friend/FriendContainer.jsx";
-import HyperZenContainer from "./app/hyperzen/HyperZenContainer";
-import MessengerContainer from "./app/messenger/MessengerContainer";
 import AuthContainer from "./pages/auth/authContainer";
 import LoginContainer from "./pages/auth/login/loginContainer";
 import SignUpContainer from "./pages/auth/signup/signUpContainer";
+import AppContainer from "./app/app-container";
 
 const App = () => {
   const { checkAuth, isCheckingAuth, authUser } = authUserStore();
@@ -60,6 +58,8 @@ const App = () => {
   }
 
 
+
+
   return (
     <div>
       <Toaster
@@ -79,16 +79,14 @@ const App = () => {
         {/*Important Route */}
         <Route
           path="/"
-          element={authUser ? <ZenPage /> : <Navigate to="/auth" />}
+          element={authUser ? <AppContainer /> : <Navigate to="/auth" />}
         >
-          <Route index element={<FriendContainer />} />
-          <Route path="hyperzen" element={<HyperZenContainer />} />
-          <Route path="@me/:username" element={<MessengerContainer />} />
+
         </Route>
         {/*Important Route */}
 
 
-        <Route path="/auth" element={authUser ? <Navigate to="/zen" /> : <AuthContainer />} >
+        <Route path="/auth" element={authUser ? <Navigate replace to="/" /> : <AuthContainer />} >
           <Route index element={<LoginContainer />} />
           <Route path="signup" element={<SignUpContainer />} />
         </Route>

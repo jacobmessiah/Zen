@@ -2,7 +2,7 @@ import { createListCollection, Flex, Portal, Select } from "@chakra-ui/react"
 import { useState } from "react";
 
 
-const DOBInput = () => {
+const DOBInput = ({ onChange }) => {
 
     const [componentDateOBJ, setComponentDateOBJ] = useState(new Date())
 
@@ -14,26 +14,29 @@ const DOBInput = () => {
         const newDate = new Date(componentDateOBJ)
         newDate.setMonth(parseInt(value[0]))
         setComponentDateOBJ(newDate)
+        onChange(newDate)
     }
 
 
     const handleYearChange = (event) => {
-        if (!event) return
-        const { value } = event
-        if (!value) return
+        if (!event) return;
+        const { value } = event;
+        if (!value) return;
 
-        const newDate = new Date(componentDateOBJ)
-        newDate.setFullYear(parseInt(value[0]))
-        setComponentDateOBJ(newDate)
+        const newDate = new Date(componentDateOBJ);
+        newDate.setFullYear(parseInt(value[0]));
+        setComponentDateOBJ(newDate);
+        onChange(newDate);
     }
 
     const handleDaysChange = (event) => {
-        if (!event) return
-        const { value } = event
-        if (!value) return
-        const newDate = new Date(componentDateOBJ)
-        newDate.setDate(parseInt(value[0]))
-        setComponentDateOBJ(newDate)
+        if (!event) return;
+        const { value } = event;
+        if (!value) return;
+        const newDate = new Date(componentDateOBJ);
+        newDate.setDate(parseInt(value[0]));
+        setComponentDateOBJ(newDate);
+        onChange(newDate);
 
     }
 
@@ -54,7 +57,7 @@ const DOBInput = () => {
         ],
         itemToString: (item) => item.label,
         itemToValue: (item) => item.value,
-    })
+    });
 
     const currentYear = new Date().getFullYear();
 
@@ -85,10 +88,10 @@ const DOBInput = () => {
 
     return (
         <Flex gap="2" w="full" alignItems="center" >
-            <Select.Root  onValueChange={handleMonthChange} collection={monthsCollection}  >
+            <Select.Root id="selectMonth" onValueChange={handleMonthChange} collection={monthsCollection}  >
                 <Select.HiddenSelect />
 
-                <Select.Control   >
+                <Select.Control    >
                     <Select.Trigger fontSize="md" rounded="lg" pl="2" pr="2" >
                         <Select.ValueText placeholder="Month" />
                         <Select.Indicator />
@@ -106,7 +109,7 @@ const DOBInput = () => {
                 </Portal>
             </Select.Root>
 
-            <Select.Root onValueChange={handleDaysChange} collection={getDaysInMonth(componentDateOBJ.getMonth(), componentDateOBJ.getFullYear())}  >
+            <Select.Root id="selectDay" onValueChange={handleDaysChange} collection={getDaysInMonth(componentDateOBJ.getMonth(), componentDateOBJ.getFullYear())}  >
                 <Select.HiddenSelect />
 
                 <Select.Control   >
@@ -127,7 +130,7 @@ const DOBInput = () => {
                 </Portal>
             </Select.Root>
 
-            <Select.Root onValueChange={handleYearChange} collection={yearsCollection}  >
+            <Select.Root id="selectYear" onValueChange={handleYearChange} collection={yearsCollection}  >
                 <Select.HiddenSelect />
 
                 <Select.Control   >

@@ -1,8 +1,11 @@
 import { Flex } from "@chakra-ui/react";
 import { Outlet } from "react-router-dom";
 import AuthRibbonBar, { LogoImage } from "./ui/authRibbonBar";
+import { useEffect } from "react";
 
 const AuthContainer = () => {
+
+
 
   return <Flex direction="column" pos="relative" minH="100vh" w="full" maxH="100vh" alignItems="center" justifyContent="center" >
     <AuthRibbonBar />

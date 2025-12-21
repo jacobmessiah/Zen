@@ -6,11 +6,12 @@ const authUserStore = create((set, get) => ({
   authUser: null,
   isCheckingAuth: true,
   isLoginIn: false,
+  isSigningUp: false,
   socket: null,
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/users/check");
+      const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {

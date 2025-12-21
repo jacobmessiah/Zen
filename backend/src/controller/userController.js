@@ -1,61 +1,138 @@
 import User from "../model/userModel.js";
-import Confirmation from "../model/ComfirmationModel.js";
-import GenCode from "../lib/genCode.js";
-import { transport } from "../lib/mailer.js";
-import confirmationPage from "../page/comfirmationPage.js";
 import bcrypt from "bcryptjs";
 import generateJwtToken from "../lib/utils.js";
-import axios from "axios";
-import { OAuth2Client } from "google-auth-library";
-import generateUniqueUsername from "../lib/generateUsername.js";
-import Friend from "../model/friendModel.js";
-import mongoose from "mongoose";
 
-export const Register = async (req, res) => {
+export const handleSignup = async (req, res) => {
   try {
-    const { name, password } = req.body;
-    const username = req.body.username.trim().toLowerCase();
-    const email = req.body?.email?.trim()?.toLowerCase();
+    const {
+      displayName = "",
+      email = "",
+      username = "",
+      password = "",
+      dob,
+    } = req.body;
 
-    if (!name)
-      return res.status(400).json({ message: "Full Name is required" });
-    if (!username)
-      return res.status(400).json({ message: "Username is required" });
-    if (!password)
-      return res.status(400).json({ message: "Password is required" });
-    if (!password.length > 7)
-      return res
-        .status(400)
-        .json({ message: "Password must be atleast 8 characters" });
-    if (!email) return res.status(400).json({ message: "Email is Required" });
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email))
-      return res.status(400).json({ message: "Invalid Email" });
-
-    const user = await User.findOne({
-      $or: [{ username: username }, { email: email }],
-    });
-
-    if (user)
-      return res
-        .status(400)
-        .json({ message: "Email or Username Already Exists" });
-
-    const pending = await Confirmation.findOne({ email: email });
-    if (pending?.attempts > 4)
-      return res.status(400).json({ message: "Too many Requests" });
-    if (pending) {
-      await pending.deleteOne();
+    // ---------- Display Name (string) ----------
+    if (!displayName || !displayName.trim()) {
+      return res.status(400).json({
+        message: "Display name is required",
+        errorOnInput: "displayName",
+      });
+    }
+    const displayNameTrim = displayName.trim();
+    if (displayNameTrim.length < 2) {
+      return res.status(400).json({
+        message: "Display name must be at least 2 characters",
+        errorOnInput: "displayName",
+      });
+    }
+    if (displayNameTrim.length > 30) {
+      return res.status(400).json({
+        message: "Display name cannot exceed 30 characters",
+        errorOnInput: "displayName",
+      });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // ---------- Email (string) ----------
+    const emailTrim = email.trim().toLowerCase();
+    const emailRegex = /^[a-z0-9._%+-]{2,}@[a-z0-9.-]{2,}\.[a-z]{2,}$/;
+    if (!emailTrim || !emailRegex.test(emailTrim)) {
+      return res.status(400).json({
+        message: "Enter a valid email address",
+        errorOnInput: "email",
+      });
+    }
+
+    // ---------- Username (string) ----------
+    const usernameTrim = username.trim().toLowerCase();
+    const usernameRegex = /^[a-z0-9_]{4,20}$/;
+    if (!usernameTrim) {
+      return res.status(400).json({
+        message: "Username is required",
+        errorOnInput: "username",
+      });
+    }
+    if (!usernameRegex.test(usernameTrim)) {
+      return res.status(400).json({
+        message:
+          "Username must be 4–20 characters (letters, numbers, underscores)",
+        errorOnInput: "username",
+      });
+    }
+
+    // ---------- Password (string) ----------
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        message: "Password must be at least 8 characters",
+        errorOnInput: "password",
+      });
+    }
+
+    // ---------- Date of Birth (Date object) ----------
+    const dobDate = new Date(dob);
+    if (!(dobDate instanceof Date) || isNaN(dobDate.getTime())) {
+      return res.status(400).json({
+        message: "Invalid date of birth",
+        errorOnInput: "dob",
+      });
+    }
+    const today = new Date();
+    let age = today.getFullYear() - dobDate.getFullYear();
+    const monthDiff = today.getMonth() - dobDate.getMonth();
+    const dayDiff = today.getDate() - dobDate.getDate();
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
+    if (age < 7) {
+      return res.status(400).json({
+        message: "Minimum age is 7 years",
+        errorOnInput: "dob",
+      });
+    }
+
+    // ---------- Check Existing User ----------
+    const findUser = await User.findOne({
+      $or: [{ email: emailTrim }, { username: usernameTrim }],
+    });
+
+    if (findUser) {
+      if (findUser.email === emailTrim) {
+        return res.status(400).json({
+          message: "Account already exists with this email. Try to login",
+          errorOnInput: "email",
+        });
+      } else if (findUser.username === usernameTrim) {
+        return res.status(400).json({
+          message: "This username is taken. Please choose another",
+          errorOnInput: "username",
+        });
+      }
+    }
+
+    // ---------- Hash Password & Create User ----------
+    const hashPassword = await bcrypt.hash(password, 10);
+    const newUser = await User.create({
+      displayName: displayNameTrim,
+      email: emailTrim,
+      username: usernameTrim,
+      password: hashPassword,
+      dob: dobDate,
+    });
+
+    console.log("New User Registered");
+
+    generateJwtToken(newUser._id.toString(), res);
+
+    const { password: pass, ...rest } = newUser.toObject();
+
+    return res.status(200).json({ authUser: rest });
   } catch (error) {
     console.log("Error on #signup #userController", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errorOnInput: false });
   }
 };
 
-export const login = async (req, res) => {
+export const handleLogin = async (req, res) => {
   try {
     const password = req.body.password;
     const handle = req.body.handle?.trim().toLowerCase();
@@ -72,10 +149,6 @@ export const login = async (req, res) => {
 
     if (!user)
       return res.status(400).json({ message: "Handle or Password is invalid" });
-    if (user.loginType !== "email")
-      return res
-        .status(400)
-        .json({ message: "Try another login method for your account" });
 
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword)
@@ -89,7 +162,7 @@ export const login = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
+export const handleLogout = async (req, res) => {
   try {
     res.cookie("ZenChattyVerb", "", {
       maxAge: 0,
