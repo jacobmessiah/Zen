@@ -5,12 +5,24 @@ import {
   Select,
   type SelectValueChangeDetails,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type DobChangeHandler = (date: Date) => void;
 
-const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
+const DOBInput = ({
+  onChange,
+  lang,
+}: {
+  onChange: DobChangeHandler;
+  lang: string;
+}) => {
+  const langTimeFormatter = new Intl.DateTimeFormat(lang, { month: "long" });
   const [componentDateOBJ, setComponentDateOBJ] = useState(new Date());
+
+  const { t: translate } = useTranslation(["auth"]);
+
+  const currentYear = new Date().getFullYear();
 
   const handleMonthChange = (event: SelectValueChangeDetails) => {
     if (!event) return;
@@ -44,47 +56,58 @@ const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
   };
 
   const monthsCollection = createListCollection({
-    items: [
-      { value: "0", label: "January" },
-      { value: "1", label: "February" },
-      { value: "2", label: "March" },
-      { value: "3", label: "April" },
-      { value: "4", label: "May" },
-      { value: "5", label: "June" },
-      { value: "6", label: "July" },
-      { value: "7", label: "August" },
-      { value: "8", label: "September" },
-      { value: "9", label: "October" },
-      { value: "10", label: "November" },
-      { value: "11", label: "December" },
-    ],
-    itemToString: (item) => item.label,
-    itemToValue: (item) => item.value,
-  });
-
-  const currentYear = new Date().getFullYear();
-
-  const yearsCollection = createListCollection({
-    items: Array.from({ length: 60 }, (_, index) => {
-      const year = (currentYear - index).toString();
-      return { value: year, label: year };
+    items: Array.from({ length: 12 }, (_, i) => {
+      const newDate = new Date(componentDateOBJ);
+      newDate.setMonth(i);
+      return {
+        value: i.toString(),
+        label: langTimeFormatter.format(newDate).trim(),
+      };
     }),
     itemToString: (item) => item.label,
     itemToValue: (item) => item.value,
   });
 
-  const getDaysInMonth = (month: number, year: number) => {
-    const daysInMonth = new Date(year, Number(month) + 1, 0).getDate();
-
+  const yearsCollection = useMemo(() => {
+    const numberFormatter = new Intl.NumberFormat(lang);
     return createListCollection({
-      items: Array.from({ length: daysInMonth }, (_, index) => {
-        const day = (index + 1).toString();
-        return { value: day, label: day };
+      items: Array.from({ length: 60 }, (_, index) => {
+        const year = numberFormatter.format(currentYear - index);
+        return { value: year, label: year.toString() };
       }),
       itemToString: (item) => item.label,
       itemToValue: (item) => item.value,
     });
-  };
+  }, []);
+
+  const daysInMonthCollection = useMemo(() => {
+    const numberFormatter = new Intl.NumberFormat(lang);
+
+    const daysInMonth = new Date(
+      componentDateOBJ.getFullYear(),
+      componentDateOBJ.getMonth() + 1,
+      0
+    ).getDate();
+
+    return createListCollection({
+      items: Array.from({ length: daysInMonth }, (_, index) => {
+        const dayValue = (index + 1).toString();
+        return {
+          value: dayValue,
+          label: numberFormatter.format(index + 1),
+        };
+      }),
+      itemToString: (item) => item.label,
+      itemToValue: (item) => item.value,
+    });
+  }, [componentDateOBJ.getFullYear(), componentDateOBJ.getMonth(), lang]);
+
+  const formTBase = "signup.form";
+  const monthPlaceHolder = translate(
+    `${formTBase}.fields.dob.monthPlaceHolder`
+  );
+  const dayPlaceHolder = translate(`${formTBase}.fields.dob.dayPlaceHolder`);
+  const yearPlaceHolder = translate(`${formTBase}.fields.dob.yearPlaceHolder`);
 
   return (
     <Flex gap="2" w="full" alignItems="center">
@@ -97,7 +120,7 @@ const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
 
         <Select.Control>
           <Select.Trigger fontSize="md" rounded="lg" pl="2" pr="2">
-            <Select.ValueText placeholder="Month" />
+            <Select.ValueText placeholder={monthPlaceHolder} />
             <Select.Indicator />
           </Select.Trigger>
         </Select.Control>
@@ -124,16 +147,13 @@ const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
       <Select.Root
         id="selectDay"
         onValueChange={handleDaysChange}
-        collection={getDaysInMonth(
-          componentDateOBJ.getMonth(),
-          componentDateOBJ.getFullYear()
-        )}
+        collection={daysInMonthCollection}
       >
         <Select.HiddenSelect />
 
         <Select.Control>
           <Select.Trigger fontSize="md" rounded="lg" pl="2" pr="2">
-            <Select.ValueText placeholder="Day" />
+            <Select.ValueText placeholder={dayPlaceHolder} />
             <Select.Indicator />
           </Select.Trigger>
         </Select.Control>
@@ -141,10 +161,7 @@ const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
         <Portal>
           <Select.Positioner>
             <Select.Content p="5px">
-              {getDaysInMonth(
-                componentDateOBJ.getMonth(),
-                componentDateOBJ.getFullYear()
-              ).items.map((day) => (
+              {daysInMonthCollection.items.map((day) => (
                 <Select.Item
                   fontSize="md"
                   padding="10px"
@@ -169,7 +186,7 @@ const DOBInput = ({ onChange }: { onChange: DobChangeHandler }) => {
 
         <Select.Control>
           <Select.Trigger fontSize="md" rounded="lg" pl="2" pr="2">
-            <Select.ValueText placeholder="Year" />
+            <Select.ValueText placeholder={yearPlaceHolder} />
             <Select.Indicator />
           </Select.Trigger>
         </Select.Control>

@@ -9,6 +9,7 @@ import type { signupDetails } from "../../../types";
 import DOBInput from "../../../components/ui/dob-input";
 import { handleSignup } from "../../../utils/authFunction";
 import userAuthStore from "../../../store/user-auth-store";
+import { useTranslation } from "react-i18next";
 
 type FieldError = {
   value: boolean;
@@ -25,6 +26,7 @@ type formError = {
 
 const SignUpContainer = () => {
   const { isSigningUp } = userAuthStore();
+  const { t: translate, i18n } = useTranslation(["auth"]);
 
   const navigate = useNavigate();
 
@@ -65,7 +67,7 @@ const SignUpContainer = () => {
     if (!displayName || !displayName.trim()) {
       errors.displayName = {
         value: true,
-        errorText: "Display name is required",
+        errorText: translate("signup.form.errorTexts.DISPLAY_NAME_REQUIRED"),
       };
       isValid = false;
     } else {
@@ -74,13 +76,15 @@ const SignUpContainer = () => {
       if (nameLength < 4) {
         errors.displayName = {
           value: true,
-          errorText: "Display name must be at least 4 characters",
+          errorText: translate(
+            "signup.form.errorTexts.DISPLAY_NAME_NOT_COMPLETE"
+          ),
         };
         isValid = false;
       } else if (nameLength > 30) {
         errors.displayName = {
           value: true,
-          errorText: "Display name cannot exceed 30 characters",
+          errorText: translate("signup.form.errorTexts.DISPLAY_NAME_TOO_LONG"),
         };
         isValid = false;
       }
@@ -92,19 +96,19 @@ const SignUpContainer = () => {
     if (!email || email.includes(" ")) {
       errors.email = {
         value: true,
-        errorText: "Email cannot contain spaces",
+        errorText: translate("signup.form.errorTexts.EMAIL_REQUIRED"),
       };
       isValid = false;
     } else if (email.length < 9 || email.length > 60) {
       errors.email = {
         value: true,
-        errorText: "Email must be between 9 and 60 characters",
+        errorText: translate("signup.form.errorTexts.EMAIL_LENGTH_INVALID"),
       };
       isValid = false;
     } else if (!emailRegex.test(email)) {
       errors.email = {
         value: true,
-        errorText: "Enter a valid email address",
+        errorText: translate("signup.form.errorTexts.VALID_EMAIL_REQUIRED"),
       };
       isValid = false;
     }
@@ -115,14 +119,13 @@ const SignUpContainer = () => {
     if (!username) {
       errors.username = {
         value: true,
-        errorText: "Username is required",
+        errorText: translate("signup.form.errorTexts.USERNAME_REQUIRED"),
       };
       isValid = false;
     } else if (!usernameRegex.test(username)) {
       errors.username = {
         value: true,
-        errorText:
-          "Username must be 4–20 characters (letters, numbers, underscores)",
+        errorText: translate("signup.form.errorTexts.USERNAME_NOT_COMPLETE"),
       };
       isValid = false;
     }
@@ -131,7 +134,7 @@ const SignUpContainer = () => {
     if (!password || password.length < 6 || password.length > 50) {
       errors.password = {
         value: true,
-        errorText: "Password must be between 6 and 50 characters",
+        errorText: translate("signup.form.errorTexts.PASSWORD_NOT_COMPLETE"),
       };
       isValid = false;
     }
@@ -140,7 +143,7 @@ const SignUpContainer = () => {
     if (!(dob instanceof Date) || isNaN(dob.getTime())) {
       errors.dob = {
         value: true,
-        errorText: "Invalid date of birth",
+        errorText: translate("signup.form.errorTexts.DOB_INVALID"),
       };
       isValid = false;
     } else {
@@ -157,7 +160,7 @@ const SignUpContainer = () => {
       if (age < 7) {
         errors.dob = {
           value: true,
-          errorText: "Minimum age is 7 years",
+          errorText: translate("signup.form.errorTexts.DOB_TOO_YOUNG"),
         };
         isValid = false;
       }
@@ -271,6 +274,20 @@ const SignUpContainer = () => {
     }
   };
 
+  const formTBase = "signup.form";
+  const formHeaderText = translate(`${formTBase}.headerText`);
+
+  const emailLabel = translate(`${formTBase}.fields.email`);
+  const displayNameLabel = translate(`${formTBase}.fields.displayName`);
+  const usernameLabel = translate(`${formTBase}.fields.username`);
+  const passwordLabel = translate(`${formTBase}.fields.password`);
+  const dobLabel = translate(`${formTBase}.fields.dob.headerText`);
+  const buttonText = translate(`${formTBase}.buttonText`);
+  const haveAccountTextQ = translate(`${formTBase}.haveAccountText.question`);
+  const haveAccountTextInstruction = translate(
+    `${formTBase}.haveAccountText.instruction`
+  );
+
   return (
     <Flex
       alignItems="center"
@@ -281,7 +298,7 @@ const SignUpContainer = () => {
       py={{ base: "10px", lg: "30px", md: "20px" }}
       gap="4"
     >
-      <Heading textAlign="center">Create an Account</Heading>
+      <Heading textAlign="center">{formHeaderText}</Heading>
 
       <chakra.form
         onSubmit={handleSubmit}
@@ -293,7 +310,7 @@ const SignUpContainer = () => {
         {/* Display Name */}
         <Flex w="full" gap="2" alignItems="start">
           <Field.Root invalid={isFormError.displayName?.value || false}>
-            <Field.Label>Display Name</Field.Label>
+            <Field.Label>{displayNameLabel}</Field.Label>
             <Input
               variant="outline"
               name="displayName"
@@ -310,7 +327,7 @@ const SignUpContainer = () => {
 
         {/* Email */}
         <Field.Root invalid={isFormError.email?.value || false}>
-          <Field.Label>Email</Field.Label>
+          <Field.Label>{emailLabel}</Field.Label>
           <Input
             name="email"
             type="email"
@@ -331,7 +348,7 @@ const SignUpContainer = () => {
 
         {/* Username */}
         <Field.Root invalid={isFormError.username?.value || false}>
-          <Field.Label>Username</Field.Label>
+          <Field.Label>{usernameLabel}</Field.Label>
           <Input
             onKeyDown={(e) => {
               if (e.key === " ") {
@@ -351,7 +368,7 @@ const SignUpContainer = () => {
 
         {/* Password */}
         <Field.Root invalid={isFormError.password?.value || false}>
-          <Field.Label>Password</Field.Label>
+          <Field.Label>{passwordLabel}</Field.Label>
           <Input
             name="password"
             type="password"
@@ -368,8 +385,8 @@ const SignUpContainer = () => {
 
         {/* DOB */}
         <Field.Root invalid={isFormError.dob?.value || false} gap="10px">
-          <Field.Label>Date of birth</Field.Label>
-          <DOBInput onChange={handleDobChange} />
+          <Field.Label>{dobLabel}</Field.Label>
+          <DOBInput lang={i18n.language} onChange={handleDobChange} />
           <Field.ErrorText>{isFormError.dob?.errorText || ""}</Field.ErrorText>
         </Field.Root>
 
@@ -381,13 +398,13 @@ const SignUpContainer = () => {
               loading
             />
           ) : (
-            "Create Account"
+            buttonText
           )}
         </Button>
       </chakra.form>
 
       <Text>
-        Already have an Account? <Link to={".."}>Login</Link>{" "}
+        {haveAccountTextQ} <Link to={".."}>{haveAccountTextInstruction}</Link>{" "}
       </Text>
     </Flex>
   );

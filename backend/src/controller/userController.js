@@ -15,20 +15,20 @@ export const handleSignup = async (req, res) => {
     // ---------- Display Name (string) ----------
     if (!displayName || !displayName.trim()) {
       return res.status(400).json({
-        message: "Display name is required",
+        message: "DISPLAY_NAME_REQUIRED",
         errorOnInput: "displayName",
       });
     }
     const displayNameTrim = displayName.trim();
     if (displayNameTrim.length < 2) {
       return res.status(400).json({
-        message: "Display name must be at least 2 characters",
+        message: "DISPLAY_NAME_NOT_COMPLETE",
         errorOnInput: "displayName",
       });
     }
     if (displayNameTrim.length > 30) {
       return res.status(400).json({
-        message: "Display name cannot exceed 30 characters",
+        message: "DISPLAY_NAME_TOO_LONG",
         errorOnInput: "displayName",
       });
     }
@@ -38,7 +38,7 @@ export const handleSignup = async (req, res) => {
     const emailRegex = /^[a-z0-9._%+-]{2,}@[a-z0-9.-]{2,}\.[a-z]{2,}$/;
     if (!emailTrim || !emailRegex.test(emailTrim)) {
       return res.status(400).json({
-        message: "Enter a valid email address",
+        message: "EMAIL_INVALID",
         errorOnInput: "email",
       });
     }
@@ -48,7 +48,7 @@ export const handleSignup = async (req, res) => {
     const usernameRegex = /^[a-z0-9_]{4,20}$/;
     if (!usernameTrim) {
       return res.status(400).json({
-        message: "Username is required",
+        message: "USERNAME_REQUIRED",
         errorOnInput: "username",
       });
     }
@@ -72,7 +72,7 @@ export const handleSignup = async (req, res) => {
     const dobDate = new Date(dob);
     if (!(dobDate instanceof Date) || isNaN(dobDate.getTime())) {
       return res.status(400).json({
-        message: "Invalid date of birth",
+        message: "DOB_INVALID",
         errorOnInput: "dob",
       });
     }
@@ -83,7 +83,7 @@ export const handleSignup = async (req, res) => {
     if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
     if (age < 7) {
       return res.status(400).json({
-        message: "Minimum age is 7 years",
+        message: "DOB_TOO_YOUNG",
         errorOnInput: "dob",
       });
     }
@@ -96,7 +96,7 @@ export const handleSignup = async (req, res) => {
     if (findUser) {
       if (findUser.email === emailTrim) {
         return res.status(400).json({
-          message: "Account already exists with this email. Try to login",
+          message: "USER_ALREADY_EXISTS",
           errorOnInput: "email",
         });
       } else if (findUser.username === usernameTrim) {
@@ -128,7 +128,7 @@ export const handleSignup = async (req, res) => {
     console.log("Error on #signup #userController", error);
     res
       .status(500)
-      .json({ message: "Internal Server Error", errorOnInput: false });
+      .json({ message: "SERVER_ERROR", errorOnInput: false });
   }
 };
 
@@ -137,28 +137,24 @@ export const handleLogin = async (req, res) => {
     const password = req.body.password;
     const handle = req.body.handle?.trim().toLowerCase();
 
-    if (!handle)
-      return res
-        .status(400)
-        .json({ message: "Username or Email is required to login" });
+    if (!handle) return res.status(400).json({ message: "HANDLE_REQUIRED" });
     if (!password)
-      return res.status(400).json({ message: "Password is Required to login" });
+      return res.status(400).json({ message: "PASSWORD_REQUIRED" });
     const user = await User.findOne({
       $or: [{ username: handle }, { email: handle }],
     });
 
-    if (!user)
-      return res.status(400).json({ message: "Handle or Password is invalid" });
+    if (!user) return res.status(400).json({ message: "INVALID_CREDENTIALS" });
 
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword)
-      return res.status(400).json({ message: "Handle or Password is invalid" });
+      return res.status(400).json({ message: "INVALID_CREDENTIALS" });
 
     generateJwtToken(user._id, res);
     res.status(200).json({ authUser: user });
   } catch (error) {
-    console.log("Error on Login #userController.js", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    console.log("Error on Login #userController.js", error?.message || error);
+    res.status(500).json({ message: "SERVER_ERROR" });
   }
 };
 
@@ -184,6 +180,6 @@ export const checkUser = (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     console.log("Error on #check #userController.js", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "SERVER_ERROR" });
   }
 };
