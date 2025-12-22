@@ -17,10 +17,13 @@ import userAuthStore from "../../../store/user-auth-store";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
 import { handleLogin } from "../../../utils/authFunction";
+import { useTranslation } from "react-i18next";
 
 const LoginContainer = () => {
   const { isLoginIn, authUser } = userAuthStore();
   const navigate = useNavigate();
+  const { t: translate, i18n } = useTranslation(["auth"]);
+  const formErrorBase = "login.form.errorTexts";
 
   const [showPassword, setShowPassword] = useState(false);
   const [loginDetails, setLoginDetails] = useState({
@@ -59,7 +62,10 @@ const LoginContainer = () => {
       isError = true;
       setIsFormError((prev) => ({
         ...prev,
-        handle: { value: true, errorText: "Email or Username is required." },
+        handle: {
+          value: true,
+          errorText: translate(`${formErrorBase}.HANDLE_REQUIRED`),
+        },
       }));
     } else {
       const isEmailAttempt = identifier.includes("@");
@@ -73,7 +79,7 @@ const LoginContainer = () => {
             ...prev,
             handle: {
               value: true,
-              errorText: "Please enter a valid email address.",
+              errorText: translate(`${formErrorBase}.VALID_EMAIL_REQUIRED`),
             },
           }));
         }
@@ -84,8 +90,7 @@ const LoginContainer = () => {
             ...prev,
             handle: {
               value: true,
-              errorText:
-                "Usernames must be at least 4 characters (letters, numbers, underscores).",
+              errorText: translate(`${formErrorBase}.USERNAME_NOT_COMPLETE`),
             },
           }));
         }
@@ -96,7 +101,10 @@ const LoginContainer = () => {
       isError = true;
       setIsFormError((prev) => ({
         ...prev,
-        password: { value: true, errorText: "Password cannot be empty." },
+        password: {
+          value: true,
+          errorText: translate(`${formErrorBase}.PASSWORD_REQUIRED`),
+        },
       }));
     } else if (cleanPassword.length < 6) {
       isError = true;
@@ -104,7 +112,7 @@ const LoginContainer = () => {
         ...prev,
         password: {
           value: true,
-          errorText: "Password must be at least 6 characters.",
+          errorText: translate(`${formErrorBase}.PASSWORD_NOT_COMPLETE`),
         },
       }));
     }
@@ -168,6 +176,16 @@ const LoginContainer = () => {
     setShowPassword(!showPassword);
   };
 
+  const headText = translate("login.form.welcomeText.header");
+  const followUpText = translate("login.form.welcomeText.followUpText");
+  const passwordFieldText = translate("login.form.formText.password");
+  const handleFieldText = translate("login.form.formText.handle");
+  const LoginButtonText = translate("login.form.buttonText");
+  const needAccountQuestion = translate("login.form.needAccountText.question");
+  const needAccountInstruction = translate(
+    "login.form.needAccountText.instruction"
+  );
+
   return (
     <Flex
       alignItems="center"
@@ -185,9 +203,9 @@ const LoginContainer = () => {
       >
         <Flex mb="15px" direction="column" gap="2" w="full" alignItems="center">
           <Heading fontSize="2xl" mt="10px">
-            Welcome back!
+            {headText}
           </Heading>
-          <Text>We're so excited to see you again!</Text>
+          <Text>{followUpText}</Text>
         </Flex>
 
         <chakra.form
@@ -198,7 +216,7 @@ const LoginContainer = () => {
           gap="3"
         >
           <Field.Root invalid={isFormError.handle.value}>
-            <Field.Label>Email or Username</Field.Label>
+            <Field.Label>{handleFieldText}</Field.Label>
             <Input
               size="md"
               onChange={handleOnChangeHandle}
@@ -210,7 +228,7 @@ const LoginContainer = () => {
           </Field.Root>
 
           <Field.Root invalid={isFormError.password.value}>
-            <Field.Label>Password</Field.Label>
+            <Field.Label>{passwordFieldText}</Field.Label>
             <InputGroup
               endElement={
                 <IconButton
@@ -250,13 +268,14 @@ const LoginContainer = () => {
                 loading
               />
             ) : (
-              "Log in"
+              LoginButtonText
             )}
           </Button>
         </chakra.form>
 
         <Text>
-          Need an Account? <Link to={"signup"}>Signup</Link>{" "}
+          {needAccountQuestion}{" "}
+          <Link to={"signup"}>{needAccountInstruction}</Link>{" "}
         </Text>
       </Flex>
     </Flex>

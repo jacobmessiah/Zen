@@ -1,6 +1,7 @@
 import { Flex } from "@chakra-ui/react";
 import { Outlet } from "react-router-dom";
 import AuthRibbonBar, { LogoImage } from "./ui/authRibbonBar";
+import LanguageSwitches from "../../components/ui/lang-switcher";
 const AuthContainer = () => {
   return (
     <Flex
@@ -12,6 +13,7 @@ const AuthContainer = () => {
       alignItems="center"
       justifyContent="center"
     >
+      <LanguageSwitches />
       <AuthRibbonBar />
 
       <Flex

@@ -25,15 +25,14 @@ const App = () => {
   if (isCheckingAuth) {
     return (
       <Flex
-        direction="column"
-        justify="space-between"
-        align="center"
+        justifyContent="center"
+        alignItems="center"
         minW="100%"
-        height="100vh"
-        padding="10px"
+        minHeight="100vh"
       >
         <Image
           draggable={false}
+          onDrag={(e) => e.preventDefault()}
           userSelect="none"
           pointerEvents="none"
           onClick={(e) => e.preventDefault()}
@@ -46,10 +45,6 @@ const App = () => {
           }
           src={colorMode === "light" ? "/black.svg" : "/white.svg"}
         />
-
-        <Text opacity={0} fontSize="12px" color="white" userSelect="none">
-          Imperial Studio Inc
-        </Text>
       </Flex>
     );
   }

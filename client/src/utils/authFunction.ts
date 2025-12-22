@@ -3,6 +3,9 @@ import userAuthStore from "../store/user-auth-store";
 import type { loginDetails, signupDetails } from "../types";
 import type { IUser } from "../types/schema";
 import { axiosInstance } from "./config";
+import i8nextConfig from "../../i18next";
+
+const translate = i8nextConfig.getFixedT(null, "auth");
 
 export const handleCheckAuth = async () => {
   userAuthStore.setState({ isCheckingAuth: true });
@@ -10,10 +13,7 @@ export const handleCheckAuth = async () => {
     const res = await axiosInstance.get("/auth/check");
     const authUser: IUser = res.data;
     userAuthStore.setState({ authUser });
-    
-    console.log("Success")
   } catch {
-    console.log("Failed")
     userAuthStore.setState({ authUser: null });
   } finally {
     userAuthStore.setState({ isCheckingAuth: false });
@@ -37,8 +37,11 @@ export const handleLogin = async (loginDetails: loginDetails) => {
 
     const returnObject = {
       isError: true,
-      errorMessage:
-        axiosError.response?.data.message || "No Internet Connection",
+      errorMessage: axiosError.response?.data.message
+        ? translate(
+            `login.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data.message}`
+          )
+        : translate("login.form.errorTexts.SERVER_ERRORS.NO_INTERNET"),
       authUser: null,
     };
     return returnObject;
@@ -51,7 +54,7 @@ export const handleSignup = async (signupDetails: signupDetails) => {
   if (!signupDetails || typeof signupDetails !== "object") {
     return {
       isError: true,
-      errorText: "Invalid signup details",
+      errorText: "Invalid Params. Please Reload",
       errorOnInput: false,
       authUser: null,
     };
@@ -83,8 +86,11 @@ export const handleSignup = async (signupDetails: signupDetails) => {
       errorOnInput?: string;
     }>;
 
-    const errorText =
-      axiosError.response?.data.message || "No internet connection";
+    const errorText = axiosError.response?.data?.message
+      ? translate(
+          `signup.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data?.message}`
+        )
+      : translate("signup.form.errorTexts.SERVER_ERRORS.NO_INTERNET");
     const errorOnInput = axiosError.response?.data?.errorOnInput || false;
 
     return {
