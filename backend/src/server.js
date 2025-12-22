@@ -34,7 +34,7 @@ const startServer = async () => {
       .default;
 
     //  Mount my routes AFTER DB is ready
-    app.use("/api/users", userRoute);
+    app.use("/api/auth", userRoute);
     app.use("/api/profile", profileRoute);
     app.use("/api/friends", friendRoute);
     app.use("/api/conversations", ConversationRoute);

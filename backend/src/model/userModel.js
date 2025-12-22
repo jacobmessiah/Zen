@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    displayName: {
       type: String,
       required: true,
     },
@@ -14,39 +14,20 @@ const userSchema = new mongoose.Schema(
     password: {
       required: true,
       type: String,
-    },
-    //All Profile Details like animations, profilepic, coverimage, chat plates are here
-    profile: {
-      profilePic: String,
-      coverImage: String,
-      tags: [String],
-      profileAnimation: String,
-      chatPlate: String,
-      avatarEffect: String,
-      bio: String,
-      profilePicsm: String,
+      minLength: 6,
     },
     email: {
       type: String,
       required: true,
     },
-    hyperZen: {
-      default: false,
-      type: Boolean,
-    },
-    loginType: {
-      type: String,
-      enum: ["google", "email"],
-      default: "email",
+    dob: {
+      type: Date,
       required: true,
     },
+
     isAdmin: {
       type: Boolean,
       default: false,
-    },
-    isUsernameFinalized: {
-      default: true,
-      type: Boolean,
     },
   },
   { timestamps: true }
