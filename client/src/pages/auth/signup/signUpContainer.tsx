@@ -1,15 +1,21 @@
 import { Button, Field, Flex, Heading, Input, Text } from "@chakra-ui/react";
 import { chakra } from "@chakra-ui/react";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { BeatLoader } from "react-spinners";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import type { signupDetails } from "../../../types";
 import DOBInput from "../../../components/ui/dob-input";
-import { handleSignup } from "../../../utils/authFunction";
+import {
+  ConnectSocket,
+  handleCheckUsername,
+  handleSignup,
+} from "../../../utils/authFunction";
 import userAuthStore from "../../../store/user-auth-store";
 import { useTranslation } from "react-i18next";
+import AuthLogo from "../../../components/ui/logo-export";
+import debounce from "lodash.debounce";
 
 type FieldError = {
   value: boolean;
@@ -30,12 +36,20 @@ const SignUpContainer = () => {
 
   const navigate = useNavigate();
 
+  // top-level hook for loader color
+  const loaderColor = useColorModeValue("white", "black");
+
   const [signupDetails, setSignupDetails] = useState<signupDetails>({
     displayName: "",
     email: "",
     username: "",
     password: "",
     dob: null,
+  });
+  const [usernameQueryKey, setUsernameQueryKey] = useState("");
+  const [usernameQueryInfo, setUsernameQueryKeyInfo] = useState({
+    message: "",
+    isError: false,
   });
 
   const [isFormError, setIsFormError] = useState<formError>({
@@ -270,8 +284,66 @@ const SignUpContainer = () => {
       userAuthStore.setState({
         authUser: signupRes.authUser,
       });
-      navigate("/");
+      ConnectSocket(signupRes.authUser._id);
+      navigate("/app");
     }
+  };
+
+  const debouncedCheckUsername = useCallback(
+    debounce(async (value: string) => {
+      if (value.length < 4) return;
+
+      const response = await handleCheckUsername(value);
+
+      if (response.isError) {
+        if (response.errorOnInput) {
+          setIsFormError((prev) => ({
+            ...prev,
+            username: {
+              value: response.isError,
+              errorText: response.message,
+            },
+          }));
+          setUsernameQueryKeyInfo((prev) => ({
+            ...prev,
+            message: response.message,
+            isError: response.isError,
+          }));
+        }
+      } else {
+        setSignupDetails((prev) => ({
+          ...prev,
+          username:
+            response?.usernameQueryKey.toLowerCase() ||
+            usernameQueryKey.toLocaleLowerCase(),
+        }));
+        setUsernameQueryKeyInfo((prev) => ({
+          ...prev,
+          message: response.message,
+          isError: response.isError,
+        }));
+      }
+    }, 500),
+    []
+  );
+
+  const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+
+    if (value.length && value.length > 19) return;
+
+    const formattedValue = value.toLowerCase().replace(/\s/g, "");
+    setUsernameQueryKey(formattedValue);
+    setUsernameQueryKeyInfo({ message: "", isError: false });
+    setIsFormError((prev) => ({
+      ...prev,
+      username: {
+        value: false,
+        errorText: "",
+      },
+    }));
+    setSignupDetails((prev) => ({ ...prev, username: "" }));
+    debouncedCheckUsername(value);
   };
 
   const formTBase = "signup.form";
@@ -288,42 +360,50 @@ const SignUpContainer = () => {
     `${formTBase}.haveAccountText.instruction`
   );
 
+  const width = {
+    base: "90%",
+    sm: "80%",
+    md: "60%",
+    lg: "60%",
+    xl: "60%",
+  };
+
   return (
     <Flex
-      alignItems="center"
+      align="center"
+      justify="center"
       direction="column"
-      w="full"
-      h="full"
+      minH="100vh"
       userSelect="none"
-      py={{ base: "10px", lg: "30px", md: "20px" }}
+      py={{ base: "40px", lg: "40px" }}
       gap="4"
+      overflowY="auto"
     >
+      <AuthLogo />
       <Heading textAlign="center">{formHeaderText}</Heading>
 
       <chakra.form
         onSubmit={handleSubmit}
-        w="95%"
+        w={width}
         display="flex"
         flexDir="column"
-        gap="5"
+        gap="2.5"
       >
         {/* Display Name */}
-        <Flex w="full" gap="2" alignItems="start">
-          <Field.Root invalid={isFormError.displayName?.value || false}>
-            <Field.Label>{displayNameLabel}</Field.Label>
-            <Input
-              variant="outline"
-              name="displayName"
-              value={signupDetails.displayName}
-              onChange={handleChange}
-              rounded="lg"
-              pl="1"
-            />
-            <Field.ErrorText>
-              {isFormError.displayName?.errorText || ""}
-            </Field.ErrorText>
-          </Field.Root>
-        </Flex>
+
+        <Field.Root invalid={isFormError.displayName?.value || false}>
+          <Field.Label>{displayNameLabel}</Field.Label>
+          <Input
+            variant="outline"
+            name="displayName"
+            value={signupDetails.displayName}
+            onChange={handleChange}
+            pl="1"
+          />
+          <Field.ErrorText>
+            {isFormError.displayName?.errorText || ""}
+          </Field.ErrorText>
+        </Field.Root>
 
         {/* Email */}
         <Field.Root invalid={isFormError.email?.value || false}>
@@ -338,7 +418,6 @@ const SignUpContainer = () => {
             }}
             value={signupDetails.email}
             onChange={handleChange}
-            rounded="lg"
             pl="1"
           />
           <Field.ErrorText>
@@ -355,12 +434,27 @@ const SignUpContainer = () => {
                 e.preventDefault();
               }
             }}
+            maxLength={20}
+            onChange={handleUsernameChange}
             name="username"
-            value={signupDetails.username}
-            onChange={handleChange}
-            rounded="lg"
+            value={usernameQueryKey}
             pl="1"
           />
+
+          {!isFormError.username?.value &&
+            usernameQueryInfo.message &&
+            !usernameQueryInfo.isError && (
+              <Text
+                fontSize="12px"
+                color={{
+                  _dark: "green.400",
+                  _light: "green.600",
+                }}
+              >
+                {usernameQueryInfo.message}
+              </Text>
+            )}
+
           <Field.ErrorText>
             {isFormError.username?.errorText || ""}
           </Field.ErrorText>
@@ -375,7 +469,6 @@ const SignUpContainer = () => {
             autoComplete="current-password"
             value={signupDetails.password}
             onChange={handleChange}
-            rounded="lg"
             pl="1"
           />
           <Field.ErrorText>
@@ -390,13 +483,9 @@ const SignUpContainer = () => {
           <Field.ErrorText>{isFormError.dob?.errorText || ""}</Field.ErrorText>
         </Field.Root>
 
-        <Button rounded="lg" type="submit">
+        <Button type="submit">
           {isSigningUp ? (
-            <BeatLoader
-              color={useColorModeValue("white", "black")}
-              size={8}
-              loading
-            />
+            <BeatLoader color={loaderColor} size={8} loading />
           ) : (
             buttonText
           )}
@@ -404,7 +493,10 @@ const SignUpContainer = () => {
       </chakra.form>
 
       <Text>
-        {haveAccountTextQ} <Link to={".."}>{haveAccountTextInstruction}</Link>{" "}
+        {haveAccountTextQ}{" "}
+        <Link style={{ fontWeight: "bold" }} to={".."}>
+          {haveAccountTextInstruction}
+        </Link>{" "}
       </Text>
     </Flex>
   );

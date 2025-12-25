@@ -1,3 +1,5 @@
+import type { IUser } from "./schema";
+
 export type loginDetails = {
   handle: string;
   password: string;
@@ -9,4 +11,18 @@ export type signupDetails = {
   username: string;
   password: string;
   dob: Date | null;
+};
+
+export type signupResponse = {
+  isError: boolean;
+  errorText: string;
+  errorOnInput: boolean | string;
+  authUser: IUser | null;
+};
+
+export type usernameCheckResponse = {
+  isError: boolean;
+  message: string;
+  errorOnInput: boolean;
+  usernameQueryKey?: string;
 };

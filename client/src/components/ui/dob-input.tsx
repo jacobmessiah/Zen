@@ -69,7 +69,7 @@ const DOBInput = ({
   });
 
   const yearsCollection = useMemo(() => {
-    const numberFormatter = new Intl.NumberFormat(lang);
+    const numberFormatter = new Intl.NumberFormat(lang, {useGrouping: false});
     return createListCollection({
       items: Array.from({ length: 60 }, (_, index) => {
         const year = numberFormatter.format(currentYear - index);

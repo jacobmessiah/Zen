@@ -1,0 +1,15 @@
+{
+  "ConnectionHeaderText": "Connection",
+  "ConnectionAddButtonText": "Add",
+  "NewConnectionButtonText": "Add Connection ",
+  "SearchConnectionPlaceholderText": "Search connections",
+  "ConnectionAddInstruction": "You can add new connections with their Zen username",
+  "PingConnectionButtonText": "Ping Connection",
+
+  "NewConnectionResponses": {
+    "ERROR_MISSING_PING_ARG": "username is required to add a new connection.",
+    "USER_NOT_FOUND": "Sorry we cannot send a ping with this username.",
+    "PING_ALREADY_SENT": "You have already sent a ping to this user. Please wait",
+    "CONNECTION_PING_CREATED": "Ping sent successfully!"
+  }
+}

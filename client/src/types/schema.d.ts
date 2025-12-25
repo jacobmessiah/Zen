@@ -7,4 +7,5 @@ export interface IUser {
   isAdmin: boolean;
   createdAt: string;
   updatedAt: string;
+  _id: string;
 }

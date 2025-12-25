@@ -126,9 +126,7 @@ export const handleSignup = async (req, res) => {
     return res.status(200).json({ authUser: rest });
   } catch (error) {
     console.log("Error on #signup #userController", error);
-    res
-      .status(500)
-      .json({ message: "SERVER_ERROR", errorOnInput: false });
+    res.status(500).json({ message: "SERVER_ERROR", errorOnInput: false });
   }
 };
 
@@ -171,6 +169,48 @@ export const handleLogout = async (req, res) => {
   } catch (error) {
     console.log("Error on Logout Controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const handleCheckUsername = async (req, res) => {
+  try {
+    const usernameQueryKey = req.body.usernameQueryKey;
+    if (!usernameQueryKey)
+      return res.status(400).json({
+        message: "NO_USERNAME_QUERY",
+        errorOnInput: false,
+        isError: true,
+      });
+
+    const findUser = await User.findOne({ username: usernameQueryKey });
+
+    if (findUser) {
+      return res.status(400).json({
+        message: "USERNAME_TAKEN",
+        isError: true,
+        usernameQueryKey,
+        errorOnInput: true,
+      });
+    } else {
+      return res.status(200).json({
+        message: "USERNAME_AVAILABLE",
+        isError: false,
+        errorOnInput: false,
+        usernameQueryKey,
+      });
+    }
+  } catch (error) {
+    console.log(
+      "Error on #checkUsername #userController.js",
+      error?.message || error
+    );
+    const errorObject = {
+      errorOnInput: false,
+      message: "SERVER_ERROR",
+      isError: true,
+    };
+
+    return res.status(500).json({ errorObject });
   }
 };
 

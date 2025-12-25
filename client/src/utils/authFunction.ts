@@ -1,17 +1,40 @@
 import type { AxiosError } from "axios";
 import userAuthStore from "../store/user-auth-store";
-import type { loginDetails, signupDetails } from "../types";
+import type {
+  loginDetails,
+  signupDetails,
+  signupResponse,
+  usernameCheckResponse,
+} from "../types";
 import type { IUser } from "../types/schema";
 import { axiosInstance } from "./config";
 import i8nextConfig from "../../i18next";
+import { io } from "socket.io-client";
 
 const translate = i8nextConfig.getFixedT(null, "auth");
+
+export const ConnectSocket = (userId: string) => {
+  const BACKEND_SOCKET_URI = import.meta.env.VITE_BACKEND_URL;
+
+  if (!BACKEND_SOCKET_URI) return;
+  if (!userId) return;
+
+  const socketInstance = userAuthStore.getState().socket;
+  if (socketInstance) return;
+  const newSocket = io(BACKEND_SOCKET_URI, {
+    query: {
+      userId: userId,
+    },
+  });
+  userAuthStore.setState({ socket: newSocket });
+};
 
 export const handleCheckAuth = async () => {
   userAuthStore.setState({ isCheckingAuth: true });
   try {
     const res = await axiosInstance.get("/auth/check");
     const authUser: IUser = res.data;
+    ConnectSocket(authUser._id.toString());
     userAuthStore.setState({ authUser });
   } catch {
     userAuthStore.setState({ authUser: null });
@@ -33,6 +56,7 @@ export const handleLogin = async (loginDetails: loginDetails) => {
 
     return returnObject;
   } catch (error) {
+    console.log(error);
     const axiosError = error as AxiosError<{ message: string }>;
 
     const returnObject = {
@@ -72,7 +96,8 @@ export const handleSignup = async (signupDetails: signupDetails) => {
   try {
     const res = await axiosInstance.post("/auth/signup", payload);
 
-    const authUser = res.data?.authUser;
+    const resData: signupResponse = res.data;
+    const authUser = resData.authUser;
 
     return {
       isError: false,
@@ -101,5 +126,45 @@ export const handleSignup = async (signupDetails: signupDetails) => {
     };
   } finally {
     userAuthStore.setState({ isSigningUp: false });
+  }
+};
+
+export const handleCheckUsername = async (usernameQueryKey: string) => {
+  try {
+    const res = await axiosInstance.post("/auth/username/check", {
+      usernameQueryKey: usernameQueryKey,
+    });
+
+    const resData: usernameCheckResponse = res.data;
+    const message = translate(`signup.form.usernameCheck.${resData.message}`);
+    console.log(message);
+
+    const returnObject = {
+      message: message,
+      isError: resData.isError || false,
+      errorOnInput: resData.errorOnInput,
+      usernameQueryKey: resData?.usernameQueryKey || usernameQueryKey,
+    };
+
+    return returnObject;
+  } catch (error) {
+    const axiosError = error as AxiosError<{
+      message: string;
+      isError: boolean;
+      errorOnInput: boolean;
+    }>;
+
+    const message = translate(
+      `signup.form.usernameCheck.${axiosError.response?.data.message}`
+    );
+
+    const returnObject = {
+      message: message,
+      isError: axiosError.response?.data.isError || true,
+      errorOnInput: axiosError.response?.data.errorOnInput,
+      usernameQueryKey: usernameQueryKey,
+    };
+
+    return returnObject;
   }
 };
