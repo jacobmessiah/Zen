@@ -10,11 +10,11 @@ i18next
   .use(initReactI18next)
   .init({
     fallbackLng: "en",
-    debug: true,
+    debug: false,
     returnObjects: true,
     interpolation: { escapeValue: false },
     backend: { loadPath: "/locale/{{lng}}/{{ns}}.json" },
-    ns: ["translation", "auth"],
+    ns: ["translation", "auth", "connection"],
     defaultNS: "translation",
   });
 

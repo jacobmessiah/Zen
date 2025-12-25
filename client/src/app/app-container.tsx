@@ -2,8 +2,23 @@ import { Flex, Image } from "@chakra-ui/react";
 import { useColorModeValue } from "../components/ui/color-mode";
 import { Outlet } from "react-router-dom";
 import AppNavigatorBig from "./components/ui/app-navigator";
+import { useEffect } from "react";
+import userAuthStore from "../store/user-auth-store";
+import { newConnectionSocketHandler } from "../utils/connectionsFunctions";
 
 const AppTopRibbon = () => {
+  const { socket } = userAuthStore();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newConnectionPing", newConnectionSocketHandler);
+
+    return () => {
+      socket.off("newConnectionPing", newConnectionSocketHandler);
+    };
+  }, []);
+
   const source = useColorModeValue("/black.svg", "/white.svg");
 
   //Add Electron close minimize maximize buttons here later
@@ -29,7 +44,13 @@ const AppContainer = () => {
   const contentBg = useColorModeValue("white", "gray.950");
 
   return (
-    <Flex bg={shelfColor} direction="column" minH="100vh" h="100vh">
+    <Flex
+      className={useColorModeValue("scroll-light", "scroll-dark")}
+      bg={shelfColor}
+      direction="column"
+      minH="100vh"
+      h="100vh"
+    >
       <Flex w="full" h="6%">
         <AppTopRibbon />
       </Flex>

@@ -12,7 +12,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 
 console.log("FRONTEND_URL in io.js:", FRONTEND_URL);
 
-const ConnectedUsersSocket = new Map();
+const connectedUsers = new Map();
 
 const io = new Server(server, {
   cors: {
@@ -21,15 +21,16 @@ const io = new Server(server, {
   },
 });
 
-const block = async (socket, next) => {
+const block = async (socket, next) => { 
   const userId = socket.handshake.query.userId;
 
   if (!userId) {
-    return console.log("Unauthorized Socket Connection Request Detected");
+    console.log("Unauthorized Socket Connection Request Detected");
+    return;
   }
 
   const findUser = await User.findOne({ _id: userId });
-  ConnectedUsersSocket.set(userId, {
+  connectedUsers.set(findUser._id.toString(), {
     userDetails: findUser,
     socketId: socket.id,
     handshakeTime: new Date(),
@@ -39,6 +40,17 @@ const block = async (socket, next) => {
       `Unauthorized Socket Connection Request Detected trying to connect with id --> ${userId}`
     );
   next();
+};
+
+export const getUserSocket = (userId) => {
+  if (!userId) return null;
+
+  const key = String(userId);
+  const user = connectedUsers.get(key);
+
+  if (!user || !user.socketId) return null;
+
+  return user.socketId;
 };
 
 io.use(block);

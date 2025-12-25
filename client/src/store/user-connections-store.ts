@@ -1,18 +1,20 @@
 import { create } from "zustand";
-import type { IUser } from "../types/schema";
+import type { connectionPingType, IUser } from "../types/schema";
 
 type userConnectionStoreTypes = {
   connections: IUser[];
   selectedConnection: IUser | null;
   onlineConnections: string[];
-  pendingConnections: string[];
+  receivedConnectionPings: connectionPingType[];
+  sentConnectionPings: connectionPingType[];
 };
 
 const userConnectionStore = create<userConnectionStoreTypes>(() => ({
   connections: [],
   selectedConnection: null,
   onlineConnections: [],
-  pendingConnections: [],
+  receivedConnectionPings: [],
+  sentConnectionPings: [],
 }));
 
 export default userConnectionStore;

@@ -1,15 +1,17 @@
 import type { AxiosError } from "axios";
 import userAuthStore from "../store/user-auth-store";
 import type {
+  checkUserResponse,
   loginDetails,
   signupDetails,
   signupResponse,
   usernameCheckResponse,
 } from "../types";
 import type { IUser } from "../types/schema";
-import { axiosInstance } from "./config";
+import { axiosInstance, notificationService } from "./config";
 import i8nextConfig from "../../i18next";
 import { io } from "socket.io-client";
+import userConnectionStore from "../store/user-connections-store";
 
 const translate = i8nextConfig.getFixedT(null, "auth");
 
@@ -33,9 +35,15 @@ export const handleCheckAuth = async () => {
   userAuthStore.setState({ isCheckingAuth: true });
   try {
     const res = await axiosInstance.get("/auth/check");
-    const authUser: IUser = res.data;
-    ConnectSocket(authUser._id.toString());
-    userAuthStore.setState({ authUser });
+    const resData: checkUserResponse = res.data;
+
+    userAuthStore.setState({ authUser: resData.authUser });
+    userConnectionStore.setState({
+      receivedConnectionPings: resData?.receivedConnectionPings || [],
+      sentConnectionPings: resData?.sentConnectionPings || [],
+    });
+
+    ConnectSocket(resData.authUser._id);
   } catch {
     userAuthStore.setState({ authUser: null });
   } finally {

@@ -8,6 +8,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoute.js";
 import ConnectDB from "./lib/db.js";
+import connectionRoute from "./routes/connectionRoute.js";
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 app.use(
@@ -22,6 +23,7 @@ app.use(cookieParser());
 const PORT = process.env.PORT || 5000;
 
 app.use("/api/auth", userRoutes);
+app.use("/api/connections", connectionRoute);
 
 ConnectDB().then(() => {
   server.listen(PORT, () => {

@@ -1,34 +1,55 @@
-import { Button, Flex, Heading, Input, InputGroup } from "@chakra-ui/react";
+import { Button, Flex, Heading } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
 import userConnectionStore from "../../../store/user-connections-store";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import AllConnectionsUI from "./all-connection-ui";
 import NewConnectionUI from "./new-connection-ui";
+import PendingConnectionsUI from "./pending-connection-ui";
 
 const ConnectionSideBar = () => {
-  const { connections, onlineConnections, pendingConnections } =
-    userConnectionStore();
+  const {
+    connections,
+    onlineConnections,
+    receivedConnectionPings,
+    sentConnectionPings,
+  } = userConnectionStore();
   const { t: translate } = useTranslation(["connection"]);
 
   const [showConnectionsUiOff, setShowConnectionUiOff] = useState<
     "online" | "all" | "new" | "pending"
-  >(connections.length > 0 ? "all" : "new");
+  >(() => {
+    if (
+      Array.isArray(receivedConnectionPings) &&
+      receivedConnectionPings.length > 0
+    ) {
+      return "pending";
+    }
+    if (Array.isArray(connections) && connections.length > 0) {
+      return "all";
+    }
+    return "new";
+  });
 
   const connectionHeaderText = translate("ConnectionHeaderText");
-  const searchConnectionPlaceholderText = translate(
-    "SearchConnectionPlaceholderText"
-  );
 
   const ConnectionAddButtonText = translate("ConnectionAddButtonText");
 
+  const hasPending =
+    (Array.isArray(receivedConnectionPings) &&
+      receivedConnectionPings.length > 0) ||
+    (Array.isArray(sentConnectionPings) && sentConnectionPings.length > 0);
+
   return (
     <Flex
-      w={{ base: "100%", lg: "40%" }}
+      minW={{ base: "100%", lg: "40%" }}
+      maxW={{ base: "100%", lg: "40%" }}
       borderRight={{ base: "none", lg: "1px solid " }}
       borderColor={{ base: "none", lg: "colorPalette.muted" }}
       direction="column"
       alignItems="center"
+      maxH="100%"
+      overflow="hidden"
     >
       <Flex
         userSelect="none"
@@ -37,31 +58,57 @@ const ConnectionSideBar = () => {
         w="full"
         px="10px"
         py="8px"
+        maxH="8%"
+        minH="8%"
         borderBottom="1px solid"
         borderColor="colorPalette.muted"
       >
         <Heading fontWeight="600">{connectionHeaderText}</Heading>
 
         <Flex gap="10px" alignItems="center">
-          {onlineConnections.length > 0 && (
+          {Array.isArray(onlineConnections) && onlineConnections.length > 0 && (
             <Button variant="ghost" size={{ base: "md", lg: "sm" }}>
               Online
             </Button>
           )}
-          {connections.length > 0 && (
+          {Array.isArray(connections) && connections.length > 0 && (
             <Button variant="ghost" size={{ base: "md", lg: "sm" }}>
               All
             </Button>
           )}
-          {pendingConnections.length > 0 && (
-            <Button variant="ghost" size={{ base: "md", lg: "sm" }}>
+
+          {hasPending && (
+            <Button
+              rounded="md"
+              variant={showConnectionsUiOff === "pending" ? "subtle" : "ghost"}
+              size={{ base: "md", lg: "xs" }}
+              onClick={() => setShowConnectionUiOff("pending")}
+            >
               Pending
+              {receivedConnectionPings.length > 0 && (
+                <Flex
+                  ml="2"
+                  bg="red.500"
+                  color="white"
+                  w="4"
+                  h="4"
+                  borderRadius="full"
+                  justifyContent="center"
+                  alignItems="center"
+                  fontSize="2xs"
+                  fontWeight="bold"
+                >
+                  {receivedConnectionPings.length > 9
+                    ? "9+"
+                    : receivedConnectionPings.length}
+                </Flex>
+              )}
             </Button>
           )}
-
           <Button
+            rounded="md"
             onClick={() => setShowConnectionUiOff("new")}
-            size={{ base: "md", lg: "xs" }}
+            size={{ base: "sm", lg: "xs" }}
           >
             <LuPlus />
             {ConnectionAddButtonText}
@@ -69,26 +116,16 @@ const ConnectionSideBar = () => {
         </Flex>
       </Flex>
 
-      {showConnectionsUiOff !== "new" && (
-        <Flex
-          minW={{ base: "95%", lg: "95%" }}
-          maxW={{ base: "95%", lg: "95%" }}
-          justifyContent="center"
-          alignItems="center"
-        >
-          <InputGroup>
-            <Input
-              variant="subtle"
-              w="full"
-              placeholder={searchConnectionPlaceholderText}
-              maxLength={35}
-            />
-          </InputGroup>
-        </Flex>
-      )}
-
-      {showConnectionsUiOff === "all" && <AllConnectionsUI />}
-      {showConnectionsUiOff === "new" && <NewConnectionUI />}
+      <Flex minH="calc(100% - 8%)" maxH="calc(100% - 8%)" w="full">
+        {showConnectionsUiOff === "pending" && (
+          <PendingConnectionsUI
+            sentConnectionPings={sentConnectionPings}
+            receivedConnectionPings={receivedConnectionPings}
+          />
+        )}
+        {showConnectionsUiOff === "all" && <AllConnectionsUI />}
+        {showConnectionsUiOff === "new" && <NewConnectionUI />}
+      </Flex>
     </Flex>
   );
 };

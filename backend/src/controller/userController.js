@@ -1,6 +1,7 @@
 import User from "../model/userModel.js";
 import bcrypt from "bcryptjs";
 import generateJwtToken from "../lib/utils.js";
+import ConnectionPing from "../model/connectionPingModel.js";
 
 export const handleSignup = async (req, res) => {
   try {
@@ -214,10 +215,26 @@ export const handleCheckUsername = async (req, res) => {
   }
 };
 
-export const checkUser = (req, res) => {
+export const checkUser = async (req, res) => {
   try {
     const user = req.user;
-    res.status(200).json(user);
+
+    const receivedConnectionPings = await ConnectionPing.find({
+      to: user._id,
+      showFor: user._id,
+    }).populate("from");
+
+    const sentConnectionPings = await ConnectionPing.find({
+      from: user._id,
+    }).populate("to");
+
+    const returnObject = {
+      sentConnectionPings,
+      receivedConnectionPings,
+      authUser: user,
+    };
+
+    return res.status(200).json(returnObject);
   } catch (error) {
     console.log("Error on #check #userController.js", error.message);
     res.status(500).json({ message: "SERVER_ERROR" });

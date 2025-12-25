@@ -1,5 +1,5 @@
 {
-  "ConnectionHeaderText": "Connection",
+  "ConnectionHeaderText": "Connections",
   "ConnectionAddButtonText": "Add",
   "NewConnectionButtonText": "Add Connection ",
   "SearchConnectionPlaceholderText": "Search connections",
@@ -7,9 +7,11 @@
   "PingConnectionButtonText": "Ping Connection",
 
   "NewConnectionResponses": {
-    "ERROR_MISSING_PING_ARG": "username is required to add a new connection.",
+    "ERROR_MISSING_PING_ARG": "Username is required to add a new connection.",
     "USER_NOT_FOUND": "Sorry we cannot send a ping with this username.",
     "PING_ALREADY_SENT": "You have already sent a ping to this user. Please wait",
-    "CONNECTION_PING_CREATED": "Ping sent successfully!"
+    "CONNECTION_PING_CREATED": "Connection ping sent successfully!",
+    "CANNOT_CONNECT_TO_YOURSELF": "You cannot add yourself as a connection.",
+    "SERVER_ERROR": "Internal server error. Try later"
   }
 }

@@ -17,7 +17,6 @@ const ConnectionPingSchema = new mongoose.Schema(
     message: {
       type: String,
       maxLength: 500,
-      required: true,
     },
 
     isMessageRequest: {

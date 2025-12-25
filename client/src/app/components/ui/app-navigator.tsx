@@ -1,20 +1,22 @@
-import { Box, Flex } from "@chakra-ui/react";
-import { FiLayers, FiZap } from "react-icons/fi";
+import { Flex, Float } from "@chakra-ui/react";
+import { FiLayers, FiMessageCircle, FiZap } from "react-icons/fi";
 import { HiOutlineShare } from "react-icons/hi";
-import { BiMessageSquare } from "react-icons/bi";
 import { Tooltip } from "../../../components/ui/tooltip";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import userCallStore from "../../../store/user-call-store";
 import { useLocation, useNavigate } from "react-router-dom";
+import userConnectionStore from "../../../store/user-connections-store";
 
 const AppNavigatorBig = () => {
   const { isCalling } = userCallStore();
+
+  const { receivedConnectionPings } = userConnectionStore();
 
   const sideBarLinksArray = [
     {
       text: "Chats",
       url: "chats",
-      icon: <BiMessageSquare size={22} />,
+      icon: <FiMessageCircle size={22} />,
     },
     {
       text: "Spaces",
@@ -48,6 +50,25 @@ const AppNavigatorBig = () => {
     }
   };
 
+  const hasIncomingRequests =
+    Array.isArray(receivedConnectionPings) &&
+    receivedConnectionPings.length > 0;
+
+  const notifyHasConnectionEl = (
+    <Float offset="1.5">
+      <Flex
+        ml="2"
+        bg="red"
+        color="white"
+        p="5px"
+        borderRadius="full"
+        justifyContent="center"
+        alignItems="center"
+        fontSize="xs"
+      ></Flex>
+    </Float>
+  );
+
   return (
     <Flex
       pt="10px"
@@ -61,6 +82,8 @@ const AppNavigatorBig = () => {
     >
       {sideBarLinksArray.map((item) => {
         const isActive = location.pathname.includes(item.url);
+
+        const isConnections = item.url === "connections";
 
         return (
           <Flex
@@ -81,6 +104,7 @@ const AppNavigatorBig = () => {
                 onClick={() => handleNavigation(item.url)}
                 rounded="lg"
                 w="40px"
+                pos="relative"
                 h="40px"
                 bg={isActive ? hoverBg : ""}
                 cursor="pointer"
@@ -91,6 +115,8 @@ const AppNavigatorBig = () => {
                 alignItems="center"
               >
                 {item.icon}
+
+                {isConnections && hasIncomingRequests && notifyHasConnectionEl}
               </Flex>
             </Tooltip>
 

@@ -1,4 +1,4 @@
-import type { IUser } from "./schema";
+import type { connectionPingType, IUser } from "./schema";
 
 export type loginDetails = {
   handle: string;
@@ -25,4 +25,18 @@ export type usernameCheckResponse = {
   message: string;
   errorOnInput: boolean;
   usernameQueryKey?: string;
+};
+
+export type newConnectionPingResponse = {
+  isSent: boolean;
+  isSuccess: boolean;
+  isError: boolean;
+  message: string;
+  pingData?: connectionPingType;
+};
+
+export type checkUserResponse = {
+  receivedConnectionPings: connectionPingType[];
+  sentConnectionPings: connectionPingType[];
+  authUser: IUser;
 };
