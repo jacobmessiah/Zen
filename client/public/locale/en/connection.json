@@ -1,0 +1,33 @@
+{
+  "ConnectionHeaderText": "Connections",
+  "ConnectionAddButtonText": "Add",
+  "NewConnectionButtonText": "Add Connection ",
+  "SearchConnectionPlaceholderText": "Search connections",
+  "ConnectionAddInstruction": "You can add new connections with their Zen username",
+  "PingConnectionButtonText": "Ping Connection",
+  "acceptConnectionText": "Accept",
+  "ignoreConnectionText": "Ignore",
+
+  "NewConnectionResponses": {
+    "ERROR_MISSING_PING_ARG": "Username is required to add a new connection.",
+    "USER_NOT_FOUND": "Sorry we cannot send a ping with this username.",
+    "PING_ALREADY_SENT": "You have already sent a ping to this user. Please wait",
+    "CONNECTION_PING_CREATED": "Connection ping sent successfully!",
+    "CANNOT_CONNECT_TO_YOURSELF": "You cannot add yourself as a connection.",
+    "SERVER_ERROR": "Internal server error. Try later",
+    "NO_INTERNET": "No internet connection",
+    "PING_ALREADY_RECEIVED": "You already have a connection request waiting. Open your requests to accept or decline."
+  },
+  "SERVER_RESPONSES": {
+    "INVALID_REQUEST": "Sorry!. Ping delete failed",
+    "DOES_NOT_EXIST": "Failed to delete. Please Reload",
+    "SERVER_ERROR": "Internal server error. Try later"
+  },
+  "CancelConnectionPing": "Cancel",
+
+  "DOCUMENT_ID_REQUIRED": "Could not complete this request",
+  "PING_NOT_FOUND": "Something went wrong",
+  "SERVER_ERROR": "Internal server error. Try later",
+  "CONNECTION_ALREADY_EXISTS": "You're already connected with this user.",
+  "WRONG_REQUEST": "Something wrong with your request"
+}

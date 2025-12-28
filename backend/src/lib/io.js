@@ -1,15 +1,20 @@
-import http, { OutgoingMessage } from "http";
+import http from "http";
 import express from "express";
 import { Server } from "socket.io";
+import User from "../model/userModel.js";
+import dotenv from "dotenv";
+import cookie from "cookie";
+import jwt from "jsonwebtoken";
+import Session from "../model/sessionModel.js";
 
-import { getAllFriendsForSocket } from "../controller/friendController.js";
-import { markAsRead } from "../controller/MessageController.js";
-import { socketViewedStatus } from "../controller/StatusController.js";
+dotenv.config({ quiet: true });
 
 const app = express();
 const server = http.createServer(app);
 
-const FRONTEND_URL = process.env.FRONTEND_URL
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
+console.log("FRONTEND_URL in io.js:", FRONTEND_URL);
 
 const io = new Server(server, {
   cors: {
@@ -17,160 +22,176 @@ const io = new Server(server, {
     credentials: true,
   },
 });
-const userIdSocketMap = new Map();
-// userId = socketid
 
-const socketIdMap = new Map();
-// socketid = userId
+const connectedUserMap = new Map();
 
-const incomingCallArray = new Array();
-
-export const getAUserSocketId = (userId) => {
-  return userIdSocketMap.get(userId.toString());
-};
-
-const block = (socket, next) => {
-  const authUser = socket.handshake.query.userId;
-  
-
-  if (!authUser) {
-    return console.log("Unauthorized Socket Connection Request Detected");
+export const emitPayLoadToUser = (userId, emitDestination, emitPayload) => {
+  if (!userId) {
+    console.log("emitPayloadToUser didn't receive userId");
+    return;
   }
 
+  const stringedUser = userId.toString();
+
+  const connectedUser = connectedUserMap.get(stringedUser.toString());
+
+  if (!connectedUser) {
+    console.log(
+      "Tried to Push event on user with id of ",
+      stringedUser,
+      "but user is not online"
+    );
+    return;
+  }
+
+  connectedUser.forEach((connection) => {
+    console.log(connection.socketId);
+    io.to(connection.socketId).emit(emitDestination, emitPayload);
+  });
+};
+
+export const emitPayloadToOtherSessions = (
+  userId,
+  emitDestination,
+  emitPayload,
+  sessionIdToAvoid
+) => {
+  if (!userId || !emitDestination || !emitPayload) {
+    console.log(
+      "#emitPayloadToOtherSessions #io.js. Stopped process because of missing arg"
+    );
+    return;
+  }
+
+  const connectedUser = connectedUserMap.get(userId.toString());
+
+  if (!connectedUser) {
+    console.log(
+      "#emitPayloadToOtherSessions #io.js. Stopped Process because user was not found in socketMap"
+    );
+    return;
+  }
+
+  if (Array.isArray(connectedUser) && connectedUser.length < 1) {
+    console.log("Only one Device Detected. No need for emit");
+    return;
+  }
+
+  connectedUser.forEach((connected) => {
+    if (connected.sessionId !== sessionIdToAvoid) {
+      const socketId = connected.socketId;
+
+      if (socketId) {
+        io.to(socketId).emit(emitDestination, emitPayload);
+      }
+    }
+  });
+};
+
+const updateMap = (userId, sessionId, socketId) => {
+  const getExisting = connectedUserMap.get(userId);
+  if (getExisting) {
+    const object = { sessionId: sessionId, socketId: socketId };
+    getExisting.push(object);
+    connectedUserMap.set(userId, getExisting);
+  } else {
+    const newArray = [{ sessionId: sessionId, socketId: socketId }];
+    connectedUserMap.set(userId, newArray);
+  }
+};
+
+const protectSocket = async (socket, next) => {
+  const rawCookies = socket.request?.headers?.cookie;
+
+  if (!rawCookies) {
+    console.log("Attempted socket connection without cookies");
+    socket.disconnect();
+    return;
+  }
+
+  const cookies = cookie.parseCookie(socket.request?.headers?.cookie || "");
+
+  const ZenCookieToken = cookies.ZenChattyVerb;
+
+  if (!ZenCookieToken) {
+    console.log(
+      "Attempted socket connection without ZenCookies --> ZenChattyVerb"
+    );
+    socket.disconnect();
+    return;
+  }
+
+  let verify;
+
+  try {
+    verify = jwt.verify(ZenCookieToken, process.env.JWT_SECRET);
+  } catch (error) {
+    console.log(
+      "Verify Failed on #io.js #protectSocket function error message --> ",
+      error?.message || error
+    );
+    socket.disconnect();
+    return;
+  }
+
+  const payLoad = verify;
+
+  const userId = payLoad.userId;
+  const sessionId = payLoad.sessionId;
+
+  if (!userId || !sessionId) {
+    console.log(
+      "Attempted connection without required ids supposed to be in cookies"
+    );
+    socket.disconnect();
+    return;
+  }
+
+  const userDetails = await User.findOne({ _id: userId });
+  const userSession = await Session.findOne({ _id: sessionId });
+
+  if (!userDetails) {
+    console.log(
+      "Attempted connection with id of USER schema with no existing value"
+    );
+    socket.disconnect();
+    return;
+  }
+
+  if (!userSession) {
+    console.log(
+      "Attempted connection with id of SESSION schema with no existing value"
+    );
+    socket.disconnect();
+    return;
+  }
+
+  socket.userId = userDetails._id;
+  socket.sessionId = userSession._id;
+  socket.user = userDetails;
+
+  updateMap(userDetails._id.toString(), userSession._id.toString(), socket.id);
   next();
 };
 
-io.use(block);
+export const getUserSocket = (userId) => {
+  if (!userId) return null;
 
-io.on("connection", async (socket) => {
-  console.log("A user connected", socket.id);
-  const userId = socket.handshake.query.userId;
+  const key = String(userId);
+  const user = connectedUsers.get(key);
 
-  if (!userId) return;
+  if (!user || !user.socketId) return null;
 
-  if (userIdSocketMap.has(userId)) {
-    userIdSocketMap.delete(userId);
-  }
-  if (socketIdMap.has(socket.id)) {
-    socketIdMap.delete(socket.id);
-  }
+  return user.socketId;
+};
 
-  const isSomeoneCallingMe = incomingCallArray.find(
-    (call) => call.receiverId === userId
+io.use(protectSocket);
+
+io.on("connection", (socket) => {
+  const userId = socket.userId;
+  console.log(
+    `User Connected with USERID --> ${userId} and SOCKETID --> ${socket.id}`
   );
-
-  console.log("This is My Calls", isSomeoneCallingMe);
-
-  userIdSocketMap.set(userId, socket.id);
-  socketIdMap.set(socket.id, userId);
-
-  socket.data.getFriends = await getAllFriendsForSocket(userId);
-
-  if (socket.data.getFriends.length < 1) return;
-  socket.data.getFriends.forEach((friend) => {
-    const friendSocket = userIdSocketMap.get(friend.toString());
-    if (friendSocket) {
-      io.to(friendSocket).emit("friendIsOnline", userId);
-    }
-  });
-  const AllOnlineFriends = socket.data.getFriends.filter((person) =>
-    userIdSocketMap.has(person.toString())
-  );
-  socket.emit("onlineFriendList", AllOnlineFriends);
-
-  socket.on("disconnect", async (reason) => {
-    console.log("User disconnected :", reason);
-
-    const getUserId = socketIdMap.get(socket.id);
-
-    userIdSocketMap.delete(getUserId);
-    socketIdMap.delete(socket.id);
-    if (socket.data.getFriends.length < 1) return;
-    socket.data.getFriends.forEach((friendId) => {
-      const friendSocket = userIdSocketMap.get(friendId.toString());
-      if (friendSocket) {
-        io.to(friendSocket).emit("userDisconnect", getUserId);
-      }
-    });
-  });
-
-  socket.on("markRead", async (data) => {
-    const res = await markAsRead(data);
-    console.log(res);
-  });
-
-  socket.on("viewedStatus", (data) => socketViewedStatus(data));
-
-  //Call Sockets Events and Emits
-
-  socket.on("call:start", (data) => {
-    const receiverId = data.receiverId;
-    console.log(data)
-    if (!receiverId) return;
-
-    const isAlreadyCallingUser = incomingCallArray.find(
-      (call) => call.receiverId === receiverId
-    );
-
-    if (data) {
-      incomingCallArray.push(data);
-      const isReceiverOnline = userIdSocketMap.get(receiverId);
-      if (isReceiverOnline) {
-        io.to(isReceiverOnline).emit("call:ring", data);
-      }
-    }
-  });
-
-  //Listener for offer from client
-  socket.on("call:server:offer", (args) => {
-    const receiverSocketId = userIdSocketMap.get(args.answerer);
-    console.log("Collecting offerSDP from ", receiverSocketId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("call:client:offer", args);
-    }
-  });
-
-  //Listener for ice from client
-  socket.on("call:server:ice", (args) => {
-    const receiverSocketId = userIdSocketMap.get(args.answerer);
-    console.log("Collecting Ice from ", receiverSocketId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("call:client:ice", args);
-    }
-  });
-
-  socket.on("call:server:answer", (args) => {
-    const receiverSocketId = userIdSocketMap.get(args.answerer);
-    console.log("Receiving answer SDP from ", receiverSocketId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("call:client:answer", args);
-    }
-  });
-
-  socket.on("call:request:video:server", (args) => {
-    console.log(args);
-    const receiverSocketId = userIdSocketMap.get(args.to);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("call:request:video", args);
-    }
-  });
-
-  socket.on("call:negotiation:offer:server", (args) => {
-    const receiverSocket = userIdSocketMap.get(args.to);
-    if (receiverSocket) {
-      io.to(receiverSocket).emit("call:negotiation:offer:client", args);
-    }
-  });
-
-  socket.on("call:negotiation:answer:server", (args) => {
-    const receiverSocket = userIdSocketMap.get(args.to);
-
-    if (receiverSocket) {
-      io.to(receiverSocket).emit("call:negotiation:answer:client", args);
-    }
-  });
-
-  //Call Sockets Events and Emits
 });
 
 export { io, server, app };

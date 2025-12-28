@@ -1,16 +1,97 @@
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
+import ipLocate from "node-iplocate";
+import { UAParser } from "ua-parser-js";
+import Session from "../model/sessionModel.js";
 
 const generateJwtToken = (userId, res) => {
-    const token = jwt.sign({userId} ,process.env.JWT_SECRET , {
-        expiresIn: '7d'
-    })
-      res.cookie("ZenChattyVerb",token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        sameSite: 'Strict',
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== "development"
-    })
+  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  res.cookie("ZenChattyVerb", token, {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: "Strict",
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== "development",
+  });
+};
 
-}
+export const ipLookupClient = new ipLocate(process.env.IP_LOCATE_API_KEY || "");
 
-export default generateJwtToken
+export const generateCookieAndSession = async (req, userId) => {
+  try {
+    const ip =
+      req.headers["cf-connecting-ip"] || // Cloudflare
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress;
+
+    const oneMonthAfter = new Date();
+    oneMonthAfter.setMonth(oneMonthAfter.getMonth() + 1);
+
+    //Note always add a temp ip in development when creating a cookie
+    const ipLocate = await ipLookupClient.lookup(
+      "2c0f:2a80:a2c:d510:f993:4985:c488:541c"
+    );
+
+    const isUnknownLocation =
+      !ipLocate ||
+      !ipLocate.country ||
+      ipLocate.latitude == null ||
+      ipLocate.longitude == null;
+
+    if (isUnknownLocation) {
+      console.log(
+        `Cookie Generation Failed Reason -->  Unknown location for IP --> ${ip}`
+      );
+
+      return {
+        token: null,
+        isError: true,
+        errorMessage: "BROWSER_ERROR_OR_FIRE_WALL",
+      };
+    }
+
+    const city = ipLocate.city || ipLocate.subdivision || null;
+    const country = ipLocate.country;
+    const formattedLocation = city ? `${city}, ${country}` : country;
+
+    const userAgent = UAParser(req.headers["user-agent"]);
+
+    let sessionObject = {
+      location: {
+        formattedLocation: formattedLocation,
+        coordinates: [ipLocate.latitude, ipLocate.longitude],
+      },
+      ownerId: userId,
+      os: userAgent.os?.name || null,
+      osClient: userAgent.browser.name || null,
+      ip: ip,
+      userAgent: userAgent.ua,
+      lastUsedAt: new Date(),
+      expiresAt: oneMonthAfter,
+    };
+
+    const newSession = await Session.create(sessionObject);
+
+    const token = jwt.sign(
+      { userId, sessionId: newSession._id.toString() },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    return { token, isError: false, errorMessage: "" };
+  } catch (error) {
+    console.log(
+      "Error on #generateCookieAndSession #utils.js",
+      error?.message || error
+    );
+    return {
+      token: null,
+      isError: true,
+      errorMessage: "SERVER_ERROR",
+    };
+  }
+};
+
+export default generateJwtToken;

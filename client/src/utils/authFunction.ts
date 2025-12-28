@@ -1,18 +1,50 @@
 import type { AxiosError } from "axios";
 import userAuthStore from "../store/user-auth-store";
-import type { loginDetails, signupDetails } from "../types";
-import type { IUser } from "../types/schema";
+import type {
+  checkUserResponse,
+  loginDetails,
+  signupDetails,
+  signupResponse,
+  usernameCheckResponse,
+} from "../types";
 import { axiosInstance } from "./config";
 import i8nextConfig from "../../i18next";
+import { io } from "socket.io-client";
+import userConnectionStore from "../store/user-connections-store";
 
 const translate = i8nextConfig.getFixedT(null, "auth");
+
+export const ConnectSocket = (userId: string) => {
+  const BACKEND_SOCKET_URI = import.meta.env.VITE_BACKEND_URL;
+
+  if (!BACKEND_SOCKET_URI) return;
+  if (!userId) return;
+
+  const socketInstance = userAuthStore.getState().socket;
+  if (socketInstance) return;
+  const newSocket = io(BACKEND_SOCKET_URI, {
+    query: {
+      userId: userId,
+    },
+    withCredentials: true,
+  });
+  userAuthStore.setState({ socket: newSocket });
+};
 
 export const handleCheckAuth = async () => {
   userAuthStore.setState({ isCheckingAuth: true });
   try {
     const res = await axiosInstance.get("/auth/check");
-    const authUser: IUser = res.data;
-    userAuthStore.setState({ authUser });
+    const resData: checkUserResponse = res.data;
+
+    userAuthStore.setState({ authUser: resData.authUser });
+    userConnectionStore.setState({
+      receivedConnectionPings: resData?.receivedConnectionPings || [],
+      sentConnectionPings: resData?.sentConnectionPings || [],
+      connections: resData.connections,
+    });
+
+    ConnectSocket(resData.authUser._id);
   } catch {
     userAuthStore.setState({ authUser: null });
   } finally {
@@ -72,7 +104,8 @@ export const handleSignup = async (signupDetails: signupDetails) => {
   try {
     const res = await axiosInstance.post("/auth/signup", payload);
 
-    const authUser = res.data?.authUser;
+    const resData: signupResponse = res.data;
+    const authUser = resData.authUser;
 
     return {
       isError: false,
@@ -101,5 +134,44 @@ export const handleSignup = async (signupDetails: signupDetails) => {
     };
   } finally {
     userAuthStore.setState({ isSigningUp: false });
+  }
+};
+
+export const handleCheckUsername = async (usernameQueryKey: string) => {
+  try {
+    const res = await axiosInstance.post("/auth/username/check", {
+      usernameQueryKey: usernameQueryKey,
+    });
+
+    const resData: usernameCheckResponse = res.data;
+    const message = translate(`signup.form.usernameCheck.${resData.message}`);
+
+    const returnObject = {
+      message: message,
+      isError: resData.isError || false,
+      errorOnInput: resData.errorOnInput,
+      usernameQueryKey: resData?.usernameQueryKey || usernameQueryKey,
+    };
+
+    return returnObject;
+  } catch (error) {
+    const axiosError = error as AxiosError<{
+      message: string;
+      isError: boolean;
+      errorOnInput: boolean;
+    }>;
+
+    const message = translate(
+      `signup.form.usernameCheck.${axiosError.response?.data.message}`
+    );
+
+    const returnObject = {
+      message: message,
+      isError: axiosError.response?.data.isError || true,
+      errorOnInput: axiosError.response?.data.errorOnInput,
+      usernameQueryKey: usernameQueryKey,
+    };
+
+    return returnObject;
   }
 };

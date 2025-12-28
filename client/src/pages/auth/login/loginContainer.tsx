@@ -16,14 +16,18 @@ import { Link, useNavigate } from "react-router-dom";
 import userAuthStore from "../../../store/user-auth-store";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
-import { handleLogin } from "../../../utils/authFunction";
+import { ConnectSocket, handleLogin } from "../../../utils/authFunction";
 import { useTranslation } from "react-i18next";
+import AuthLogo from "../../../components/ui/logo-export";
 
 const LoginContainer = () => {
   const { isLoginIn, authUser } = userAuthStore();
   const navigate = useNavigate();
-  const { t: translate, i18n } = useTranslation(["auth"]);
+  const { t: translate } = useTranslation(["auth"]);
   const formErrorBase = "login.form.errorTexts";
+
+  // top-level hook for loader color
+  const loaderColor = useColorModeValue("white", "black");
 
   const [showPassword, setShowPassword] = useState(false);
   const [loginDetails, setLoginDetails] = useState({
@@ -119,23 +123,24 @@ const LoginContainer = () => {
 
     if (isError) return;
 
-    const authFuncRes = await handleLogin(loginDetails);
+    const loginRes = await handleLogin(loginDetails);
 
-    if (authFuncRes.isError) {
+    if (loginRes.isError) {
       setIsFormError((prev) => ({
         ...prev,
         handle: {
-          errorText: authFuncRes.errorMessage,
-          value: authFuncRes.isError,
+          errorText: loginRes.errorMessage,
+          value: loginRes.isError,
         },
         password: {
-          errorText: authFuncRes.errorMessage,
-          value: authFuncRes.isError,
+          errorText: loginRes.errorMessage,
+          value: loginRes.isError,
         },
       }));
     } else {
-      userAuthStore.setState({ authUser: authFuncRes.authUser });
-      navigate("/");
+      ConnectSocket(loginRes.authUser._id);
+      userAuthStore.setState({ authUser: loginRes.authUser });
+      navigate("/app");
     }
   };
 
@@ -177,6 +182,7 @@ const LoginContainer = () => {
   };
 
   const headText = translate("login.form.welcomeText.header");
+  
   const followUpText = translate("login.form.welcomeText.followUpText");
   const passwordFieldText = translate("login.form.formText.password");
   const handleFieldText = translate("login.form.formText.handle");
@@ -186,15 +192,27 @@ const LoginContainer = () => {
     "login.form.needAccountText.instruction"
   );
 
+  const width = {
+    base: "90%", // For small phones
+    sm: "80%", // For large phones/small tablets (~480px)
+    md: "60%", // This covers 927px (768px to 991px)
+    lg: "50%", // Shrink it more for standard laptops
+    xl: "70%", // Even smaller for big monitors
+  };
+
   return (
     <Flex
-      alignItems="center"
+      align="center"
+      justify="center"
       direction="column"
       w="full"
-      h="full"
+      minH="100vh"
       userSelect="none"
       py={{ base: "10px", lg: "30px", md: "20px" }}
+      overflowY="auto"
     >
+      <AuthLogo />
+
       <Flex
         alignItems="center"
         w={{ base: "95%", lg: "90%" }}
@@ -210,7 +228,7 @@ const LoginContainer = () => {
 
         <chakra.form
           onSubmit={handleSummitFunction}
-          w="full"
+          w={width}
           display="flex"
           flexDir="column"
           gap="3"
@@ -221,7 +239,6 @@ const LoginContainer = () => {
               size="md"
               onChange={handleOnChangeHandle}
               maxLength={emailMaxLength}
-              rounded="lg"
               pl="1.5"
             />
             <Field.ErrorText>{isFormError.handle.errorText}</Field.ErrorText>
@@ -233,7 +250,6 @@ const LoginContainer = () => {
               endElement={
                 <IconButton
                   onClick={toggleShowPassword}
-                  mr="5px"
                   size="xs"
                   variant="ghost"
                   rounded="full"
@@ -253,20 +269,15 @@ const LoginContainer = () => {
                 onChange={handleOnchangePassword}
                 maxLength={passwordMaxLength}
                 w="full"
-                rounded="lg"
                 pl="1.5"
               />
             </InputGroup>
             <Field.ErrorText>{isFormError.password.errorText}</Field.ErrorText>
           </Field.Root>
 
-          <Button rounded="lg" type="submit">
+          <Button type="submit">
             {isLoginIn ? (
-              <BeatLoader
-                color={useColorModeValue("white", "black")}
-                size={8}
-                loading
-              />
+              <BeatLoader color={loaderColor} size={8} loading />
             ) : (
               LoginButtonText
             )}

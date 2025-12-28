@@ -1,19 +1,72 @@
-import { Flex } from "@chakra-ui/react";
-import AppSideBar from "./components/ui/app-side-bar";
+import { Flex, Image } from "@chakra-ui/react";
+import { useColorModeValue } from "../components/ui/color-mode";
+import { Outlet } from "react-router-dom";
+import AppNavigatorBig from "./components/ui/app-navigator";
+import { useEffect } from "react";
+import userAuthStore from "../store/user-auth-store";
+import { newConnectionSocketHandler } from "../utils/connectionsFunctions";
+import { handleSyncAdd, handleSyncRemove } from "../utils/sync";
 
 const AppTopRibbon = () => {
-  return <div></div>;
+  const source = useColorModeValue("/black.svg", "/white.svg");
+
+  //Add Electron close minimize maximize buttons here later
+
+  return (
+    <Flex alignItems="center" w="full" h="full">
+      <Flex
+        pointerEvents="none"
+        userSelect="none"
+        ml="5"
+        alignItems="center"
+        gap="5px"
+      >
+        <Image width="30px" height="30px" src={source} objectFit="contain" />
+      </Flex>
+    </Flex>
+  );
 };
 
 const AppContainer = () => {
-  return (
-    <Flex className="bgColors" minH="100vh">
-      <Flex py="15px" px="10px" w="5%" minH="full">
-        <AppSideBar />
-      </Flex>
+  const { socket } = userAuthStore();
 
-      <Flex flex={1}>
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newConnectionPing", newConnectionSocketHandler);
+    socket.on("SYNC:REMOVE", handleSyncRemove);
+    socket.on("SYNC:ADD", handleSyncAdd);
+
+    return () => {
+      socket.off("newConnectionPing", newConnectionSocketHandler);
+      socket.off("SYNC:REMOVE", handleSyncRemove);
+      socket.off("SYNC:ADD", handleSyncAdd);
+    };
+  }, []);
+
+  const shelfColor = useColorModeValue("#fbfbfcff", "gray.900");
+
+  const contentBg = useColorModeValue("white", "gray.950");
+
+  return (
+    <Flex bg={shelfColor} direction="column" minH="100vh" h="100vh">
+      <Flex w="full" minH="6%">
         <AppTopRibbon />
+      </Flex>
+      <Flex w="full" h="calc(100% - 6%)">
+        <Flex pt="10px" minH="full" w="5%">
+          <AppNavigatorBig />
+        </Flex>
+
+        <Flex
+          border="1px solid"
+          borderColor="colorPalette.muted"
+          flex={1}
+          bg={contentBg}
+          roundedTopLeft="20px"
+        >
+          <Outlet />
+        </Flex>
       </Flex>
     </Flex>
   );
