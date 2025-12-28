@@ -1,12 +1,13 @@
 import { create } from "zustand";
-import type { connectionPingType, IUser } from "../types/schema";
+import type { connectionPingType, ConnectionType } from "../types/schema";
 
 type userConnectionStoreTypes = {
-  connections: IUser[];
-  selectedConnection: IUser | null;
+  connections: ConnectionType[];
+  selectedConnection: ConnectionType | null;
   onlineConnections: string[];
   receivedConnectionPings: connectionPingType[];
   sentConnectionPings: connectionPingType[];
+  deletingConnectionPing: string[];
 };
 
 const userConnectionStore = create<userConnectionStoreTypes>(() => ({
@@ -15,6 +16,7 @@ const userConnectionStore = create<userConnectionStoreTypes>(() => ({
   onlineConnections: [],
   receivedConnectionPings: [],
   sentConnectionPings: [],
+  deletingConnectionPing: [],
 }));
 
 export default userConnectionStore;

@@ -24,3 +24,13 @@ export type connectionPingType = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type ConnectionType = {
+  createdAt: string;
+  updateAt: string;
+  _id: string;
+  __v?: number;
+  receiverId?: string;
+  senderId?: string;
+  otherUser: IUser;
+};

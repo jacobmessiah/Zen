@@ -72,7 +72,11 @@ const ConnectionSideBar = () => {
             </Button>
           )}
           {Array.isArray(connections) && connections.length > 0 && (
-            <Button variant="ghost" size={{ base: "md", lg: "sm" }}>
+            <Button
+              onClick={() => setShowConnectionUiOff("all")}
+              variant="ghost"
+              size={{ base: "md", lg: "sm" }}
+            >
               All
             </Button>
           )}
@@ -123,7 +127,9 @@ const ConnectionSideBar = () => {
             receivedConnectionPings={receivedConnectionPings}
           />
         )}
-        {showConnectionsUiOff === "all" && <AllConnectionsUI />}
+        {showConnectionsUiOff === "all" && (
+          <AllConnectionsUI connections={connections} />
+        )}
         {showConnectionsUiOff === "new" && <NewConnectionUI />}
       </Flex>
     </Flex>

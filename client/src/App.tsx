@@ -56,17 +56,7 @@ const App = () => {
 
   return (
     <div>
-      <Toaster
-        toastOptions={{
-          style: {
-            borderRadius: "100px",
-            height: "55px",
-            userSelect: "none",
-          },
-        }}
-        richColors
-        position="top-center"
-      />
+      <Toaster  richColors position="top-center" />
       <Routes>
         {/*HomePage Route */}
 

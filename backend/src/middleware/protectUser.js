@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../model/userModel.js";
+import Session from "../model/sessionModel.js";
 
 const ProtectRoute = async (req, res, next) => {
   try {
@@ -7,16 +8,37 @@ const ProtectRoute = async (req, res, next) => {
     if (!cookie)
       return res.status(400).json({ message: "NO_AUTHENTICATION_PARAM" });
 
-    const verify = await jwt.verify(cookie, process.env.JWT_SECRET);
-    if (!verify) return res.status(400).json({ message: "UNAUTHORIZED" });
+    let verify;
+
+    try {
+      verify = jwt.verify(cookie, process.env.JWT_SECRET);
+    } catch (error) {
+      console.log("Error verify jwt", error.message || error);
+      return res.status(400).json({ message: "UNAUTHORIZED" });
+    }
 
     const decode = jwt.decode(cookie);
-    if (!decode) return res.status(400).json({ message: "User not found" });
-    const user = await User.findOne({ _id: decode.userId }).select("-password");
+    if (!decode || typeof decode !== "object")
+      return res.status(400).json({ message: "UNAUTHORIZED" });
+
+    const { userId, sessionId } = decode;
+
+    if (!userId || !sessionId)
+      return res
+        .status(400)
+        .json({ message: "UNAUTHORIZED_NO_REQUIRED_PARAM" });
+
+    const user = await User.findOne({ _id: userId }).select("-password");
     if (!user)
       return res.status(400).json({ message: "INVALID_AUTHENTICATION_PARAM" });
 
+    const session = await Session.findOne({ _id: sessionId });
+
+    if (!session)
+      return res.status(400).json({ message: "UNAUTHORIZED_NO_SESSION" });
+
     req.user = user;
+    req.session = session;
     next();
   } catch (err) {
     console.log("SERVER_ERROR", err);

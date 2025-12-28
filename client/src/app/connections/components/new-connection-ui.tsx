@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
-import { createNewConnection } from "../../../utils/connectionsFunctions";
+import { createNewConnectionPing } from "../../../utils/connectionsFunctions";
 import userAuthStore from "../../../store/user-auth-store";
 
 const NewConnectionUI = () => {
@@ -85,7 +85,7 @@ const NewConnectionUI = () => {
       usernameQuery: "",
     }));
 
-    const resultData = await createNewConnection(username);
+    const resultData = await createNewConnectionPing(username);
 
     setInputDetails((prevDetails) => ({
       ...prevDetails,

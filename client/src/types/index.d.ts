@@ -1,4 +1,4 @@
-import type { connectionPingType, IUser } from "./schema";
+import type { connectionPingType, ConnectionType, IUser } from "./schema";
 
 export type loginDetails = {
   handle: string;
@@ -39,4 +39,5 @@ export type checkUserResponse = {
   receivedConnectionPings: connectionPingType[];
   sentConnectionPings: connectionPingType[];
   authUser: IUser;
+  connections: ConnectionType[];
 };

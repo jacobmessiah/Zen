@@ -15,8 +15,6 @@ class NotificationAudio {
   }
 
   playConnection() {
-    
-    console.log("Running Function")
     this.connection.currentTime = 0;
     this.connection.play().catch(() => {});
   }

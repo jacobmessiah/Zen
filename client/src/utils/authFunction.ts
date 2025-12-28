@@ -7,8 +7,7 @@ import type {
   signupResponse,
   usernameCheckResponse,
 } from "../types";
-import type { IUser } from "../types/schema";
-import { axiosInstance, notificationService } from "./config";
+import { axiosInstance } from "./config";
 import i8nextConfig from "../../i18next";
 import { io } from "socket.io-client";
 import userConnectionStore from "../store/user-connections-store";
@@ -27,6 +26,7 @@ export const ConnectSocket = (userId: string) => {
     query: {
       userId: userId,
     },
+    withCredentials: true,
   });
   userAuthStore.setState({ socket: newSocket });
 };
@@ -41,6 +41,7 @@ export const handleCheckAuth = async () => {
     userConnectionStore.setState({
       receivedConnectionPings: resData?.receivedConnectionPings || [],
       sentConnectionPings: resData?.sentConnectionPings || [],
+      connections: resData.connections,
     });
 
     ConnectSocket(resData.authUser._id);
@@ -64,7 +65,6 @@ export const handleLogin = async (loginDetails: loginDetails) => {
 
     return returnObject;
   } catch (error) {
-    console.log(error);
     const axiosError = error as AxiosError<{ message: string }>;
 
     const returnObject = {
@@ -145,7 +145,6 @@ export const handleCheckUsername = async (usernameQueryKey: string) => {
 
     const resData: usernameCheckResponse = res.data;
     const message = translate(`signup.form.usernameCheck.${resData.message}`);
-    console.log(message);
 
     const returnObject = {
       message: message,

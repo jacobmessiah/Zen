@@ -5,20 +5,9 @@ import AppNavigatorBig from "./components/ui/app-navigator";
 import { useEffect } from "react";
 import userAuthStore from "../store/user-auth-store";
 import { newConnectionSocketHandler } from "../utils/connectionsFunctions";
+import { handleSyncAdd, handleSyncRemove } from "../utils/sync";
 
 const AppTopRibbon = () => {
-  const { socket } = userAuthStore();
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("newConnectionPing", newConnectionSocketHandler);
-
-    return () => {
-      socket.off("newConnectionPing", newConnectionSocketHandler);
-    };
-  }, []);
-
   const source = useColorModeValue("/black.svg", "/white.svg");
 
   //Add Electron close minimize maximize buttons here later
@@ -39,22 +28,32 @@ const AppTopRibbon = () => {
 };
 
 const AppContainer = () => {
+  const { socket } = userAuthStore();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newConnectionPing", newConnectionSocketHandler);
+    socket.on("SYNC:REMOVE", handleSyncRemove);
+    socket.on("SYNC:ADD", handleSyncAdd);
+
+    return () => {
+      socket.off("newConnectionPing", newConnectionSocketHandler);
+      socket.off("SYNC:REMOVE", handleSyncRemove);
+      socket.off("SYNC:ADD", handleSyncAdd);
+    };
+  }, []);
+
   const shelfColor = useColorModeValue("#fbfbfcff", "gray.900");
 
   const contentBg = useColorModeValue("white", "gray.950");
 
   return (
-    <Flex
-      className={useColorModeValue("scroll-light", "scroll-dark")}
-      bg={shelfColor}
-      direction="column"
-      minH="100vh"
-      h="100vh"
-    >
-      <Flex w="full" h="6%">
+    <Flex bg={shelfColor} direction="column" minH="100vh" h="100vh">
+      <Flex w="full" minH="6%">
         <AppTopRibbon />
       </Flex>
-      <Flex w="full" h="calc(100% - 5%)">
+      <Flex w="full" h="calc(100% - 6%)">
         <Flex pt="10px" minH="full" w="5%">
           <AppNavigatorBig />
         </Flex>

@@ -1,7 +1,12 @@
 import User from "../model/userModel.js";
 import bcrypt from "bcryptjs";
-import generateJwtToken from "../lib/utils.js";
+import { generateCookieAndSession } from "../lib/utils.js";
 import ConnectionPing from "../model/connectionPingModel.js";
+import Connection from "../model/connectionModel.js";
+
+import Session from "../model/sessionModel.js";
+
+const MAX_SESSIONS = 12;
 
 export const handleSignup = async (req, res) => {
   try {
@@ -120,7 +125,23 @@ export const handleSignup = async (req, res) => {
 
     console.log("New User Registered");
 
-    generateJwtToken(newUser._id.toString(), res);
+    console.log("Generating Cookie and Session for userId --> ", user._id);
+    const tokenResponse = await generateCookieAndSession(
+      req,
+      newUser._id.toString()
+    );
+
+    if (tokenResponse.isError) {
+      return res.status(500).json({ message: tokenResponse.errorMessage });
+    }
+
+    res.cookie("ZenChattyVerb", tokenResponse.token, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month before token expires!
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV !== "development" ? "Strict" : "none",
+      secure: process.env.NODE_ENV !== "development",
+      path: "/",
+    });
 
     const { password: pass, ...rest } = newUser.toObject();
 
@@ -141,7 +162,7 @@ export const handleLogin = async (req, res) => {
       return res.status(400).json({ message: "PASSWORD_REQUIRED" });
     const user = await User.findOne({
       $or: [{ username: handle }, { email: handle }],
-    });
+    }).select("+password");
 
     if (!user) return res.status(400).json({ message: "INVALID_CREDENTIALS" });
 
@@ -149,8 +170,31 @@ export const handleLogin = async (req, res) => {
     if (!checkPassword)
       return res.status(400).json({ message: "INVALID_CREDENTIALS" });
 
-    generateJwtToken(user._id, res);
-    res.status(200).json({ authUser: user });
+    const sessions = await Session.find({ ownerId: user._id });
+
+    if (sessions && Array.isArray(sessions) && sessions.length > MAX_SESSIONS)
+      return res.status(400).json({ message: "MAX_SESSIONS" });
+
+    console.log("Generating Cookie and Session for userId --> ", user._id);
+    const tokenResponse = await generateCookieAndSession(
+      req,
+      user._id.toString()
+    );
+
+    if (tokenResponse.isError) {
+      return res.status(500).json({ message: tokenResponse.errorMessage });
+    }
+
+    res.cookie("ZenChattyVerb", tokenResponse.token, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 1 month before token expires!
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV !== "development" ? "Strict" : "none",
+      secure: process.env.NODE_ENV !== "development",
+      path: "/",
+    });
+
+    const { password: pass, ...rest } = user.toObject();
+    res.status(200).json({ authUser: rest });
   } catch (error) {
     console.log("Error on Login #userController.js", error?.message || error);
     res.status(500).json({ message: "SERVER_ERROR" });
@@ -228,15 +272,38 @@ export const checkUser = async (req, res) => {
       from: user._id,
     }).populate("to");
 
+    const connections = await Connection.find({
+      $or: [{ senderId: user._id }, { receiverId: user._id }],
+    });
+
+    const readyToUseConnections = await Promise.all(
+      connections.map(async (connection) => {
+        const isSender = connection.senderId.equals(user._id);
+        const otherUserId = isSender
+          ? connection.receiverId
+          : connection.senderId;
+
+        const otherUser = await User.findById(otherUserId);
+
+        return {
+          _id: connection._id,
+          otherUser,
+          createdAt: connection.createdAt,
+        };
+      })
+    );
+
     const returnObject = {
       sentConnectionPings,
       receivedConnectionPings,
       authUser: user,
+      connections: readyToUseConnections,
     };
 
     return res.status(200).json(returnObject);
   } catch (error) {
     console.log("Error on #check #userController.js", error.message);
+
     res.status(500).json({ message: "SERVER_ERROR" });
   }
 };

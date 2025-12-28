@@ -25,6 +25,8 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/auth", userRoutes);
 app.use("/api/connections", connectionRoute);
 
+app.set("trust proxy", true);
+
 ConnectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

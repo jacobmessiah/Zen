@@ -2,7 +2,11 @@ import { Flex, Input, InputGroup, ScrollArea, Text } from "@chakra-ui/react";
 import type { connectionPingType } from "../../../types/schema";
 import { FiSearch } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
-import { SentPendingConnectionItem } from "./connection-item";
+import {
+  ReceivedConnectionPingItem,
+  SentPendingConnectionPingItem,
+} from "./connection-item";
+import userConnectionStore from "../../../store/user-connections-store";
 
 const PendingSentConnectionPingMapper = ({
   sentConnectionPings,
@@ -12,17 +16,62 @@ const PendingSentConnectionPingMapper = ({
   if (Array.isArray(sentConnectionPings) && sentConnectionPings.length < 1)
     return null;
 
+  const { deletingConnectionPing } = userConnectionStore();
   const sentLength = sentConnectionPings.length;
 
   return (
-    <Flex px="10px" w="full" minH="200vh" userSelect="none" direction="column">
-      <Text ml="2%" mt="10px" mb="10px" fontSize="md">
-        Sent Connections - {sentLength}
+    <Flex gap="10px" px="10px" w="full" userSelect="none" direction="column">
+      <Text ml="2%" mt="5px" mb="5px" fontSize="md">
+        Sent - {sentLength}
       </Text>
 
-      {sentConnectionPings.map((item) => (
-        <SentPendingConnectionItem key={item._id} pendingItem={item} />
-      ))}
+      {sentConnectionPings.map((item) => {
+        const isDeleting = deletingConnectionPing.includes(item._id);
+
+        return (
+          <SentPendingConnectionPingItem
+            isDeleting={isDeleting}
+            key={item._id}
+            pendingItem={item}
+          />
+        );
+      })}
+    </Flex>
+  );
+};
+
+const ReceivedConnectionPingMapper = ({
+  receivedConnectionPings,
+}: {
+  receivedConnectionPings: connectionPingType[];
+}) => {
+  if (
+    Array.isArray(receivedConnectionPings) &&
+    receivedConnectionPings.length < 1
+  )
+    return null;
+
+  const sentLength = receivedConnectionPings.length;
+
+  const { deletingConnectionPing } = userConnectionStore();
+
+  return (
+    <Flex px="10px" w="full" userSelect="none" direction="column">
+      <Text ml="2%" mt="10px" mb="10px" fontSize="md">
+        Received - {sentLength}
+      </Text>
+
+      {receivedConnectionPings.map((item) => {
+        const isDeleting = deletingConnectionPing.includes(item._id);
+
+        return (
+          <ReceivedConnectionPingItem
+            isDeleting={isDeleting}
+            key={item._id}
+            pendingItem={item}
+          />
+        );
+      })}
     </Flex>
   );
 };
@@ -39,8 +88,6 @@ const PendingConnectionsUI = ({
     "SearchConnectionPlaceholderText"
   );
 
-  console.log(sentConnectionPings);
-  console.log(receivedConnectionPings);
   return (
     <Flex
       gap="10px"
@@ -72,6 +119,9 @@ const PendingConnectionsUI = ({
           <ScrollArea.Content paddingEnd="3" textStyle="sm">
             <PendingSentConnectionPingMapper
               sentConnectionPings={sentConnectionPings}
+            />
+            <ReceivedConnectionPingMapper
+              receivedConnectionPings={receivedConnectionPings}
             />
           </ScrollArea.Content>
         </ScrollArea.Viewport>
