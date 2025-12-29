@@ -26,27 +26,19 @@ const io = new Server(server, {
 const connectedUserMap = new Map();
 
 export const emitPayLoadToUser = (userId, emitDestination, emitPayload) => {
-  if (!userId) {
-    console.log("emitPayloadToUser didn't receive userId");
-    return;
-  }
+  if (!userId) return;
 
-  const stringedUser = userId.toString();
+  const connectedUser = connectedUserMap.get(userId.toString());
 
-  const connectedUser = connectedUserMap.get(stringedUser.toString());
-
-  if (!connectedUser) {
-    console.log(
-      "Tried to Push event on user with id of ",
-      stringedUser,
-      "but user is not online"
-    );
-    return;
-  }
+  // Check if connectedUser is an array and has at least one connection
+  if (!Array.isArray(connectedUser) || connectedUser.length === 0) return;
 
   connectedUser.forEach((connection) => {
-    console.log(connection.socketId);
-    io.to(connection.socketId).emit(emitDestination, emitPayload);
+    try {
+      io.to(connection.socketId).emit(emitDestination, emitPayload);
+    } catch (err) {
+      console.error("Failed to emit to socket", connection.socketId, err);
+    }
   });
 };
 

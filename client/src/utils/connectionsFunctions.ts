@@ -1,6 +1,6 @@
 import type { AxiosError } from "axios";
 import i8nextConfig from "../../i18next";
-import { axiosInstance, notificationService } from "./config";
+import { axiosInstance } from ".";
 import userConnectionStore from "../store/user-connections-store";
 import type { connectionPingType, ConnectionType } from "../types/schema";
 import type { newConnectionPingResponse } from "../types";
@@ -56,22 +56,6 @@ export const createNewConnectionPing = async (pingArg: string) => {
   }
 };
 
-export const newConnectionSocketHandler = async (args: connectionPingType) => {
-  if (!args) return;
-  const existingReceivedPings =
-    userConnectionStore.getState().receivedConnectionPings;
-
-  const filteredConnections = existingReceivedPings.filter(
-    (connection) => connection._id !== args._id
-  );
-
-  userConnectionStore.setState({
-    receivedConnectionPings: [...filteredConnections, args],
-  });
-
-  notificationService.playConnection();
-};
-
 export const deleteSentConnectionPing = async (
   id: string,
   isDeleting: boolean
@@ -94,7 +78,7 @@ export const deleteSentConnectionPing = async (
     const axiosError = error as AxiosError<{ message: string }>;
     const errorMessage = axiosError.response?.data.message
       ? translate(`SERVER_RESPONSES.${axiosError.response.data.message}`)
-      : translate("SERVER_RESPONSES.SERVER_ERROR");
+      : translate("SERVER_RESPONSES.NO_INTERNET");
     toast.error(errorMessage, {
       style: {
         fontSize: "13px",
@@ -105,7 +89,6 @@ export const deleteSentConnectionPing = async (
         justifySelf: "center",
       },
     });
-
   } finally {
     userConnectionStore.setState({
       deletingConnectionPing: allPending.filter((p) => p !== id),
@@ -192,4 +175,9 @@ export const ignoreConnectionPing = async (
       ],
     });
   }
+};
+
+export const handleRemoveConnection = async (documentId: string) => {
+  if (!documentId) return;
+  console.log("Document", documentId);
 };

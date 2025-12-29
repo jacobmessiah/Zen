@@ -5,63 +5,83 @@ import User from "../model/userModel.js";
 
 export const handleNewConnectionPing = async (req, res) => {
   try {
-    const pingArg = req.body.pingArg;
+    const { pingArg } = req.body;
     const user = req.user;
     const session = req.session;
 
     if (!user) return res.status(400).json({ message: "UNAUTHORIZED" });
-
     if (!pingArg)
       return res.status(400).json({ message: "ERROR_MISSING_PING_ARG" });
 
     const findUser = await User.findOne({ username: pingArg });
-
     if (!findUser) return res.status(404).json({ message: "USER_NOT_FOUND" });
-
-    if (findUser._id.equals(user._id)) {
+    if (findUser._id.equals(user._id))
       return res.status(400).json({ message: "CANNOT_CONNECT_TO_YOURSELF" });
-    }
 
-    const existingConnectionPing = await ConnectionPing.findOne({
-      from: user._id,
-      to: findUser._id,
+    // Check if connection already exists
+    const findConnection = await Connection.findOne({
+      $or: [
+        { receiverId: user._id, senderId: findUser._id },
+        { receiverId: findUser._id, senderId: user._id },
+      ],
     });
+    if (findConnection)
+      return res.status(400).json({ message: "ALREADY_CONNECTED" });
 
-    if (existingConnectionPing) {
-      return res.status(400).json({ message: "PING_ALREADY_SENT" });
-    }
-
-    const existingReceivedPing = await ConnectionPing.findOne({
-      from: findUser._id,
-      to: user._id,
+    // Check for existing pings
+    const existingPing = await ConnectionPing.findOne({
+      $or: [
+        { from: user._id, to: findUser._id },
+        { from: findUser._id, to: user._id },
+      ],
     });
-
-    if (existingReceivedPing) {
-      return res.status(400).json({ message: "PING_ALREADY_RECEIVED" });
+    if (existingPing) {
+      const message = existingPing.from.equals(user._id)
+        ? "PING_ALREADY_SENT"
+        : "PING_ALREADY_RECEIVED";
+      return res.status(400).json({ message });
     }
 
-    //Alert Notice //  Add Check for max connections here max is 200
+    // Check max connections (example: 200 max)
+    const userConnectionsCount = await Connection.countDocuments({
+      $or: [{ senderId: user._id }, { receiverId: user._id }],
+    });
+    if (userConnectionsCount >= 200)
+      return res.status(400).json({ message: "MAX_CONNECTIONS_REACHED" });
 
+    // Create the new ping
     const newConnectionPing = await ConnectionPing.create({
       from: user._id,
       to: findUser._id,
-      showFor: [findUser._id, user._id],
+      showFor: [user._id, findUser._id],
       isMessageRequest: false,
     });
 
-    const populatedTo = await newConnectionPing.populate("to");
-    const populatedFrom = await newConnectionPing.populate("from");
+    const populatedPing = await newConnectionPing.populate(["from", "to"]);
 
-    emitPayLoadToUser(findUser._id, "newConnectionPing", populatedFrom);
-    emitPayloadToOtherSessions(
-      user._id,
-      "SYNC:ADD",
-      {
-        type: "ADD_SENT_PING",
-        connectionPing: populatedTo,
-      },
-      session._id
-    );
+    // Emit safely
+    try {
+      emitPayLoadToUser(findUser._id, "EVENT:ADD", {
+        type: "ADD_RECEIVED_PING",
+        pingData: populatedPing,
+      });
+    } catch (err) {
+      console.error("Failed to emit to recipient socket", err.stack || err);
+    }
+
+    try {
+      emitPayloadToOtherSessions(
+        user._id,
+        "SYNC:ADD",
+        {
+          type: "ADD_SENT_PING",
+          connectionPing: populatedPing,
+        },
+        session._id
+      );
+    } catch (err) {
+      console.error("Failed to emit to other sessions", err.stack || err);
+    }
 
     console.log(
       `New ConnectionPing Created by ${user._id}. Ping id --> ${newConnectionPing._id}`
@@ -69,13 +89,10 @@ export const handleNewConnectionPing = async (req, res) => {
 
     return res.status(201).json({
       message: "CONNECTION_PING_CREATED",
-      pingData: populatedTo,
+      pingData: populatedPing,
     });
   } catch (error) {
-    console.log(
-      "Error on #HandleNewConnection #connectionController.js",
-      error?.message || error
-    );
+    console.error("Error on #HandleNewConnectionPing", error.stack || error);
     return res.status(500).json({ message: "SERVER_ERROR" });
   }
 };
@@ -138,33 +155,39 @@ export const handleAcceptConnectionPing = async (req, res) => {
     if (!documentId)
       return res.status(400).json({ message: "DOCUMENT_ID_REQUIRED" });
 
-    const findPing = await ConnectionPing.findOne({ _id: documentId });
+    const findPing = await ConnectionPing.findById(documentId);
 
-    if (!findPing) return res.status(400).json({ message: "PING_NOT_FOUND" });
+    if (!findPing) {
+      return res.status(400).json({ message: "PING_NOT_FOUND" });
+    }
+    if (findPing.to.toString() !== user._id.toString()) {
+      return res.status(403).json({ message: "ONLY_RECEIVER_CAN_ACCEPT" });
+    }
 
-    const isSender = findPing.from.toString() === user._id.toString();
-
-    const otherField = isSender ? "to" : "from";
+    const otherUser = await User.findById(findPing.from);
 
     const newConnection = await Connection.create({
       senderId: findPing.from,
       receiverId: findPing.to,
     });
 
-    const populateOtherField = await findPing.populate(otherField);
-    const otherUser = populateOtherField[otherField];
-
-    const { senderId, receiverId, ...rest } = newConnection.toObject();
+    const serializedConnection = newConnection.toObject();
 
     const returnObject = {
-      ...rest,
+      ...serializedConnection,
       otherUser: otherUser,
     };
 
-    const pairedWihReturnObject = {
-      ...rest,
+    const pairedWithReturnObject = {
+      ...serializedConnection,
       otherUser: user,
     };
+
+    emitPayLoadToUser(otherUser._id.toString(), "EVENT:ADD", {
+      type: "ADD_NEW_CONNECTION",
+      connectionData: pairedWithReturnObject,
+      documentId: documentId,
+    });
 
     emitPayloadToOtherSessions(
       user._id.toString(),
@@ -176,6 +199,7 @@ export const handleAcceptConnectionPing = async (req, res) => {
       },
       session._id.toString()
     );
+
     await findPing.deleteOne();
 
     res.status(200).json({ connectionData: returnObject });
@@ -185,6 +209,7 @@ export const handleAcceptConnectionPing = async (req, res) => {
       error.message
     );
 
+    console.error("Stack trace:", error.stack.split("\n")[1]);
     if (error.code === 11000) {
       return res.status(400).json({ message: "CONNECTION_ALREADY_EXISTS" });
     }
@@ -226,5 +251,28 @@ export const handleIgnoreConnectionPing = async (req, res) => {
     );
 
     return res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
+
+export const handleRemoveConnection = async (req, res) => {
+  try {
+    const documentId = req.body.documentId;
+
+    if (!documentId)
+      return res.status(400).json({ message: "INVALID_REQUEST" });
+
+    const findConnection = await Connection.findOne({ _id: documentId });
+
+    if (!findConnection)
+      return res.status(400).json({ message: "CONNECTION_NOT_FOUND" });
+
+    await findConnection.deleteOne();
+  } catch (error) {
+    console.log(
+      "Error on #handleRemoveConnection #connectionController.js  error --> ",
+      error?.message || error
+    );
+
+    return res.status(400).json({ message: "SERVER_ERROR" });
   }
 };

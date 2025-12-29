@@ -1,6 +1,10 @@
 {
   "ConnectionHeaderText": "Connections",
   "ConnectionAddButtonText": "Add",
+  "OnlineConnectionsButtonText": "Online",
+  "AllConnectionsButtonText": "All",
+
+  "PendingPingsButtonText": "Pending",
   "NewConnectionButtonText": "Add Connection ",
   "SearchConnectionPlaceholderText": "Search connections",
   "ConnectionAddInstruction": "You can add new connections with their Zen username",
@@ -16,12 +20,16 @@
     "CANNOT_CONNECT_TO_YOURSELF": "You cannot add yourself as a connection.",
     "SERVER_ERROR": "Internal server error. Try later",
     "NO_INTERNET": "No internet connection",
-    "PING_ALREADY_RECEIVED": "You already have a connection request waiting. Open your requests to accept or decline."
+    "PING_ALREADY_RECEIVED": "You already have a connection request waiting. Open your requests to accept or decline.",
+    "ALREADY_CONNECTED": "You are already connected with this person",
+    "UNAUTHORIZED": "You must be logged in to perform this action.",
+    "MAX_CONNECTIONS_REACHED": "You have reached the maximum number of connections (200)."
   },
   "SERVER_RESPONSES": {
     "INVALID_REQUEST": "Sorry!. Ping delete failed",
     "DOES_NOT_EXIST": "Failed to delete. Please Reload",
-    "SERVER_ERROR": "Internal server error. Try later"
+    "SERVER_ERROR": "Internal server error. Try later",
+    "NO_INTERNET": "No internet connection"
   },
   "CancelConnectionPing": "Cancel",
 
@@ -29,5 +37,11 @@
   "PING_NOT_FOUND": "Something went wrong",
   "SERVER_ERROR": "Internal server error. Try later",
   "CONNECTION_ALREADY_EXISTS": "You're already connected with this user.",
-  "WRONG_REQUEST": "Something wrong with your request"
+  "WRONG_REQUEST": "Something wrong with your request",
+  "START_VIDEO_CALL_TEXT": "Start Video call",
+  "START_VOICE_CALL_TEXT": "Start voice call",
+  "REMOVE_CONNECTION_TEXT": "Remove connection",
+  "SEND_MESSAGE_TEXT": "Message",
+  "MORE_TEXT": "More",
+  "ALL_CONNECTION_HEADER_TEXT": "All Connections"
 }

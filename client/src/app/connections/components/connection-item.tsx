@@ -4,7 +4,10 @@ import {
   Flex,
   Float,
   IconButton,
+  Menu,
+  Portal,
   Text,
+  type MenuSelectionDetails,
 } from "@chakra-ui/react";
 import type {
   connectionPingType,
@@ -17,9 +20,13 @@ import { useTranslation } from "react-i18next";
 import {
   acceptConnectionPing,
   deleteSentConnectionPing,
+  handleRemoveConnection,
   ignoreConnectionPing,
 } from "../../../utils/connectionsFunctions";
 import { IoMdCheckmark } from "react-icons/io";
+import { HiOutlineDotsVertical } from "react-icons/hi";
+import { IoChatbubbleSharp } from "react-icons/io5";
+import { useId } from "react";
 
 export const SentPendingConnectionPingItem = ({
   pendingItem,
@@ -40,19 +47,18 @@ export const SentPendingConnectionPingItem = ({
 
   return (
     <Flex
-      bg={{
-        _light: isDeleting ? "gray.100" : "",
-        _dark: isDeleting ? "gray.800" : "",
-      }}
       animation={isDeleting ? "pulse" : ""}
-      borderColor={{ _light: "gray.300", _dark: "gray.800" }}
+      borderColor={{ _light: "gray.200", _dark: "gray.900" }}
       p="10px"
       w="full"
       justifyContent="space-between"
       alignItems="center"
       transition="0.2s ease"
-      rounded="10px"
-      border="1px solid"
+      borderTop="1px solid"
+      _hover={{
+        bg: { _light: "gray.200", _dark: "gray.900" },
+        rounded: "10px",
+      }}
     >
       <Flex gap="8px" alignItems="center">
         <Avatar.Root>
@@ -122,14 +128,17 @@ export const ReceivedConnectionPingItem = ({
   return (
     <Flex
       animation={isDeleting ? "pulse" : ""}
-      borderColor={{ _light: "gray.300", _dark: "gray.800" }}
+      borderColor={{ _light: "gray.200", _dark: "gray.900" }}
       p="10px"
       w="full"
       justifyContent="space-between"
       alignItems="center"
       transition="0.2s ease"
-      rounded="10px"
-      border="1px solid"
+      borderTop="1px solid"
+      _hover={{
+        bg: { _light: "gray.200", _dark: "gray.900" },
+        rounded: "10px",
+      }}
     >
       <Flex gap="8px" alignItems="center">
         <Avatar.Root>
@@ -197,23 +206,46 @@ export const ReceivedConnectionPingItem = ({
 
 export const ConnectionItem = ({
   connectionItem,
+  START_VIDEO_CALL_TEXT,
+  START_VOICE_CALL_TEXT,
+  SEND_MESSAGE_TEXT,
+  REMOVE_CONNECTION_TEXT,
+  MORE_TEXT,
 }: {
   connectionItem: ConnectionType;
+  START_VIDEO_CALL_TEXT: string;
+  START_VOICE_CALL_TEXT: string;
+  REMOVE_CONNECTION_TEXT: string;
+  SEND_MESSAGE_TEXT: string;
+  MORE_TEXT: string;
 }) => {
   const otherUser = connectionItem.otherUser;
 
   const isOnline = true;
 
+  const triggerId = useId();
+
+  const handleOnSelect = (event: MenuSelectionDetails) => {
+    switch (event.value) {
+      case "remove:connection":
+        handleRemoveConnection(connectionItem._id);
+        break;
+    }
+  };
+
   return (
     <Flex
-      borderColor={{ _light: "gray.300", _dark: "gray.800" }}
+      borderColor={{ _light: "gray.200", _dark: "gray.900" }}
       p="10px"
       w="full"
       justifyContent="space-between"
       alignItems="center"
       transition="0.2s ease"
-      rounded="10px"
-      border="1px solid"
+      borderTop="1px solid"
+      _hover={{
+        bg: { _light: "gray.200", _dark: "gray.900" },
+        rounded: "10px",
+      }}
     >
       <Flex gap="8px" alignItems="center">
         <Avatar.Root>
@@ -241,7 +273,56 @@ export const ConnectionItem = ({
         </Flex>
       </Flex>
 
-      <Flex alignItems="center" gap="10px"></Flex>
+      <Flex alignItems="center" gap="10px">
+        <Tooltip
+          showArrow
+          positioning={{ placement: "top" }}
+          content={SEND_MESSAGE_TEXT}
+        >
+          <IconButton variant="ghost" rounded="full">
+            <IoChatbubbleSharp />
+          </IconButton>
+        </Tooltip>
+
+        <Menu.Root
+          onSelect={handleOnSelect}
+          positioning={{ placement: "top" }}
+          ids={{ trigger: triggerId }}
+        >
+          <Tooltip
+            ids={{ trigger: triggerId }}
+            positioning={{ placement: "top" }}
+            content={MORE_TEXT}
+            showArrow
+          >
+            <Menu.Trigger asChild>
+              <IconButton variant="ghost" rounded="full">
+                <HiOutlineDotsVertical />
+              </IconButton>
+            </Menu.Trigger>
+          </Tooltip>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content rounded="lg">
+                <Menu.Item rounded="sm" value="start:video">
+                  {START_VIDEO_CALL_TEXT}
+                </Menu.Item>
+                <Menu.Item rounded="sm" value="start:audio">
+                  {START_VOICE_CALL_TEXT}
+                </Menu.Item>
+                <Menu.Item
+                  color="fg.error"
+                  _hover={{ bg: "bg.error", color: "fg.error" }}
+                  rounded="sm"
+                  value="remove:connection"
+                >
+                  {REMOVE_CONNECTION_TEXT}
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+      </Flex>
     </Flex>
   );
 };

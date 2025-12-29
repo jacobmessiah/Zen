@@ -16,6 +16,13 @@ const AllConnectionsUI = ({
 
   const connectionLength = connections.length;
 
+  const START_VIDEO_CALL_TEXT = translate("START_VIDEO_CALL_TEXT");
+  const START_VOICE_CALL_TEXT = translate("START_VOICE_CALL_TEXT");
+  const REMOVE_CONNECTION_TEXT = translate("REMOVE_CONNECTION_TEXT");
+  const SEND_MESSAGE_TEXT = translate("SEND_MESSAGE_TEXT");
+  const MORE_TEXT = translate("MORE_TEXT");
+  const ALL_CONNECTION_HEADER_TEXT = translate("ALL_CONNECTION_HEADER_TEXT");
+
   return (
     <Flex
       gap="10px"
@@ -53,13 +60,18 @@ const AllConnectionsUI = ({
               direction="column"
             >
               <Text ml="2%" mt="5px" mb="5px" fontSize="md">
-                All Connections - {connectionLength}
+                {ALL_CONNECTION_HEADER_TEXT} - {connectionLength}
               </Text>
 
               {connections.map((connection) => (
                 <ConnectionItem
+                  MORE_TEXT={MORE_TEXT}
                   connectionItem={connection}
+                  START_VOICE_CALL_TEXT={START_VOICE_CALL_TEXT}
+                  SEND_MESSAGE_TEXT={SEND_MESSAGE_TEXT}
                   key={connection._id}
+                  START_VIDEO_CALL_TEXT={START_VIDEO_CALL_TEXT}
+                  REMOVE_CONNECTION_TEXT={REMOVE_CONNECTION_TEXT}
                 />
               ))}
             </Flex>

@@ -34,6 +34,9 @@ const ConnectionSideBar = () => {
   const connectionHeaderText = translate("ConnectionHeaderText");
 
   const ConnectionAddButtonText = translate("ConnectionAddButtonText");
+  const OnlineConnectionsButtonText = translate("OnlineConnectionsButtonText");
+  const PendingPingsButtonText = translate("PendingPingsButtonText");
+  const AllConnectionsButtonText = translate("AllConnectionsButtonText");
 
   const hasPending =
     (Array.isArray(receivedConnectionPings) &&
@@ -67,17 +70,22 @@ const ConnectionSideBar = () => {
 
         <Flex gap="10px" alignItems="center">
           {Array.isArray(onlineConnections) && onlineConnections.length > 0 && (
-            <Button variant="ghost" size={{ base: "md", lg: "sm" }}>
-              Online
+            <Button
+              rounded="md"
+              variant="ghost"
+              size={{ base: "sm", lg: "xs" }}
+            >
+              {OnlineConnectionsButtonText}
             </Button>
           )}
           {Array.isArray(connections) && connections.length > 0 && (
             <Button
+              rounded="md"
               onClick={() => setShowConnectionUiOff("all")}
               variant="ghost"
-              size={{ base: "md", lg: "sm" }}
+              size={{ base: "sm", lg: "xs" }}
             >
-              All
+              {AllConnectionsButtonText}
             </Button>
           )}
 
@@ -85,10 +93,10 @@ const ConnectionSideBar = () => {
             <Button
               rounded="md"
               variant={showConnectionsUiOff === "pending" ? "subtle" : "ghost"}
-              size={{ base: "md", lg: "xs" }}
+              size={{ base: "sm", lg: "xs" }}
               onClick={() => setShowConnectionUiOff("pending")}
             >
-              Pending
+              {PendingPingsButtonText}
               {receivedConnectionPings.length > 0 && (
                 <Flex
                   ml="2"

@@ -4,8 +4,9 @@ import { Outlet } from "react-router-dom";
 import AppNavigatorBig from "./components/ui/app-navigator";
 import { useEffect } from "react";
 import userAuthStore from "../store/user-auth-store";
-import { newConnectionSocketHandler } from "../utils/connectionsFunctions";
-import { handleSyncAdd, handleSyncRemove } from "../utils/sync";
+import { handleEventAdd } from "../utils/socket-listener/socket-listener";
+import { handleSyncRemove } from "../utils/sync";
+import { handleSyncAdd } from "../utils/sync";
 
 const AppTopRibbon = () => {
   const source = useColorModeValue("/black.svg", "/white.svg");
@@ -33,13 +34,13 @@ const AppContainer = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("newConnectionPing", newConnectionSocketHandler);
+    socket.on("EVENT:ADD", handleEventAdd);
     socket.on("SYNC:REMOVE", handleSyncRemove);
     socket.on("SYNC:ADD", handleSyncAdd);
 
     return () => {
-      socket.off("newConnectionPing", newConnectionSocketHandler);
       socket.off("SYNC:REMOVE", handleSyncRemove);
+      socket.off("EVENT:ADD", handleEventAdd);
       socket.off("SYNC:ADD", handleSyncAdd);
     };
   }, []);
