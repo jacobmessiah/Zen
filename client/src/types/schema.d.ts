@@ -3,7 +3,7 @@ export interface IUser {
   username: string;
   password: string;
   email: string;
-  dob: Date;
+  dob: Date | string;
   profile: {
     profilePic: string;
   };
@@ -11,6 +11,7 @@ export interface IUser {
   createdAt: string;
   updatedAt: string;
   _id: string;
+  __v: number;
 }
 
 export type connectionPingType = {
@@ -34,3 +35,15 @@ export type ConnectionType = {
   senderId?: string;
   otherUser: IUser;
 };
+
+export interface IConversation {
+  createdAt: Date | string;
+  updateAt?: Date | string;
+  _id: string;
+  otherUser: IUser;
+  participants: [string, string];
+  isTemp?: boolean;
+  relation: "space" | "connection";
+  connectionId?: string;
+  spaceContext?: string;
+}

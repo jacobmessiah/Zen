@@ -11,7 +11,7 @@ export const AuthSideUI2 = () => {
 
 const AuthSideUI = () => {
   return (
-    <Flex pos="relative" w="full" h="100vh">
+    <Flex pos="relative" w="full" h="100dvh">
       <Iridescence
         color={[0.15, 0.15, 0.15]}
         mouseReact={false}

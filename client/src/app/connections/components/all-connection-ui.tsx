@@ -10,8 +10,8 @@ const AllConnectionsUI = ({
   connections: ConnectionType[];
 }) => {
   const { t: translate } = useTranslation(["connection"]);
-  const searchConnectionPlaceholderText = translate(
-    "SearchConnectionPlaceholderText"
+  const searchConnectionsPlaceHolderText = translate(
+    "searchConnectionsPlaceHolderText"
   );
 
   const connectionLength = connections.length;
@@ -43,7 +43,7 @@ const AllConnectionsUI = ({
           <Input
             variant="subtle"
             w="full"
-            placeholder={searchConnectionPlaceholderText}
+            placeholder={searchConnectionsPlaceHolderText}
             maxLength={35}
           />
         </InputGroup>

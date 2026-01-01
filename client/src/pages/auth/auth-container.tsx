@@ -7,9 +7,9 @@ const AuthContainer = () => {
     <Flex
       className="satoshi-bold"
       pos="relative"
-      minH="100vh"
+      minH="100dvh"
       w="full"
-      maxH="100vh"
+      maxH="100dvh"
     >
       <Flex display={{ lg: "flex", base: "none", md: "none" }} flex={1}>
         <AuthSideUI />

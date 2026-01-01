@@ -17,3 +17,16 @@
   color: transparent;
 }
 
+.no-focus {
+  outline: none;
+}
+
+.no-focus:focus,
+.no-focus:active,
+.no-focus:focus-visible {
+  outline: none;
+  box-shadow: none;
+  border: none; /* remove if you still want border */
+}
+
+

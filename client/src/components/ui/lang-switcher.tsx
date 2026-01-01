@@ -1,5 +1,5 @@
 import { Button, Flex } from "@chakra-ui/react";
-import { supportedLanguages } from "../../lib/array";
+import { supportedLanguages } from "../../lib/arrays";
 import { useTranslation } from "react-i18next";
 
 const LanguageSwitches = () => {

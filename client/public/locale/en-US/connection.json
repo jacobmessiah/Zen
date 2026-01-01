@@ -6,7 +6,7 @@
 
   "PendingPingsButtonText": "Pending",
   "NewConnectionButtonText": "Add Connection ",
-  "SearchConnectionPlaceholderText": "Search connections",
+  "searchConnectionsPlaceHolderText": "Search connections",
   "ConnectionAddInstruction": "You can add new connections with their Zen username",
   "PingConnectionButtonText": "Ping Connection",
   "acceptConnectionText": "Accept",

@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Checkbox,
   Circle,
   Flex,
   Float,
@@ -323,6 +324,54 @@ export const ConnectionItem = ({
           </Portal>
         </Menu.Root>
       </Flex>
+    </Flex>
+  );
+};
+
+export const CreateDmConnectionItem = ({
+  connectionItem,
+  isSelected,
+  handleSelectConnection,
+}: {
+  connectionItem: ConnectionType;
+  isSelected: boolean;
+  handleSelectConnection: (connectionData: ConnectionType) => void;
+}) => {
+  return (
+    <Flex
+      onClick={() => handleSelectConnection(connectionItem)}
+      userSelect="none"
+      justifyContent="space-between"
+      p="5px"
+      alignItems="center"
+      _hover={{
+        bg: "bg.muted",
+      }}
+      rounded="md"
+      transition="0.2s ease"
+      px="10px"
+    >
+      <Flex alignItems="center" gap="5px">
+        <Avatar.Root>
+          <Avatar.Fallback name={connectionItem.otherUser.displayName} />
+
+          {connectionItem.otherUser?.profile?.profilePic && (
+            <Avatar.Image src={connectionItem.otherUser.profile.profilePic} />
+          )}
+        </Avatar.Root>
+
+        <Flex flexDirection="column">
+          <Text fontWeight="600">{connectionItem.otherUser.displayName}</Text>
+          <Text color="fg.muted" fontSize="xs">
+            {connectionItem.otherUser.username}
+          </Text>
+        </Flex>
+      </Flex>
+
+      <Checkbox.Root checked={isSelected}>
+        <Checkbox.HiddenInput />
+        <Checkbox.Control rounded="sm" />
+      </Checkbox.Root>
     </Flex>
   );
 };
