@@ -6,6 +6,7 @@ import { useColorModeValue } from "../../../components/ui/color-mode";
 import userCallStore from "../../../store/user-call-store";
 import { useLocation, useNavigate } from "react-router-dom";
 import userConnectionStore from "../../../store/user-connections-store";
+import { GrSettingsOption } from "react-icons/gr";
 
 const AppNavigatorBig = () => {
   const { isCalling } = userCallStore();
@@ -133,6 +134,135 @@ const AppNavigatorBig = () => {
           </Flex>
         );
       })}
+    </Flex>
+  );
+};
+
+export const AppNavigatorSmall = () => {
+  const { isCalling } = userCallStore();
+
+  const sideBarLinksArray = [
+    {
+      text: "Chats",
+      url: "chats",
+      icon: <FiMessageCircle size={25} />,
+    },
+    {
+      text: "Spaces",
+      url: "spaces",
+      icon: <FiLayers size={25} />,
+    },
+
+    {
+      text: "Connections",
+      url: "connections",
+      icon: <HiOutlineShare size={25} />,
+    },
+    {
+      text: "Moments",
+      url: "moments",
+      icon: <FiZap size={25} />,
+    },
+  ];
+
+  const { receivedConnectionPings } = userConnectionStore();
+
+  const navigate = useNavigate();
+
+  const location = useLocation();
+
+  const handleNavigation = (url: string) => {
+    if (isCalling) {
+      ///NOTICE Show alert that user is in call
+      return;
+    } else {
+      navigate(url);
+    }
+  };
+
+  const hasIncomingRequests =
+    Array.isArray(receivedConnectionPings) &&
+    receivedConnectionPings.length > 0;
+
+  const notifyHasConnectionEl = (
+    <Float offset="1.5">
+      <Flex
+        ml="2"
+        bg="red"
+        color="white"
+        p="5px"
+        borderRadius="full"
+        justifyContent="center"
+        alignItems="center"
+        fontSize="xs"
+      ></Flex>
+    </Float>
+  );
+
+  return (
+    <Flex
+      bg="bg"
+      display={{ base: "flex", md: "none", lg: "none" }}
+      justifyContent="space-evenly"
+      alignItems="center"
+      w="full"
+      p="10px"
+      minH="8%"
+      borderTop="0.5px solid"
+      borderColor="bg.emphasized"
+    >
+      {sideBarLinksArray.map((item) => {
+        const isActive = location.pathname.includes(item.url);
+
+        const isConnections = item.url === "connections";
+
+        return (
+          <Flex
+            pos="relative"
+            justifyContent="center"
+            alignItems="center"
+            key={item.url}
+          >
+            <Flex
+              onClick={() => handleNavigation(item.url)}
+              rounded="full"
+              w="45px"
+              pos="relative"
+              minH="95%"
+              p="10px"
+              bg={isActive ? "bg.emphasized" : ""}
+              cursor="pointer"
+              _hover={{
+                bg: "bg.emphasized",
+              }}
+              justifyContent="center"
+              alignItems="center"
+            >
+              {item.icon}
+
+              {isConnections && hasIncomingRequests && notifyHasConnectionEl}
+            </Flex>
+          </Flex>
+        );
+      })}
+
+      <Flex pos="relative" justifyContent="center" alignItems="center">
+        <Flex
+          rounded="full"
+          w="45px"
+          pos="relative"
+          minH="95%"
+          p="10px"
+          cursor="pointer"
+          _hover={{
+            bg: "bg.emphasized",
+          }}
+          justifyContent="center"
+          alignItems="center"
+        >
+          <GrSettingsOption size={28} />
+        </Flex>
+      </Flex>
     </Flex>
   );
 };

@@ -1,7 +1,9 @@
 import { Flex, Image } from "@chakra-ui/react";
 import { useColorModeValue } from "../components/ui/color-mode";
 import { Outlet } from "react-router-dom";
-import AppNavigatorBig from "./components/ui/app-navigator";
+import AppNavigatorBig, {
+  AppNavigatorSmall,
+} from "./components/ui/app-navigator";
 import { useEffect } from "react";
 import userAuthStore from "../store/user-auth-store";
 import { handleEventAdd } from "../utils/socket-listener/socket-listener";
@@ -50,24 +52,49 @@ const AppContainer = () => {
   const contentBg = useColorModeValue("white", "gray.950");
 
   return (
-    <Flex bg={shelfColor} direction="column" minH="100vh" h="100vh">
-      <Flex w="full" minH="6%">
+    <Flex bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
+      <Flex
+        w="full"
+        display={{ base: "none", md: "flex", lg: "flex" }}
+        minH="6%"
+      >
         <AppTopRibbon />
       </Flex>
-      <Flex w="full" h="calc(100% - 6%)">
-        <Flex pt="10px" minH="full" w="5%">
+      <Flex
+        direction={{ base: "column", lg: "row", md: " row" }}
+        w="full"
+        h={{ base: "100dvh", lg: "calc(100% - 6%)", md: "calc(100% - 6%)" }}
+      >
+        {/*Navigation Side Bar for Large screens */}
+        <Flex
+          display={{ base: "none", md: "flex", lg: "flex", "2xl": "flex" }}
+          pt="10px"
+          minH="full"
+          w={{ base: "0%", md: "10%", lg: "5%" }}
+        >
           <AppNavigatorBig />
         </Flex>
 
+        {/*DisplayedContent from Router */}
         <Flex
-          border="1px solid"
-          borderColor="colorPalette.muted"
-          flex={1}
-          bg={contentBg}
-          roundedTopLeft="20px"
+          border={{ base: "none", md: "1px solid", lg: "1px solid" }}
+          borderColor={{
+            base: "none",
+            md: "colorPalette.muted",
+            lg: "colorPalette.muted",
+          }}
+          w={{ base: "full", md: "90%", lg: "95%" }}
+          minH={{ base: "92%", md: "full", lg: "full" }}
+          maxH="full"
+          bg={{ base: "bg", md: contentBg, lg: contentBg }}
+          roundedTopLeft={{ base: "none", lg: "20px", md: "20px" }}
         >
           <Outlet />
         </Flex>
+
+        {/*Navigation Bottom Bar for mobile Screens*/}
+
+        <AppNavigatorSmall />
       </Flex>
     </Flex>
   );

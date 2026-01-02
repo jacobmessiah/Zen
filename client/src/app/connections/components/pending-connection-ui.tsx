@@ -84,8 +84,8 @@ const PendingConnectionsUI = ({
   receivedConnectionPings: connectionPingType[];
 }) => {
   const { t: translate } = useTranslation(["connection"]);
-  const searchConnectionPlaceholderText = translate(
-    "SearchConnectionPlaceholderText"
+  const searchConnectionsPlaceHolderText = translate(
+    "searchConnectionsPlaceHolderText"
   );
 
   return (
@@ -108,7 +108,7 @@ const PendingConnectionsUI = ({
           <Input
             variant="subtle"
             w="full"
-            placeholder={searchConnectionPlaceholderText}
+            placeholder={searchConnectionsPlaceHolderText}
             maxLength={35}
           />
         </InputGroup>

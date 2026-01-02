@@ -373,7 +373,7 @@ const SignUpContainer = () => {
       align="center"
       justify="center"
       direction="column"
-      minH="100vh"
+      minH="100dvh"
       userSelect="none"
       py={{ base: "40px", lg: "40px" }}
       gap="4"

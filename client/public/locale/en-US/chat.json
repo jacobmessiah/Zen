@@ -1,0 +1,25 @@
+{
+  "ChatTitle": "Chats",
+  "NewChat": "Create DM",
+  "DeleteChat": "Delete Chat",
+  "RenameChat": "Rename Chat",
+  "NoChats": "No chats available. Start a new conversation!",
+  "SearchChats": "Search",
+  "selectConnectionsTitle": "Select Connection",
+  "selectConnectionsDescription": "Select a connection to create a chat, DM, voice and go wild",
+  "searchConnectionsPlaceHolder": "Type a username of a connection",
+  "searchTenorPlaceHolderText": "Search Tenor",
+  "TenorSearchFailed": "Didn't get anything from Tenor. Sorry!",
+  "searchEmojiPlaceHolder": "Search the perfect emoji",
+  "emojiCategories": {
+    "people": "People",
+    "nature": "Nature",
+    "food": "Food",
+    "activities": "Activities",
+    "travel": "Travel",
+    "objects": "Objects",
+    "symbols": "Symbols",
+    "flags": "Flags"
+  },
+  "messageInputPlaceholder": "Message @{{username}}"
+}

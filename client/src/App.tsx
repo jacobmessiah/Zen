@@ -33,7 +33,7 @@ const App = () => {
         justifyContent="center"
         alignItems="center"
         minW="100%"
-        minHeight="100vh"
+        minHeight="100dvh"
       >
         <Image
           draggable={false}
@@ -53,6 +53,8 @@ const App = () => {
       </Flex>
     );
   }
+
+  console.log(authUser)
 
   return (
     <div>

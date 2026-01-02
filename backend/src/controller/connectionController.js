@@ -13,6 +13,10 @@ export const handleNewConnectionPing = async (req, res) => {
     if (!pingArg)
       return res.status(400).json({ message: "ERROR_MISSING_PING_ARG" });
 
+    if (user?.username === pingArg) {
+      return res.status(400).json({ message: "CANNOT_CONNECT_TO_YOURSELF" });
+    }
+
     const findUser = await User.findOne({ username: pingArg });
     if (!findUser) return res.status(404).json({ message: "USER_NOT_FOUND" });
     if (findUser._id.equals(user._id))
@@ -77,14 +81,14 @@ export const handleNewConnectionPing = async (req, res) => {
           type: "ADD_SENT_PING",
           connectionPing: populatedPing,
         },
-        session._id
+        session._id,
       );
     } catch (err) {
       console.error("Failed to emit to other sessions", err.stack || err);
     }
 
     console.log(
-      `New ConnectionPing Created by ${user._id}. Ping id --> ${newConnectionPing._id}`
+      `New ConnectionPing Created by ${user._id}. Ping id --> ${newConnectionPing._id}`,
     );
 
     return res.status(201).json({
@@ -117,7 +121,7 @@ export const handleDeleteSentPendingPing = async (req, res) => {
     });
 
     console.log(
-      `ConnectionPing Document Deleted. Document ID --> ${deleteConnectionPing._id}`
+      `ConnectionPing Document Deleted. Document ID --> ${deleteConnectionPing._id}`,
     );
 
     ///Emit to receiver of the connectionPing and update ui
@@ -136,7 +140,7 @@ export const handleDeleteSentPendingPing = async (req, res) => {
         type: "REMOVE_SENT_PING",
         documentId: documentId,
       },
-      session._id
+      session._id,
     );
 
     return res.status(204).end();
@@ -197,7 +201,7 @@ export const handleAcceptConnectionPing = async (req, res) => {
         connectionData: returnObject,
         documentId: findPing?._id?.toString() || documentId,
       },
-      session._id.toString()
+      session._id.toString(),
     );
 
     await findPing.deleteOne();
@@ -206,7 +210,7 @@ export const handleAcceptConnectionPing = async (req, res) => {
   } catch (error) {
     console.log(
       "Error on #acceptConnectionPing #connectionController.js  error  -->",
-      error.message
+      error.message,
     );
 
     console.error("Stack trace:", error.stack.split("\n")[1]);
@@ -230,7 +234,7 @@ export const handleIgnoreConnectionPing = async (req, res) => {
     const updateShow = await ConnectionPing.findByIdAndUpdate(
       documentId,
       { $pull: { showFor: user._id } },
-      { new: true }
+      { new: true },
     );
 
     emitPayloadToOtherSessions(
@@ -240,14 +244,14 @@ export const handleIgnoreConnectionPing = async (req, res) => {
         type: "REMOVE_RECEIVED_PING",
         documentId: documentId,
       },
-      session._id.toString()
+      session._id.toString(),
     );
 
     return res.status(204).end();
   } catch (error) {
     console.log(
       "Error on  #handleIgnoreConnectionPing #connectionController.js",
-      error.message || error
+      error.message || error,
     );
 
     return res.status(500).json({ message: "SERVER_ERROR" });
@@ -270,7 +274,7 @@ export const handleRemoveConnection = async (req, res) => {
   } catch (error) {
     console.log(
       "Error on #handleRemoveConnection #connectionController.js  error --> ",
-      error?.message || error
+      error?.message || error,
     );
 
     return res.status(400).json({ message: "SERVER_ERROR" });

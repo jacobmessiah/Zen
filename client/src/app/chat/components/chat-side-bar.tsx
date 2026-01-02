@@ -1,55 +1,118 @@
 import { Flex, Heading, IconButton, Input, InputGroup } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
-import { Tooltip } from "../../../components/ui/tooltip";
 import { useTranslation } from "react-i18next";
+import CreateDmUI from "./create-dm";
+import userChatStore from "../../../store/user-chat-store";
+import ConversationItem from "./conversation-item";
 
 const ChatSideBar = () => {
   const { t: translate } = useTranslation(["chat"]);
 
+  const { conversations, selectedConversation } = userChatStore();
+
   const chatTitle = translate("ChatTitle");
   const newChatText = translate("NewChat");
   const searchText = translate("SearchChats");
+  const selectConnectionsTitle = translate("selectConnectionsTitle");
+  const selectConnectionsDescription = translate(
+    "selectConnectionsDescription",
+  );
+
+  const searchConnectionsPlaceHolder = translate(
+    "searchConnectionsPlaceHolder",
+  );
 
   return (
     <Flex
-      borderRight={{ base: "none", lg: "1px solid " }}
-      borderColor={{ base: "none", lg: "colorPalette.muted" }}
-      w={{ base: "100%", lg: "30%" }}
-      p="5px"
+      borderRight={{ base: "none", lg: "1px solid ", md: "1px solid" }}
+      borderColor={{
+        base: "none",
+        lg: "colorPalette.muted",
+        md: "colorPalette.muted",
+      }}
+      w={{ base: "100%", lg: "30%", md: "45%" }}
       direction="column"
       alignItems="center"
     >
+      {/*Top Bar */}
       <Flex
-        userSelect="none"
+        minH={{ lg: "15%" }}
+        maxH={{ lg: "15%" }}
         alignItems="center"
-        justifyContent="space-between"
         w="full"
-        p="10px"
+        direction="column"
       >
-        <Heading fontWeight="600">{chatTitle}</Heading>
+        <Flex
+          userSelect="none"
+          alignItems="center"
+          justifyContent="space-between"
+          w="full"
+          p="10px"
+        >
+          <Heading
+            fontSize={{ base: "2xl", md: "xl", lg: "xl" }}
+            fontWeight="600"
+          >
+            {chatTitle}
+          </Heading>
+          <CreateDmUI
+            searchConnectionsPlaceHolder={searchConnectionsPlaceHolder}
+            selectConnectionsTitle={selectConnectionsTitle}
+            selectConnectionsDescription={selectConnectionsDescription}
+            newChatText={newChatText}
+          >
+            <IconButton rounded="full" variant="ghost" size="xs">
+              <LuPlus />
+            </IconButton>
+          </CreateDmUI>
+        </Flex>
 
-        <Tooltip content={newChatText}>
-          <IconButton rounded="full" variant="ghost" size="xs">
-            <LuPlus />
-          </IconButton>
-        </Tooltip>
+        <Flex minW="95%" maxW="95%" justifyContent="center" alignItems="center">
+          <InputGroup>
+            <Input
+              variant="subtle"
+              w="full"
+              placeholder={searchText}
+              size="sm"
+              maxLength={35}
+            />
+          </InputGroup>
+        </Flex>
       </Flex>
 
+      {/*Top Bar */}
+
       <Flex
-        minW={{ base: "95%", lg: "95%" }}
-        maxW={{ base: "95%", lg: "95%" }}
-        justifyContent="center"
-        alignItems="center"
+        css={{
+          "&::-webkit-scrollbar": {
+            width: "5px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "bg.emphasized",
+            borderRadius: "full",
+          },
+        }}
+        overflowY="auto"
+        gap="5px"
+        p="10px"
+        direction="column"
+        w="full"
+        maxH={{ lg: "85%" }}
+        minH={{ lg: "85%" }}
       >
-        <InputGroup>
-          <Input
-            variant="subtle"
-            w="full"
-            placeholder={searchText}
-            size="sm"
-            maxLength={35}
-          />
-        </InputGroup>
+        {conversations.slice().map((convo) => {
+          const isSelected = selectedConversation?._id === convo._id;
+          return (
+            <ConversationItem
+              convoItem={convo}
+              key={convo._id}
+              isSelected={isSelected}
+            />
+          );
+        })}
       </Flex>
     </Flex>
   );
