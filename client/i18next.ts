@@ -16,6 +16,7 @@ i18next
     backend: { loadPath: "/locale/{{lng}}/{{ns}}.json" },
     ns: ["translation", "auth", "connection"],
     defaultNS: "translation",
+
   });
 
 export default i18next;

@@ -15,7 +15,7 @@ export const searchTenor = async (queryKey: string) => {
       q: queryKey,
       limit: "30",
       locale,
-      media_filter: "gif,mediumgif,nanogif",
+      media_filter: "mp4",
     });
 
     const url = `https://tenor.googleapis.com/v2/search?${params.toString()}`;
@@ -23,6 +23,8 @@ export const searchTenor = async (queryKey: string) => {
     const res = await axios.get(url);
 
     const resData: TenorApiResponse = res.data;
+
+    console.log("ResData", resData);
     return { results: resData.results, isError: false, errMessage: "" };
   } catch (error) {
     const message = translate("TenorSearchFailed");

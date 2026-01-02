@@ -49,16 +49,14 @@ export type checkUserResponse = {
 
 export type TenorMediaObject = {
   url: string;
-  dims: [number, number]; 
+  dims: [number, number];
   duration: number;
-  size: number; 
-  preview: string; 
+  size: number;
+  preview: string;
 };
 
 export type TenorContentFormats = {
-  nanogif: TenorMediaObject;
-  gif: TenorMediaObject;
-  mediumgif: TenorMediaObject;
+  mp4: TenorMediaObject;
 };
 
 export type TenorResponseObject = {

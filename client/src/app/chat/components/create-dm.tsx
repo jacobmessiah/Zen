@@ -4,7 +4,6 @@ import {
   Dialog,
   Input,
   Portal,
-  ScrollArea,
   useDialog,
 } from "@chakra-ui/react";
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
@@ -50,7 +49,7 @@ const CreateDmUI = ({
     const filtered = connections.filter(
       (cn) =>
         cn.otherUser?.username?.toLowerCase()?.includes(value) ||
-        cn.otherUser?.displayName?.toLowerCase()?.includes(value)
+        cn.otherUser?.displayName?.toLowerCase()?.includes(value),
     );
 
     setAllConnections(filtered);
@@ -87,14 +86,20 @@ const CreateDmUI = ({
     const conversationOBJ: IConversation = {
       createdAt: new Date().toISOString(),
       updateAt: new Date().toISOString(),
-      _id: "",
+      _id: crypto.randomUUID(),
       isTemp: true,
       otherUser: selectedConnection.otherUser,
       participants: [authUser?._id || "", selectedConnection.otherUser._id],
       relation: "connection",
     };
 
-    userChatStore.setState({ selectedConversation: conversationOBJ });
+    const allConversations = userChatStore.getState().conversations;
+
+    //Alert stop setting conversationOBJ
+    userChatStore.setState({
+      selectedConversation: conversationOBJ,
+      conversations: [...allConversations, conversationOBJ],
+    });
 
     dialog.setOpen(false);
   };
@@ -110,6 +115,8 @@ const CreateDmUI = ({
   }, [connections]);
   return (
     <Dialog.RootProvider
+      unmountOnExit
+      lazyMount
       onExitComplete={handleOnExitComplete}
       value={dialog}
       placement="center"
@@ -155,47 +162,34 @@ const CreateDmUI = ({
 
             <Dialog.Body
               p="0px"
-              flex="1"
-              minH={0}
-              display="flex"
-              overflow="hidden"
+              css={{
+                "&::-webkit-scrollbar": {
+                  width: "5px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: "transparent",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "bg.emphasized",
+                  borderRadius: "full",
+                },
+              }}
             >
-              <ScrollArea.Root
-                flex={1}
-                display="flex"
-                flexDir="column"
-                minH={0}
-                textAlign="justify"
-                overflow="hidden"
-              >
-                <ScrollArea.Viewport flex={1} minH={0} overflowY="auto">
-                  <ScrollArea.Content
-                    display="flex"
-                    flexDirection="column"
-                    gap="4px"
-                    px="10px"
-                    textStyle="sm"
-                    minH={0}
-                  >
-                    {allConnections.length > 0 &&
-                      allConnections.map((connectionItem) => {
-                        const isSelected =
-                          selectedConnection?.otherUser.username ===
-                          connectionItem.otherUser.username;
+              {allConnections.length > 0 &&
+                allConnections.map((connectionItem) => {
+                  const isSelected =
+                    selectedConnection?.otherUser.username ===
+                    connectionItem.otherUser.username;
 
-                        return (
-                          <CreateDmConnectionItem
-                            handleSelectConnection={handleSelectConnection}
-                            isSelected={isSelected}
-                            key={connectionItem._id}
-                            connectionItem={connectionItem}
-                          />
-                        );
-                      })}
-                  </ScrollArea.Content>
-                </ScrollArea.Viewport>
-                <ScrollArea.Scrollbar />
-              </ScrollArea.Root>
+                  return (
+                    <CreateDmConnectionItem
+                      handleSelectConnection={handleSelectConnection}
+                      isSelected={isSelected}
+                      key={connectionItem._id}
+                      connectionItem={connectionItem}
+                    />
+                  );
+                })}
             </Dialog.Body>
 
             {/*Footer for actions --> close Modal, create DM  */}

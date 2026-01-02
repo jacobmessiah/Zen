@@ -8,38 +8,44 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
 
   return (
     <Flex
-      borderBottom="1px solid"
-      borderColor={{
-        base: "colorPalette.muted",
-        lg: "colorPalette.muted",
-        md: "colorPalette.muted",
-      }}
       alignItems="center"
       minW="full"
       maxW="full"
-      p="10px"
+      justifyContent="center"
       h="70px"
-      justifyContent="space-between"
     >
-      <Flex gap="2" alignItems="center">
-        <Avatar.Root>
-          <Avatar.Fallback name={otherUser?.displayName} />
-          <Avatar.Image src={otherUser?.profile?.profilePic} />
-        </Avatar.Root>
+      <Flex
+        p="10px"
+        h="50px"
+        w="95%"
+        rounded="full"
+        border="1px solid"
+        borderColor="fg.inverted"
+        alignItems="center"
+        justifyContent="space-between"
+        bg="bg.muted"
+        boxShadow="sm"
+      >
+        <Flex gap="2" alignItems="center">
+          <Avatar.Root size="sm">
+            <Avatar.Fallback name={otherUser?.displayName} />
+            <Avatar.Image src={otherUser?.profile?.profilePic} />
+          </Avatar.Root>
 
-        <Text fontWeight="600" fontSize="md" userSelect="none">
-          {otherUser.displayName}
-        </Text>
-      </Flex>
+          <Text fontWeight="600" fontSize="md" userSelect="none">
+            {otherUser.displayName}
+          </Text>
+        </Flex>
 
-      <Flex gap="5px">
-        <IconButton variant="ghost" rounded="lg">
-          <FiVideo />
-        </IconButton>
+        <Flex gap="5px">
+          <IconButton variant="ghost" rounded="lg">
+            <FiVideo />
+          </IconButton>
 
-        <IconButton variant="ghost" rounded="lg">
-          <IoCallOutline />
-        </IconButton>
+          <IconButton variant="ghost" rounded="lg">
+            <IoCallOutline />
+          </IconButton>
+        </Flex>
       </Flex>
     </Flex>
   );

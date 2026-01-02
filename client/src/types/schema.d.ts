@@ -36,6 +36,61 @@ export type ConnectionType = {
   otherUser: IUser;
 };
 
+interface BaseMessage {
+  _id: string;
+  conversationId: string;
+  senderId: string;
+  receiverId: string;
+  status: "sending" | "sent" | "delivered" | "read" | "failed";
+  replyTo?: string;
+  isEdited?: boolean;
+  updatedAt: Date | string;
+  createdAt: Date | string;
+}
+
+export type MessageContent =
+  | TextContent
+  | GifContent
+  | FileContent
+  | AudioContent;
+
+interface TextContent {
+  type: "text";
+  text: string;
+}
+
+interface GifContent {
+  type: "gif";
+  tenorId: string;
+  url: string;
+  previewUrl?: string;
+  width: number;
+  height: number;
+  title?: string;
+  tags?: string[];
+}
+
+interface FileContent {
+  type: "file" | "image" | "video";
+  url: string;
+  fileName: string;
+  width?: number;
+  height?: number;
+  fileSize: number;
+  mimeType: string;
+}
+
+interface AudioContent {
+  type: "audio";
+  url: string;
+  duration: number;
+  waveform?: number[];
+}
+
+export interface IMessage extends BaseMessage {
+  contents: MessageContent[];
+}
+
 export interface IConversation {
   createdAt: Date | string;
   updateAt?: Date | string;

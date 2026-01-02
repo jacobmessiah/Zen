@@ -1,12 +1,4 @@
-import {
-  Flex,
-  Image,
-  Input,
-  InputGroup,
-  ScrollArea,
-  Text,
-} from "@chakra-ui/react";
-import twemoji from "twemoji";
+import { Flex, Input, InputGroup, Text } from "@chakra-ui/react";
 import { memo, useState, type ChangeEvent } from "react";
 import { LuSearch } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
@@ -57,19 +49,15 @@ function returnCategoryIcon(value: string) {
   }
 }
 
-function parseEmoji(value: string) {
-  const codePoint = twemoji.convert.toCodePoint(value);
-  const source = `https://twemoji.maxcdn.com/v/latest/svg/${codePoint}.svg`;
-  return source;
-}
-
 const EmojiCategoryUI = memo(
   ({
     emojiCategory,
     categoryText,
+    onEmojiSelect,
   }: {
     emojiCategory: emojiCategoryType;
     categoryText: string;
+    onEmojiSelect: (value: string) => void;
   }) => {
     const [showChildrenEmojis, setShowChildrenEmojis] = useState(true);
 
@@ -97,52 +85,73 @@ const EmojiCategoryUI = memo(
         {showChildrenEmojis && (
           <Flex
             display="grid"
-            gridTemplateColumns="repeat(10, 1fr)"
+            gridTemplateColumns="repeat(9, 1fr)"
             gap="8px"
             w="full"
           >
-            {emojiCategory.emojis.map((emoji) => {
-              const source = parseEmoji(emoji.emoji);
+            {emojiCategory.emojis.map((emoji, index) => {
               return (
-                <Image
+                <Flex
+                  onClick={() => onEmojiSelect(emoji.emoji)}
                   rounded="md"
                   _hover={{
                     bg: "bg.emphasized",
                   }}
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = "none";
-                  }}
-                  p="5px"
-                  key={emoji.unicode}
+                  py="10px"
+                  key={index}
                   alignItems="center"
                   justifyContent="center"
-                  loading="lazy"
                   w="full"
-                  src={source}
-                />
+                >
+                  <Text fontSize="3xl">{emoji.emoji}</Text>
+                </Flex>
               );
             })}
           </Flex>
         )}
       </Flex>
     );
-  }
+  },
 );
 
-const ChatEmojiContainer = () => {
+const ChatEmojiContainer = ({
+  onEmojiSelect,
+}: {
+  onEmojiSelect: (value: string) => void;
+}) => {
   const { t: translate } = useTranslation(["chat"]);
-  const [searchEmojiPlaceHolder, setSearchEmojiPlaceHolder] = useState(
-    translate("searchEmojiPlaceHolder")
-  );
-
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {};
+  const searchEmojiPlaceHolder = translate("searchEmojiPlaceHolder");
 
   const [allEmojis, setAllEmojis] = useState<emojiCategoryType[]>(emojiArray);
 
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+
+    if (value === "") {
+      setAllEmojis(emojiArray);
+      return;
+    }
+
+    const lowerCaseQuery = value.toLowerCase();
+
+    const newEmojiArray = emojiArray
+      .map((category) => ({
+        ...category,
+        emojis: category.emojis.filter(
+          (emoji) =>
+            emoji.shortcode.toLowerCase().includes(lowerCaseQuery) ||
+            emoji.emoji.includes(value) ||
+            category.name.toLowerCase().includes(lowerCaseQuery),
+        ),
+      }))
+      .filter((category) => category.emojis.length > 0);
+
+    setAllEmojis(newEmojiArray);
+  };
+
   return (
     <Flex pos="relative" w="full" h="full" direction="column">
-      <Flex h="15%" alignItems="center" gap="8px" px="10px" w="full">
+      <Flex h="12%" alignItems="center" gap="8px" px="10px" w="full">
         <InputGroup startElement={<LuSearch />}>
           <Input
             onChange={handleInputChange}
@@ -152,38 +161,38 @@ const ChatEmojiContainer = () => {
         </InputGroup>
       </Flex>
 
-      <ScrollArea.Root
-        size="xs"
-        maxH={{ lg: "50dvh" }}
-        pl="5px"
-        py="5px"
-        roundedBottom="15px"
-        variant="hover"
+      <Flex
+        maxH="88%"
+        minH="88%"
+        css={{
+          "&::-webkit-scrollbar": {
+            width: "5px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "bg.emphasized",
+            borderRadius: "full",
+          },
+        }}
+        direction="column"
+        overflowY="auto"
       >
-        <ScrollArea.Viewport>
-          <ScrollArea.Content
-            display="flex"
-            flexDirection="column"
-            paddingEnd="3"
-            textStyle="xs"
-            gap="8px"
-            gridTemplateColumns="repeat(2, 1fr)"
-          >
-            {allEmojis.map((emojiCategory) => {
-              const emojiCategoryText = translate(
-                `emojiCategories.${emojiCategory.value}`
-              );
-              return (
-                <EmojiCategoryUI
-                  categoryText={emojiCategoryText}
-                  emojiCategory={emojiCategory}
-                />
-              );
-            })}
-          </ScrollArea.Content>
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar />
-      </ScrollArea.Root>
+        {allEmojis.map((emojiCategory) => {
+          const emojiCategoryText = translate(
+            `emojiCategories.${emojiCategory.value}`,
+          );
+          return (
+            <EmojiCategoryUI
+              onEmojiSelect={onEmojiSelect}
+              key={emojiCategory.value}
+              categoryText={emojiCategoryText}
+              emojiCategory={emojiCategory}
+            />
+          );
+        })}
+      </Flex>
     </Flex>
   );
 };

@@ -2,13 +2,20 @@ import { Flex, IconButton, ScrollArea } from "@chakra-ui/react";
 import { useState, type ChangeEvent } from "react";
 import { IoSend } from "react-icons/io5";
 import { LuPlus } from "react-icons/lu";
-import { TbGif } from "react-icons/tb";
 import EmojiAndGifUI from "./emoji-gif";
+import { FaFaceSmileWink } from "react-icons/fa6";
+import type { MessageContent } from "../../types/schema";
 
-export const MessageInputUI = () => {
-  const MIN_HEIGHT = 40;
+export const MessageInputUI = ({
+  inputPlaceHolder,
+}: {
+  inputPlaceHolder: string;
+}) => {
+  const MIN_HEIGHT = 45;
 
   const [inputValue, setInputValue] = useState("");
+
+  const [attachedContent, setAttachedContent] = useState<MessageContent[]>([]);
 
   const handleOnchange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = event.target;
@@ -19,23 +26,55 @@ export const MessageInputUI = () => {
       return;
     }
 
-    // reset height so scrollHeight is accurate
     event.target.style.height = `${MIN_HEIGHT}px`;
 
-    // calculate new height
     const newHeight = Math.min(event.target.scrollHeight);
     event.target.style.height = `${newHeight}px`;
     setInputValue(value);
   };
 
+  const handleOnEmojiSelect = (emoji: string) => {
+    if (!emoji) return;
+    setInputValue((prev) => prev + emoji);
+  };
+
+  const handleSendMessage = () => {
+    const messageContent: MessageContent[] = [];
+
+    if (
+      inputValue &&
+      inputValue.length > 0 &&
+      inputValue !== " " &&
+      !/^\s*$/.test(inputValue)
+    ) {
+      const textOBJ: MessageContent = {
+        type: "text",
+        text: inputValue,
+      };
+
+      setInputValue("");
+      messageContent.push(textOBJ);
+    }
+
+    if (attachedContent.length > 0) {
+      attachedContent.forEach((attached) => {
+        const attachOBJ = {
+          ...attached,
+        };
+        messageContent.push(attachOBJ);
+      });
+      setAttachedContent([]);
+    }
+  };
+
   return (
     <Flex alignItems="flex-end" pb="10px" w="full" justifyContent="center">
-      <Flex alignItems="flex-start" gap="10px" w="98%">
+      <Flex alignItems="center" gap="10px" w="98%">
         <IconButton height="40px" size="md" rounded="full" variant="ghost">
           <LuPlus />
         </IconButton>
 
-        <ScrollArea.Root  size="sm" maxH="300px" variant="always">
+        <ScrollArea.Root size="sm" maxH="300px" variant="always">
           <ScrollArea.Viewport
             rounded="lg"
             border="1px solid"
@@ -53,18 +92,28 @@ export const MessageInputUI = () => {
                   height: `${MIN_HEIGHT}px`,
                   resize: "none",
                   width: "95%",
-                  lineHeight: "1.4",
-                  padding: "10px 10px",
-                  background: "none"
+                  lineHeight: "1.5",
+                  padding: "11px 10px",
+                  background: "none",
+                  fontSize: "15px",
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    handleSendMessage();
+                  }
                 }}
                 className="no-focus"
                 value={inputValue}
                 onChange={handleOnchange}
-                placeholder="Bankia"
+                placeholder={inputPlaceHolder}
               />
 
-              <Flex pr="10px" mt="5px" gap="5px">
-                <EmojiAndGifUI>
+              <Flex pr="10px" mt="8px" gap="5px">
+                <EmojiAndGifUI
+                  onEmojiSelect={handleOnEmojiSelect}
+                  showTabOff="emoji"
+                >
                   <Flex
                     w="30px"
                     h="30px"
@@ -75,13 +124,14 @@ export const MessageInputUI = () => {
                       bg: "bg.emphasized",
                     }}
                   >
-                    <TbGif size={23} />
+                    <FaFaceSmileWink size={20} />
                   </Flex>
                 </EmojiAndGifUI>
 
                 <Flex
                   w="30px"
                   h="30px"
+                  display={{ base: "flex", lg: "none", md: "flex" }}
                   rounded="lg"
                   justifyContent="center"
                   alignItems="center"

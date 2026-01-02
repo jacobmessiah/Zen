@@ -128,7 +128,7 @@ export const handleSignup = async (req, res) => {
     console.log("Generating Cookie and Session for userId --> ", user._id);
     const tokenResponse = await generateCookieAndSession(
       req,
-      newUser._id.toString()
+      newUser._id.toString(),
     );
 
     if (tokenResponse.isError) {
@@ -178,7 +178,7 @@ export const handleLogin = async (req, res) => {
     console.log("Generating Cookie and Session for userId --> ", user._id);
     const tokenResponse = await generateCookieAndSession(
       req,
-      user._id.toString()
+      user._id.toString(),
     );
 
     if (tokenResponse.isError) {
@@ -247,7 +247,7 @@ export const handleCheckUsername = async (req, res) => {
   } catch (error) {
     console.log(
       "Error on #checkUsername #userController.js",
-      error?.message || error
+      error?.message || error,
     );
     const errorObject = {
       errorOnInput: false,
@@ -278,7 +278,7 @@ export const checkUser = async (req, res) => {
 
     const readyToUseConnections = await Promise.all(
       connections.map(async (connection) => {
-        const isSender = connection.senderId.equals(user._id);
+        const isSender = connection.senderId === user._id;
         const otherUserId = isSender
           ? connection.receiverId
           : connection.senderId;
@@ -290,7 +290,7 @@ export const checkUser = async (req, res) => {
           otherUser,
           createdAt: connection.createdAt,
         };
-      })
+      }),
     );
 
     const returnObject = {

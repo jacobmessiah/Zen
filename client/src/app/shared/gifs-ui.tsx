@@ -8,11 +8,11 @@ import debounce from "lodash.debounce";
 import type { TenorResponseObject } from "../../types";
 import {
   AbsoluteCenter,
+  Box,
   Flex,
   Image,
   Input,
   InputGroup,
-  ScrollArea,
   Skeleton,
   Text,
 } from "@chakra-ui/react";
@@ -36,27 +36,35 @@ const GifItem = ({
   isLoaded: boolean;
   setLoadedGifs: Dispatch<SetStateAction<string[]>>;
 }) => {
-  const source =
-    gifItem.media_formats.gif ??
-    gifItem.media_formats.mediumgif ??
-    gifItem.media_formats.nanogif;
+  const source = gifItem.media_formats.mp4?.url;
 
-  if (!source) return;
+  if (!source) return null;
 
-  const [, height] = source.dims;
+  const [, height] = gifItem.media_formats.mp4?.dims;
+
+  const resHeight = `${height}px`;
 
   return (
-    <Flex rounded="sm" w="full" height={height}>
-      {!isLoaded && <Skeleton w="full" h={`${height}px`} p="5px" />}
-      <Image
-        onLoad={() => setLoadedGifs((prev) => [...prev, gifItem.id.toString()])}
-        opacity={isLoaded ? "100%" : "0%"}
-        rounded="sm"
-        w="full"
-        h="full"
-        src={source.url}
+    <Box rounded="sm" w="full" height={resHeight} position="relative">
+      {!isLoaded && <Skeleton w="full" h="full" position="absolute" />}
+      <video
+        src={source}
+        onLoadedData={() =>
+          setLoadedGifs((prev) => [...prev, gifItem.id.toString()])
+        }
+        style={{
+          opacity: isLoaded ? "100%" : "0%",
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: "var(--chakra-radii-lg)",
+        }}
+        autoPlay
+        loop
+        muted
+        playsInline
       />
-    </Flex>
+    </Box>
   );
 };
 
@@ -147,7 +155,7 @@ const GifsUI = () => {
         setTenorResults(response.results);
       }
     }, 700),
-    []
+    [],
   );
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -180,7 +188,7 @@ const GifsUI = () => {
 
   return (
     <Flex w="full" h="full" direction="column">
-      <Flex h="15%" alignItems="center" gap="8px" px="10px" w="full">
+      <Flex h="12%" alignItems="center" gap="8px" px="10px" w="full">
         {queryKey && <FaArrowLeftLong onClick={handleClearAll} size={23} />}
         <InputGroup startElement={<LuSearch />}>
           <Input
@@ -192,63 +200,99 @@ const GifsUI = () => {
         </InputGroup>
       </Flex>
 
-      <ScrollArea.Root
-        ref={scrollRef}
-        size="xs"
-        maxH={{ lg: "50dvh" }}
-        pl="5px"
-        py="5px"
+      <Flex
+        maxH="88%"
+        minH="88%"
         rounded="15px"
-        variant="hover"
+        p="5px"
+        gap="10px"
+        css={{
+          "&::-webkit-scrollbar": {
+            width: "5px",
+          },
+          "&::-webkit-scrollbar-track": {
+            background: "transparent",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "bg.emphasized",
+            borderRadius: "full",
+          },
+        }}
+        direction="row"
+        overflowY="auto"
       >
-        <ScrollArea.Viewport>
-          <ScrollArea.Content
-            display="grid"
-            gridColumn={2}
-            paddingEnd="3"
-            textStyle="xs"
-            gap="8px"
-            gridTemplateColumns="repeat(2, 1fr)"
-          >
-            {!queryKey &&
-              tenorResults.length < 1 &&
-              !isSearchingTenor &&
-              gifCategories.map((category, index) => (
-                <GIFCategoryItem
-                  handleSelectCategory={handleSelectCategory}
-                  key={index}
-                  categoryItem={category}
-                />
-              ))}
-
-            {isError && tenorResults.length < 1 && (
-              <AbsoluteCenter w="full" h="full" pos="relative">
-                <Text color="fg.muted">{isError?.errMessage}</Text>
-              </AbsoluteCenter>
-            )}
-
-            {isSearchingTenor &&
-              tenorResults.length < 1 &&
-              queryKey.length > 0 && <GIFSkeletons length={30} />}
-
-            {!isSearchingTenor &&
-              tenorResults.length > 1 &&
-              tenorResults.map((tenorItem) => {
-                const isLoaded = loadedGifs.includes(tenorItem.id.toString());
-
-                return (
-                  <GifItem
-                    setLoadedGifs={setLoadedGifs}
-                    isLoaded={isLoaded}
-                    key={tenorItem.id}
-                    gifItem={tenorItem}
+        {!queryKey && tenorResults.length < 1 && !isSearchingTenor && (
+          <>
+            <Flex direction="column" gap="10px" flex="1">
+              {gifCategories
+                .filter((_, index) => index % 2 === 0)
+                .map((category, index) => (
+                  <GIFCategoryItem
+                    handleSelectCategory={handleSelectCategory}
+                    key={index}
+                    categoryItem={category}
                   />
-                );
-              })}
-          </ScrollArea.Content>
-        </ScrollArea.Viewport>
-        <ScrollArea.Scrollbar />
-      </ScrollArea.Root>
+                ))}
+            </Flex>
+            <Flex direction="column" gap="10px" flex="1">
+              {gifCategories
+                .filter((_, index) => index % 2 === 1)
+                .map((category, index) => (
+                  <GIFCategoryItem
+                    handleSelectCategory={handleSelectCategory}
+                    key={index}
+                    categoryItem={category}
+                  />
+                ))}
+            </Flex>
+          </>
+        )}
+
+        {isError && tenorResults.length < 1 && queryKey.length > 0 && (
+          <AbsoluteCenter w="full" h="full" pos="relative">
+            <Text color="fg.muted">{isError?.errMessage}</Text>
+          </AbsoluteCenter>
+        )}
+
+        {isSearchingTenor && tenorResults.length < 1 && queryKey.length > 0 && (
+          <GIFSkeletons length={30} />
+        )}
+
+        {!isSearchingTenor && tenorResults.length > 0 && (
+          <>
+            <Flex direction="column" gap="10px" flex="1">
+              {tenorResults
+                .filter((_, index) => index % 2 === 0)
+                .map((tenorItem) => {
+                  const isLoaded = loadedGifs.includes(tenorItem.id.toString());
+                  return (
+                    <GifItem
+                      setLoadedGifs={setLoadedGifs}
+                      isLoaded={isLoaded}
+                      key={tenorItem.id}
+                      gifItem={tenorItem}
+                    />
+                  );
+                })}
+            </Flex>
+            <Flex direction="column" gap="10px" flex="1">
+              {tenorResults
+                .filter((_, index) => index % 2 === 1)
+                .map((tenorItem) => {
+                  const isLoaded = loadedGifs.includes(tenorItem.id.toString());
+                  return (
+                    <GifItem
+                      setLoadedGifs={setLoadedGifs}
+                      isLoaded={isLoaded}
+                      key={tenorItem.id}
+                      gifItem={tenorItem}
+                    />
+                  );
+                })}
+            </Flex>
+          </>
+        )}
+      </Flex>
     </Flex>
   );
 };

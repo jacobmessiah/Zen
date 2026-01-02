@@ -1,14 +1,16 @@
-import { Button, Flex, Popover, Portal, Tabs } from "@chakra-ui/react";
-import { useState, type ReactNode } from "react";
+import { Button, Flex, Popover, Portal } from "@chakra-ui/react";
+import { memo, useState, type ReactNode } from "react";
 import GifsUI from "./gifs-ui";
 import { ChatEmojiContainer } from "./emoji-ui";
 
 const EmojiAndGifUI = ({
   children,
   showTabOff = "gif",
+  onEmojiSelect,
 }: {
   children: ReactNode;
   showTabOff: string;
+  onEmojiSelect: (value: string) => void;
 }) => {
   const tabs = [
     { value: "emoji", text: "Emoji" },
@@ -18,7 +20,7 @@ const EmojiAndGifUI = ({
   const [activeTab, setActiveTab] = useState<string>(showTabOff);
 
   return (
-    <Popover.Root>
+    <Popover.Root lazyMount unmountOnExit>
       <Popover.Trigger asChild>{children}</Popover.Trigger>
       <Portal>
         <Popover.Positioner>
@@ -26,10 +28,15 @@ const EmojiAndGifUI = ({
             w={{ base: "95dvw", lg: "35dvw", md: "35dvh" }}
             h="65dvh"
             mb="10px"
-            rounded="15px"
           >
-            <Popover.Body rounded="15px" p="0px">
-              <Flex h="12%" alignItems="center" w="full" p="10px" gap="10px">
+            <Popover.Body w="full" h="full" p="0px">
+              <Flex
+                h={{ lg: "12%", base: "10%" }}
+                alignItems="center"
+                w="full"
+                p="10px"
+                gap="10px"
+              >
                 {tabs.map((tab) => {
                   const isActive = activeTab === tab.value;
 
@@ -47,9 +54,11 @@ const EmojiAndGifUI = ({
                 })}
               </Flex>
 
-              <Flex w="full" h="88%">
+              <Flex w="full" bg="none" h={{ base: "90%", lg: "88%" }}>
                 {activeTab == "gif" && <GifsUI />}
-                {activeTab === "emoji" && <ChatEmojiContainer />}
+                {activeTab === "emoji" && (
+                  <ChatEmojiContainer onEmojiSelect={onEmojiSelect} />
+                )}
               </Flex>
             </Popover.Body>
           </Popover.Content>
@@ -59,4 +68,4 @@ const EmojiAndGifUI = ({
   );
 };
 
-export default EmojiAndGifUI;
+export default memo(EmojiAndGifUI);

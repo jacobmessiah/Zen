@@ -250,7 +250,7 @@ export const ConnectionItem = ({
     >
       <Flex gap="8px" alignItems="center">
         <Avatar.Root>
-          <Avatar.Fallback name={otherUser.displayName || "Z"} />
+          <Avatar.Fallback />
           <Avatar.Image src={otherUser.profile?.profilePic} />
           {isOnline && (
             <Float placement="bottom-end" offsetX="1" offsetY="1">

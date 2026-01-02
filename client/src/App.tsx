@@ -54,6 +54,8 @@ const App = () => {
     );
   }
 
+  console.log(authUser)
+
   return (
     <div>
       <Toaster  richColors position="top-center" />

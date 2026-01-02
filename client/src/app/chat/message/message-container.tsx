@@ -3,6 +3,7 @@ import AuthLogo from "../../../components/ui/logo-export";
 import type { IConversation } from "../../../types/schema";
 import { MessageInputUI } from "../../shared/message-input-ui";
 import MessageTopRibbon from "./top-message-ribbon";
+import { useTranslation } from "react-i18next";
 
 export const NoConversationSelectedUI = () => {
   return (
@@ -36,11 +37,16 @@ const MessageContainer = ({
 }: {
   selectedConversation: IConversation;
 }) => {
+  const { t: translate } = useTranslation(["chat"]);
+  const messageInputPlaceholder = translate("messageInputPlaceholder", {
+    username: selectedConversation.otherUser.username,
+  });
+
   return (
     <Flex direction="column" maxW="full" minW="full" minH="full" maxH="full">
       <MessageTopRibbon otherUser={selectedConversation?.otherUser} />
       <Flex flex={1} p="1" />
-      <MessageInputUI />
+      <MessageInputUI inputPlaceHolder={messageInputPlaceholder} />
     </Flex>
   );
 };

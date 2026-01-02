@@ -176,4 +176,10 @@ export const gifCategories = [
     queryKey: "clapping",
     gifPreview: "https://media.tenor.com/Tut-NCefoD0AAAAM/clapping-hands.gif",
   },
+
+  {
+    text: "Bye",
+    queryKey: "bye",
+    gifPreview: "https://media1.tenor.com/m/1EaGqSpMblYAAAAC/bye-okay.gif",
+  },
 ];

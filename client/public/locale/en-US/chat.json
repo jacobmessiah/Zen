@@ -20,5 +20,6 @@
     "objects": "Objects",
     "symbols": "Symbols",
     "flags": "Flags"
-  }
+  },
+  "messageInputPlaceholder": "Message @{{username}}"
 }
