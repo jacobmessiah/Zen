@@ -1,1 +1,1 @@
-"In a production environment, a CNAME would be configured to serve these assets via a custom subdomain (e.g., https://www.google.com/search?q=cdn.zenapp.com). For the MVP/Portfolio, the default ImageKit endpoint is used to stay within the free-tier constraints."
+
