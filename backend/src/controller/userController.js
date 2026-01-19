@@ -3,8 +3,9 @@ import bcrypt from "bcryptjs";
 import { generateCookieAndSession } from "../lib/utils.js";
 import ConnectionPing from "../model/connectionPingModel.js";
 import Connection from "../model/connectionModel.js";
-
+import Conversation from "../model/conversationModel.js";
 import Session from "../model/sessionModel.js";
+import { getPresenseOfPairs } from "../lib/io.js";
 
 const MAX_SESSIONS = 12;
 
@@ -125,7 +126,7 @@ export const handleSignup = async (req, res) => {
 
     console.log("New User Registered");
 
-    console.log("Generating Cookie and Session for userId --> ", user._id);
+    console.log("Generating Cookie and Session for userId --> ", newUser._id);
     const tokenResponse = await generateCookieAndSession(
       req,
       newUser._id.toString(),
@@ -263,22 +264,36 @@ export const checkUser = async (req, res) => {
   try {
     const user = req.user;
 
-    const receivedConnectionPings = await ConnectionPing.find({
-      to: user._id,
-      showFor: user._id,
-    }).populate("from");
+    return res.status(200).json(user);
+  } catch (error) {
+    console.log("Error on #check #userController.js", error.message);
 
-    const sentConnectionPings = await ConnectionPing.find({
-      from: user._id,
-    }).populate("to");
+    res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
+
+export const handlePreload = async (req, res) => {
+  try {
+    const user = req.user;
 
     const connections = await Connection.find({
       $or: [{ senderId: user._id }, { receiverId: user._id }],
     });
 
+    const sentConnectionPings = await ConnectionPing.find({
+      from: user._id,
+    }).populate("to");
+    const receivedConnectionPings = await ConnectionPing.find({
+      to: user._id,
+      showFor: user._id,
+    }).populate("from");
+    const conversations = await Conversation.find({
+      participants: { $in: [user._id] },
+    });
+
     const readyToUseConnections = await Promise.all(
       connections.map(async (connection) => {
-        const isSender = connection.senderId === user._id;
+        const isSender = connection.senderId.toString() === user._id.toString();
         const otherUserId = isSender
           ? connection.receiverId
           : connection.senderId;
@@ -286,24 +301,53 @@ export const checkUser = async (req, res) => {
         const otherUser = await User.findById(otherUserId);
 
         return {
-          _id: connection._id,
+          ...connection.toObject(),
           otherUser,
-          createdAt: connection.createdAt,
         };
       }),
     );
 
+    const readyToUseConversations = await Promise.all(
+      conversations.map(async (conversation) => {
+        const otherUserId = conversation.participants.find(
+          (participantId) => participantId.toString() !== user._id.toString(),
+        );
+
+        const otherUser = await User.findById(otherUserId);
+
+        return {
+          ...conversation.toObject(),
+          otherUser,
+        };
+      }),
+    );
+
+    const otherPairIds = connections.map((cn) => {
+      const otherUser =
+        cn.receiverId.toString() === user._id.toString()
+          ? cn.senderId.toString()
+          : cn.receiverId.toString();
+
+      return otherUser;
+    });
+
+    const getPresenseOfPairsRes = getPresenseOfPairs(otherPairIds);
+
     const returnObject = {
-      sentConnectionPings,
-      receivedConnectionPings,
-      authUser: user,
       connections: readyToUseConnections,
+      sentConnectionPings: sentConnectionPings,
+      receivedConnectionPings: receivedConnectionPings,
+      conversations: readyToUseConversations,
+      authUser: user,
+      onlinePresenses: getPresenseOfPairsRes,
     };
 
     return res.status(200).json(returnObject);
   } catch (error) {
-    console.log("Error on #check #userController.js", error.message);
-
-    res.status(500).json({ message: "SERVER_ERROR" });
+    console.log(
+      "Error on #handlePreload #userController.js Error --> ",
+      error?.message || error,
+    );
+    return res.status(500).json({ message: "SERVER_ERROR" });
   }
 };

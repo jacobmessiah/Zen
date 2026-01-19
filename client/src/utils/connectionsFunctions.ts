@@ -20,7 +20,7 @@ export const createNewConnectionPing = async (pingArg: string) => {
       userConnectionStore.getState().sentConnectionPings;
 
     const filteredConnection = pendingConnections.filter(
-      (cn) => cn._id !== resData.pingData._id
+      (cn) => cn._id !== resData.pingData._id,
     );
 
     userConnectionStore.setState({
@@ -42,7 +42,7 @@ export const createNewConnectionPing = async (pingArg: string) => {
     const message = translate(
       `NewConnectionResponses.${
         axiosError.response?.data.message || "NO_INTERNET"
-      }`
+      }`,
     );
 
     const returnObject = {
@@ -58,13 +58,13 @@ export const createNewConnectionPing = async (pingArg: string) => {
 
 export const deleteSentConnectionPing = async (
   id: string,
-  isDeleting: boolean
+  isDeleting: boolean,
 ) => {
   if (isDeleting) return;
-  const allPending = userConnectionStore.getState().deletingConnectionPing;
+  const allPending = userConnectionStore.getState().deletingConnection;
 
   userConnectionStore.setState({
-    deletingConnectionPing: [...allPending, id],
+    deletingConnection: [...allPending, id],
   });
   try {
     await axiosInstance.delete("/connections/pending/ping", {
@@ -91,7 +91,7 @@ export const deleteSentConnectionPing = async (
     });
   } finally {
     userConnectionStore.setState({
-      deletingConnectionPing: allPending.filter((p) => p !== id),
+      deletingConnection: allPending.filter((p) => p !== id),
     });
   }
 };
@@ -133,15 +133,14 @@ export const acceptConnectionPing = async (documentId: string) => {
 
 export const ignoreConnectionPing = async (
   documentId: string,
-  isDeleting: boolean
+  isDeleting: boolean,
 ) => {
   if (!documentId || isDeleting) return;
 
-  const deletingConnectionPings =
-    userConnectionStore.getState().deletingConnectionPing;
+  const deletingConnections = userConnectionStore.getState().deletingConnection;
   userConnectionStore.setState({
-    deletingConnectionPing: [
-      ...deletingConnectionPings.filter((p) => p !== documentId),
+    deletingConnection: [
+      ...deletingConnections.filter((p) => p !== documentId),
       documentId,
     ],
   });
@@ -156,7 +155,7 @@ export const ignoreConnectionPing = async (
     userConnectionStore.setState({
       receivedConnectionPings: [
         ...allReceivedPings.filter(
-          (ping) => ping._id.toString() !== documentId.toString()
+          (ping) => ping._id.toString() !== documentId.toString(),
         ),
       ],
     });
@@ -170,14 +169,48 @@ export const ignoreConnectionPing = async (
     }
   } finally {
     userConnectionStore.setState({
-      deletingConnectionPing: [
-        ...deletingConnectionPings.filter((p) => p !== documentId),
+      deletingConnection: [
+        ...deletingConnections.filter((p) => p !== documentId),
       ],
     });
   }
 };
 
 export const handleRemoveConnection = async (documentId: string) => {
-  if (!documentId) return;
-  console.log("Document", documentId);
+  userConnectionStore.setState((state) => ({
+    deletingConnection: [...state.deletingConnection, documentId],
+  }));
+  try {
+    await axiosInstance.delete(`/connections/connected/${documentId}`);
+
+    userConnectionStore.setState((state) => {
+      return {
+        connections: state.connections.filter((p) => p._id !== documentId),
+      };
+    });
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+
+    const message = axiosError.response?.data.message
+      ? translate(
+          `DELETE_CONNECTION_RESPONSES.${axiosError.response?.data.message}`,
+        )
+      : translate("NO_INTERNET");
+
+    toast.error(message, {
+      style: {
+        fontSize: "13px",
+        padding: "10px 12px",
+        borderRadius: "8px",
+        justifySelf: "center",
+      },
+    });
+    console.log("Error Deleting Error ---> ", message);
+  } finally {
+    userConnectionStore.setState((state) => ({
+      deletingConnection: state.deletingConnection.filter(
+        (p) => p !== documentId,
+      ),
+    }));
+  }
 };

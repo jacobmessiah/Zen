@@ -1,9 +1,12 @@
 import { AbsoluteCenter, Flex, Heading, Text } from "@chakra-ui/react";
 import AuthLogo from "../../../components/ui/logo-export";
 import type { IConversation } from "../../../types/schema";
-import { MessageInputUI } from "../../shared/message-input-ui";
-import MessageTopRibbon from "./top-message-ribbon";
+import MessageTopRibbon from "./components/top-message-ribbon";
 import { useTranslation } from "react-i18next";
+import MessagesWrapper from "./components/messages-wrapper";
+import MessageInputUI from "../../shared/message/message-input-ui";
+import { useEffect } from "react";
+import { getMessages } from "../../../utils/chatFunctions";
 
 export const NoConversationSelectedUI = () => {
   return (
@@ -42,10 +45,16 @@ const MessageContainer = ({
     username: selectedConversation.otherUser.username,
   });
 
+  useEffect(() => {
+    if (selectedConversation && !selectedConversation.isTemp) {
+      getMessages(selectedConversation._id);
+    }
+  }, [selectedConversation]);
+
   return (
     <Flex direction="column" maxW="full" minW="full" minH="full" maxH="full">
       <MessageTopRibbon otherUser={selectedConversation?.otherUser} />
-      <Flex flex={1} p="1" />
+      <MessagesWrapper />
       <MessageInputUI inputPlaceHolder={messageInputPlaceholder} />
     </Flex>
   );

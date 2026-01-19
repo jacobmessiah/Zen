@@ -83,6 +83,18 @@ const CreateDmUI = ({
       return;
     }
 
+    const findConversation = userChatStore
+      .getState()
+      .conversations.find((p) =>
+        p.participants.includes(selectedConnection.otherUser._id),
+      );
+
+    if (findConversation) {
+      userChatStore.setState({ selectedConversation: findConversation });
+      dialog.setOpen(false);
+      return;
+    }
+
     const conversationOBJ: IConversation = {
       createdAt: new Date().toISOString(),
       updateAt: new Date().toISOString(),
@@ -91,14 +103,11 @@ const CreateDmUI = ({
       otherUser: selectedConnection.otherUser,
       participants: [authUser?._id || "", selectedConnection.otherUser._id],
       relation: "connection",
+      connectionId: selectedConnection._id,
     };
 
-    const allConversations = userChatStore.getState().conversations;
-
-    //Alert stop setting conversationOBJ
     userChatStore.setState({
       selectedConversation: conversationOBJ,
-      conversations: [...allConversations, conversationOBJ],
     });
 
     dialog.setOpen(false);
@@ -162,6 +171,7 @@ const CreateDmUI = ({
 
             <Dialog.Body
               p="0px"
+              px="5px"
               css={{
                 "&::-webkit-scrollbar": {
                   width: "5px",

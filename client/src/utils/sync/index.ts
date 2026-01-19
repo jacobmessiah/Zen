@@ -1,4 +1,5 @@
 import type { connectionPingType, ConnectionType } from "../../types/schema";
+import { HANDLE_REMOVE_CONNECTION } from "../socket-listener/connection-event";
 import {
   SYNC_CONNECTIONS,
   ADD_SENT_PING_WITH_SYNC,
@@ -11,6 +12,7 @@ const SYNC_TYPES = {
   ADD_SENT_PING: "ADD_SENT_PING",
   REMOVE_RECEIVED_PING: "REMOVE_RECEIVED_PING",
   ADD_CONNECTION: "ADD_CONNECTION",
+  REMOVE_CONNECTION: "REMOVE_CONNECTION",
 };
 
 type SYNC_ARGUMENTS = {
@@ -29,6 +31,8 @@ export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
     case SYNC_TYPES.REMOVE_RECEIVED_PING:
       REMOVE_RECEIVED_PING(arg.documentId);
       break;
+    case SYNC_TYPES.REMOVE_CONNECTION:
+      HANDLE_REMOVE_CONNECTION(arg.documentId);
   }
 };
 

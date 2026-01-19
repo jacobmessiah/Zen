@@ -1,14 +1,14 @@
 import { Button, Field, Flex, Heading, Input, Text } from "@chakra-ui/react";
 import { chakra } from "@chakra-ui/react";
 import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { BeatLoader } from "react-spinners";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import type { signupDetails } from "../../../types";
 import DOBInput from "../../../components/ui/dob-input";
 import {
-  ConnectSocket,
+  handleCheckAuth,
   handleCheckUsername,
   handleSignup,
 } from "../../../utils/authFunction";
@@ -34,7 +34,6 @@ const SignUpContainer = () => {
   const { isSigningUp } = userAuthStore();
   const { t: translate, i18n } = useTranslation(["auth"]);
 
-  const navigate = useNavigate();
 
   // top-level hook for loader color
   const loaderColor = useColorModeValue("white", "black");
@@ -91,7 +90,7 @@ const SignUpContainer = () => {
         errors.displayName = {
           value: true,
           errorText: translate(
-            "signup.form.errorTexts.DISPLAY_NAME_NOT_COMPLETE"
+            "signup.form.errorTexts.DISPLAY_NAME_NOT_COMPLETE",
           ),
         };
         isValid = false;
@@ -281,11 +280,7 @@ const SignUpContainer = () => {
 
     // Success
     if (signupRes.authUser) {
-      userAuthStore.setState({
-        authUser: signupRes.authUser,
-      });
-      ConnectSocket(signupRes.authUser._id);
-      navigate("/app");
+      await handleCheckAuth();
     }
   };
 
@@ -324,7 +319,7 @@ const SignUpContainer = () => {
         }));
       }
     }, 500),
-    []
+    [],
   );
 
   const handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -357,7 +352,7 @@ const SignUpContainer = () => {
   const buttonText = translate(`${formTBase}.buttonText`);
   const haveAccountTextQ = translate(`${formTBase}.haveAccountText.question`);
   const haveAccountTextInstruction = translate(
-    `${formTBase}.haveAccountText.instruction`
+    `${formTBase}.haveAccountText.instruction`,
   );
 
   const width = {

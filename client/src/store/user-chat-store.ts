@@ -5,13 +5,25 @@ type userChatStoreTypes = {
   conversations: IConversation[];
   selectedConversation: IConversation | null;
   isSearchingTenor: boolean;
-  storedMessage: Record<string, IMessage[]>;
+  storedMessages: Record<string, IMessage[]>;
+  displayedMessages: IMessage[];
+  isGettingMessages: boolean;
+
+  hasMoreTop: Record<string, boolean>;
+  hasMoreBottom: Record<string, boolean>;
+  isViewingOld: Record<string, boolean>;
 };
 const userChatStore = create<userChatStoreTypes>(() => ({
   conversations: [],
   selectedConversation: null,
   isSearchingTenor: false,
-  storedMessage: {},
+  storedMessages: {},
+  displayedMessages: [],
+  isGettingMessages: false,
+
+  hasMoreTop: {},
+  isViewingOld: {},
+  hasMoreBottom: {},
 }));
 
 export default userChatStore;

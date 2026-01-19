@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   handleAcceptConnectionPing,
+  handleDeleteConnection,
   handleDeleteSentPendingPing,
   handleIgnoreConnectionPing,
   handleNewConnectionPing,
@@ -16,9 +17,11 @@ connectionRoute.post("/accept/ping", ProtectRoute, handleAcceptConnectionPing);
 connectionRoute.delete(
   "/pending/ping",
   ProtectRoute,
-  handleDeleteSentPendingPing
+  handleDeleteSentPendingPing,
 );
 
 connectionRoute.patch("/ignore/ping", ProtectRoute, handleIgnoreConnectionPing);
+
+connectionRoute.delete("/connected/:documentId", ProtectRoute, handleDeleteConnection);
 
 export default connectionRoute;

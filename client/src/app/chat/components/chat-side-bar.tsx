@@ -4,11 +4,15 @@ import { useTranslation } from "react-i18next";
 import CreateDmUI from "./create-dm";
 import userChatStore from "../../../store/user-chat-store";
 import ConversationItem from "./conversation-item";
+import type { IConversation } from "../../../types/schema";
 
 const ChatSideBar = () => {
   const { t: translate } = useTranslation(["chat"]);
 
-  const { conversations, selectedConversation } = userChatStore();
+  const conversations = userChatStore((state) => state.conversations);
+  const selectedConversation = userChatStore(
+    (state) => state.selectedConversation,
+  );
 
   const chatTitle = translate("ChatTitle");
   const newChatText = translate("NewChat");
@@ -21,6 +25,12 @@ const ChatSideBar = () => {
   const searchConnectionsPlaceHolder = translate(
     "searchConnectionsPlaceHolder",
   );
+
+  const handleSelectConversation = (conversation: IConversation) => {
+    if (conversation && conversation._id !== selectedConversation?._id) {
+      userChatStore.setState({ selectedConversation: conversation });
+    }
+  };
 
   return (
     <Flex
@@ -61,7 +71,7 @@ const ChatSideBar = () => {
             selectConnectionsDescription={selectConnectionsDescription}
             newChatText={newChatText}
           >
-            <IconButton rounded="full" variant="ghost" size="xs">
+            <IconButton focusRing="none" rounded="full" variant="ghost" size="xs">
               <LuPlus />
             </IconButton>
           </CreateDmUI>
@@ -70,6 +80,7 @@ const ChatSideBar = () => {
         <Flex minW="95%" maxW="95%" justifyContent="center" alignItems="center">
           <InputGroup>
             <Input
+              rounded="lg"
               variant="subtle"
               w="full"
               placeholder={searchText}
@@ -107,8 +118,11 @@ const ChatSideBar = () => {
           const isSelected = selectedConversation?._id === convo._id;
           return (
             <ConversationItem
+              handleSelectConversation={handleSelectConversation}
               convoItem={convo}
-              key={convo._id}
+              key={
+                convo._id || `temp-${convo.otherUser._id}-${convo.createdAt}`
+              }
               isSelected={isSelected}
             />
           );

@@ -36,60 +36,100 @@ export type ConnectionType = {
   otherUser: IUser;
 };
 
-interface BaseMessage {
+export interface BaseMessage {
   _id: string;
+  tempId?: string;
   conversationId: string;
   senderId: string;
-  receiverId: string;
+  receiverId?: string;
   status: "sending" | "sent" | "delivered" | "read" | "failed";
   replyTo?: string;
-  isEdited?: boolean;
-  updatedAt: Date | string;
-  createdAt: Date | string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export type MessageContent =
-  | TextContent
-  | GifContent
-  | FileContent
-  | AudioContent;
+export type ImageMimeType =
+  | "image/jpeg"
+  | "image/png"
+  | "image/webp"
+  | "image/gif"
+  | "image/avif";
 
-interface TextContent {
-  type: "text";
-  text: string;
-}
+export type VideoMimeType =
+  | "video/mp4"
+  | "video/webm"
+  | "video/ogg"
+  | "video/quicktime";
 
-interface GifContent {
-  type: "gif";
-  tenorId: string;
+export type DocumentMimeType =
+  | "application/pdf" // PDF
+  | "application/msword" // Word DOC
+  | "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // Word DOCX
+  | "application/vnd.ms-excel" // Excel XLS
+  | "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" // Excel XLSX
+  | "application/vnd.ms-powerpoint" // PowerPoint PPT
+  | "application/vnd.openxmlformats-officedocument.presentationml.presentation" // PowerPoint PPTX
+  | "text/plain"; // TXT
+
+export type AttachmentType = "image" | "video" | "audio" | "document";
+
+export type MessageType = "default" | "gif";
+
+export interface AttachmentBase {
+  type: AttachmentType;
   url: string;
-  previewUrl?: string;
-  width: number;
-  height: number;
-  title?: string;
-  tags?: string[];
+  mimeType: string;
+  size: number;
+  name: string;
+  createdAt: string;
+  fileId: string;
 }
 
-interface FileContent {
-  type: "file" | "image" | "video";
-  url: string;
-  fileName: string;
+export interface ImageAttachment extends AttachmentBase {
+  type: "image";
   width?: number;
   height?: number;
-  fileSize: number;
-  mimeType: string;
 }
 
-interface AudioContent {
+export interface VideoAttachment extends AttachmentBase {
+  type: "video";
+  duration?: number; // seconds
+  width?: number;
+  height?: number;
+}
+
+export interface AudioAttachment extends AttachmentBase {
   type: "audio";
-  url: string;
-  duration: number;
-  waveform?: number[];
+  duration?: number; // seconds
+  bitrate?: number;
 }
 
-export interface IMessage extends BaseMessage {
-  contents: MessageContent[];
+export interface DocumentAttachment extends AttachmentBase {
+  type: "document";
+  pages?: number;
 }
+
+export type Attachment =
+  | ImageAttachment
+  | VideoAttachment
+  | AudioAttachment
+  | DocumentAttachment;
+
+export interface DefaultMessage extends BaseMessage {
+  type: "default";
+  text?: string;
+  attachments?: Attachment[];
+}
+
+export interface GifMessage extends BaseMessage {
+  type: "gif";
+  gif: {
+    url: string;
+    name: string;
+  };
+}
+
+export type Message = DefaultMessage | GifMessage;
 
 export interface IConversation {
   createdAt: Date | string;
@@ -101,4 +141,6 @@ export interface IConversation {
   relation: "space" | "connection";
   connectionId?: string;
   spaceContext?: string;
+  showFor: [string];
+  unreadCount?: Record<string, number>;
 }

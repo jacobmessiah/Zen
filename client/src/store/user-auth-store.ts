@@ -9,7 +9,7 @@ type userAuthStore = {
   isCheckingAuth: boolean;
   isCheckingUsername: boolean;
   socket: Socket | null;
-  notificationService: HTMLAudioElement;
+  isPoolingReconnection: boolean;
 };
 
 const userAuthStore = create<userAuthStore>(() => ({
@@ -19,7 +19,7 @@ const userAuthStore = create<userAuthStore>(() => ({
   isCheckingAuth: false,
   isCheckingUsername: false,
   socket: null,
-  notificationService: new Audio(),
+  isPoolingReconnection: false,
 }));
 
 export default userAuthStore;

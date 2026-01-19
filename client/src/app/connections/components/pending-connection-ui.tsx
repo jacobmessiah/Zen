@@ -16,7 +16,7 @@ const PendingSentConnectionPingMapper = ({
   if (Array.isArray(sentConnectionPings) && sentConnectionPings.length < 1)
     return null;
 
-  const { deletingConnectionPing } = userConnectionStore();
+  const { deletingConnection } = userConnectionStore();
   const sentLength = sentConnectionPings.length;
 
   return (
@@ -26,7 +26,7 @@ const PendingSentConnectionPingMapper = ({
       </Text>
 
       {sentConnectionPings.map((item) => {
-        const isDeleting = deletingConnectionPing.includes(item._id);
+        const isDeleting = deletingConnection.includes(item._id);
 
         return (
           <SentPendingConnectionPingItem
@@ -53,7 +53,7 @@ const ReceivedConnectionPingMapper = ({
 
   const sentLength = receivedConnectionPings.length;
 
-  const { deletingConnectionPing } = userConnectionStore();
+  const { deletingConnection } = userConnectionStore();
 
   return (
     <Flex px="10px" w="full" userSelect="none" direction="column">
@@ -62,7 +62,7 @@ const ReceivedConnectionPingMapper = ({
       </Text>
 
       {receivedConnectionPings.map((item) => {
-        const isDeleting = deletingConnectionPing.includes(item._id);
+        const isDeleting = deletingConnection.includes(item._id);
 
         return (
           <ReceivedConnectionPingItem

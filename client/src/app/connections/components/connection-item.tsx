@@ -1,9 +1,7 @@
 import {
   Avatar,
   Checkbox,
-  Circle,
   Flex,
-  Float,
   IconButton,
   Menu,
   Portal,
@@ -28,6 +26,7 @@ import { IoMdCheckmark } from "react-icons/io";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { IoChatbubbleSharp } from "react-icons/io5";
 import { useId } from "react";
+import { OnlineIndicator } from "../../shared/activity-indicator";
 
 export const SentPendingConnectionPingItem = ({
   pendingItem,
@@ -36,10 +35,6 @@ export const SentPendingConnectionPingItem = ({
   pendingItem: connectionPingType;
   isDeleting: boolean;
 }) => {
-  //Alert Set is Online with Logic
-
-  const isOnline = true;
-
   const pingedUser = pendingItem.to as IUser;
 
   const { t } = useTranslation(["connection"]);
@@ -65,16 +60,6 @@ export const SentPendingConnectionPingItem = ({
         <Avatar.Root>
           <Avatar.Fallback name={pingedUser.displayName || "Z"} />
           <Avatar.Image src={pingedUser.profile?.profilePic} />
-          {isOnline && (
-            <Float placement="bottom-end" offsetX="1" offsetY="1">
-              <Circle
-                bg="green.500"
-                size="8px"
-                outline="0.2em solid"
-                outlineColor="bg"
-              />
-            </Float>
-          )}
         </Avatar.Root>
 
         <Flex direction="column">
@@ -114,10 +99,6 @@ export const ReceivedConnectionPingItem = ({
   pendingItem: connectionPingType;
   isDeleting: boolean;
 }) => {
-  //Alert Set is Online with Logic
-
-  const isOnline = true;
-
   const pingFrom = pendingItem.from as IUser;
 
   const { t } = useTranslation(["connection"]);
@@ -145,16 +126,6 @@ export const ReceivedConnectionPingItem = ({
         <Avatar.Root>
           <Avatar.Fallback name={pingFrom.displayName || "Z"} />
           <Avatar.Image src={pingFrom.profile?.profilePic} />
-          {isOnline && (
-            <Float placement="bottom-end" offsetX="1" offsetY="1">
-              <Circle
-                bg="green.500"
-                size="8px"
-                outline="0.2em solid"
-                outlineColor="bg"
-              />
-            </Float>
-          )}
         </Avatar.Root>
 
         <Flex direction="column">
@@ -212,6 +183,7 @@ export const ConnectionItem = ({
   SEND_MESSAGE_TEXT,
   REMOVE_CONNECTION_TEXT,
   MORE_TEXT,
+  isDeleting,
 }: {
   connectionItem: ConnectionType;
   START_VIDEO_CALL_TEXT: string;
@@ -219,10 +191,9 @@ export const ConnectionItem = ({
   REMOVE_CONNECTION_TEXT: string;
   SEND_MESSAGE_TEXT: string;
   MORE_TEXT: string;
+  isDeleting: boolean;
 }) => {
   const otherUser = connectionItem.otherUser;
-
-  const isOnline = true;
 
   const triggerId = useId();
 
@@ -236,15 +207,16 @@ export const ConnectionItem = ({
 
   return (
     <Flex
-      borderColor={{ _light: "gray.200", _dark: "gray.900" }}
       p="10px"
+      animation={isDeleting ? "pulse" : "none"}
+      borderTop="1px solid"
+      borderTopColor="bg.muted"
       w="full"
       justifyContent="space-between"
       alignItems="center"
       transition="0.2s ease"
-      borderTop="1px solid"
       _hover={{
-        bg: { _light: "gray.200", _dark: "gray.900" },
+        bg: "bg.muted",
         rounded: "10px",
       }}
     >
@@ -252,16 +224,7 @@ export const ConnectionItem = ({
         <Avatar.Root>
           <Avatar.Fallback />
           <Avatar.Image src={otherUser.profile?.profilePic} />
-          {isOnline && (
-            <Float placement="bottom-end" offsetX="1" offsetY="1">
-              <Circle
-                bg="green.500"
-                size="8px"
-                outline="0.2em solid"
-                outlineColor="bg"
-              />
-            </Float>
-          )}
+          <OnlineIndicator userId={otherUser._id} />
         </Avatar.Root>
 
         <Flex direction="column">
@@ -276,16 +239,26 @@ export const ConnectionItem = ({
 
       <Flex alignItems="center" gap="10px">
         <Tooltip
+          lazyMount
+          unmountOnExit
           showArrow
           positioning={{ placement: "top" }}
           content={SEND_MESSAGE_TEXT}
         >
-          <IconButton variant="ghost" rounded="full">
+          <IconButton
+            _hover={{
+              bg: "bg.emphasized",
+            }}
+            variant="ghost"
+            rounded="full"
+          >
             <IoChatbubbleSharp />
           </IconButton>
         </Tooltip>
 
         <Menu.Root
+          lazyMount
+          unmountOnExit
           onSelect={handleOnSelect}
           positioning={{ placement: "top" }}
           ids={{ trigger: triggerId }}
@@ -296,8 +269,14 @@ export const ConnectionItem = ({
             content={MORE_TEXT}
             showArrow
           >
-            <Menu.Trigger asChild>
-              <IconButton variant="ghost" rounded="full">
+            <Menu.Trigger focusRing="none" asChild>
+              <IconButton
+                _hover={{
+                  bg: "bg.emphasized",
+                }}
+                variant="ghost"
+                rounded="full"
+              >
                 <HiOutlineDotsVertical />
               </IconButton>
             </Menu.Trigger>

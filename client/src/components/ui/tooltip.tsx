@@ -18,7 +18,13 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
       disabled,
       portalled = true,
       content,
-      contentProps,
+      contentProps = {
+        css: {
+          "--tooltip-bg": "colors.bg",
+          color: "fg",
+          padding: "7px"
+        },
+      },
       portalRef,
       ...rest
     } = props;
@@ -30,7 +36,7 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
         <ChakraTooltip.Trigger asChild>{children}</ChakraTooltip.Trigger>
         <Portal disabled={!portalled} container={portalRef}>
           <ChakraTooltip.Positioner>
-            <ChakraTooltip.Content ref={ref} {...contentProps}>
+            <ChakraTooltip.Content ref={ref} padding="5px" {...contentProps}>
               {showArrow && (
                 <ChakraTooltip.Arrow>
                   <ChakraTooltip.ArrowTip />
@@ -42,5 +48,5 @@ export const Tooltip = React.forwardRef<HTMLDivElement, TooltipProps>(
         </Portal>
       </ChakraTooltip.Root>
     );
-  }
+  },
 );

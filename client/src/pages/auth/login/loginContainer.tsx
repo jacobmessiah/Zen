@@ -16,7 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import userAuthStore from "../../../store/user-auth-store";
 import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
-import { ConnectSocket, handleLogin } from "../../../utils/authFunction";
+import { handleCheckAuth, handleLogin } from "../../../utils/authFunction";
 import { useTranslation } from "react-i18next";
 import AuthLogo from "../../../components/ui/logo-export";
 
@@ -138,9 +138,7 @@ const LoginContainer = () => {
         },
       }));
     } else {
-      ConnectSocket(loginRes.authUser._id);
-      userAuthStore.setState({ authUser: loginRes.authUser });
-      navigate("/app");
+      await handleCheckAuth();
     }
   };
 
@@ -182,14 +180,14 @@ const LoginContainer = () => {
   };
 
   const headText = translate("login.form.welcomeText.header");
-  
+
   const followUpText = translate("login.form.welcomeText.followUpText");
   const passwordFieldText = translate("login.form.formText.password");
   const handleFieldText = translate("login.form.formText.handle");
   const LoginButtonText = translate("login.form.buttonText");
   const needAccountQuestion = translate("login.form.needAccountText.question");
   const needAccountInstruction = translate(
-    "login.form.needAccountText.instruction"
+    "login.form.needAccountText.instruction",
   );
 
   const width = {
@@ -286,7 +284,14 @@ const LoginContainer = () => {
 
         <Text>
           {needAccountQuestion}{" "}
-          <Link to={"signup"}>{needAccountInstruction}</Link>{" "}
+          <Link
+            style={{
+              fontWeight: "bold",
+            }}
+            to={"signup"}
+          >
+            {needAccountInstruction}
+          </Link>{" "}
         </Text>
       </Flex>
     </Flex>

@@ -2,6 +2,10 @@
   "ChatTitle": "Chats",
   "NewChat": "Create DM",
   "DeleteChat": "Delete Chat",
+  "deleteText": "Delete",
+  "downLoadText": "Download",
+  "playVideoText": "Play Video",
+  "UploadingFiles": "Uploading {{number}} files",
   "RenameChat": "Rename Chat",
   "NoChats": "No chats available. Start a new conversation!",
   "SearchChats": "Search",
@@ -21,5 +25,19 @@
     "symbols": "Symbols",
     "flags": "Flags"
   },
-  "messageInputPlaceholder": "Message @{{username}}"
+  "messageInputPlaceholder": "Message @{{username}}",
+  "beginingOfChatText": "This is the beginning of your direct message history with",
+  "yesterdayText": "Yesterday",
+  "NOT_CONNECTED": "You cannot message this user because you are not connected. Try sending a connection ping first",
+  "messageActions": {
+    "addReaction": "Add Reaction",
+    "editMessage": "Edit Message",
+    "replyMessage": "Reply ",
+    "forwardMessage": "Forward ",
+    "speakMessage": "Speak Text",
+    "copyText": "Copy Text",
+    "deleteMessage": "Delete Message",
+    "moreText": "More"
+  },
+  "typingText": "{{name}} is typing..."
 }
