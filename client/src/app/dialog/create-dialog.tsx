@@ -11,7 +11,7 @@ export const createDialog = createOverlay<DialogProps>((props) => {
   return (
     <Dialog.Root {...rest}>
       <Portal>
-        <Dialog.Positioner>
+        <Dialog.Positioner boxShadow="md" >
           <Dialog.Content >
             {title && (
               <Dialog.Header>

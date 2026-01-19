@@ -8,12 +8,10 @@ import {
   Portal,
   Separator,
   Text,
-  type MenuSelectionDetails,
 } from "@chakra-ui/react";
 import type { IMessage, IUser } from "../../../../types/schema";
 import type { MessageActionTranslations } from "../../../../types";
 import {
-  copyText,
   formatDateSimpleStyle,
   formatMessageTimestamp,
 } from "../../../../utils/chatFunctions";
@@ -353,47 +351,6 @@ const MessageItemContainer = ({
 }) => {
   const formatedTimeStampLong = formatMessageTimestamp(message.createdAt);
 
-  const hasText =
-    message.type === "text"
-      ? !!message.text?.length
-      : message.type === "media" || message.type === "document"
-        ? !!message.caption?.length
-        : false;
-
-  const handleMenuSelect = (event: MenuSelectionDetails) => {
-    const text = event.value as ActionMenuOnselectTypes;
-
-    switch (text) {
-      case "addReaction":
-        console.log(text);
-        break;
-      case "replyMessage":
-        console.log(text);
-        break;
-      case "copyText":
-        const messageText =
-          message.type === "text"
-            ? message.text
-            : message.type === "document" || message.type === "media"
-              ? message.caption
-              : "";
-
-        if (messageText) {
-          copyText(messageText);
-        }
-        break;
-      case "speakText":
-        console.log(text);
-        break;
-      case "deleteMessage":
-        console.log(text);
-        break;
-      case "editMessage":
-        console.log(text);
-        break;
-    }
-  };
-
   return (
     <Flex
       mb={showSimpleStyle ? "0px" : "5px"}
@@ -456,27 +413,24 @@ const MessageItemContainer = ({
           </Flex>
         )}
 
-        <Menu.Root onSelect={handleMenuSelect} unmountOnExit lazyMount>
+        <Menu.Root unmountOnExit lazyMount>
           <Menu.ContextTrigger textAlign="left">
             {/*All Message Content Goes Here */}
-            <Flex w="full" direction="column">
-              {message.type === "text" && (
-                <MessageTextRenderer text={message.text} />
-              )}
-            </Flex>
-
+            <Flex w="full" direction="column"></Flex>
             {/*All Message Content Goes Here */}
           </Menu.ContextTrigger>
+          {/** For Now */}
           <MessageActionMenuItems
-            hasText={hasText}
+            hasText={false}
             isMine={isMine}
             messageActions={messageActions}
           />
         </Menu.Root>
       </Flex>
 
+      {/** For Now */}
       <MessageActionToolBar
-        hasText={hasText}
+        hasText={false}
         isMine={isMine}
         messageActions={messageActions}
       />

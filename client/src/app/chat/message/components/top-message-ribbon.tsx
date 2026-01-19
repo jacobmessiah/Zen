@@ -14,11 +14,12 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
       maxW="full"
       justifyContent="center"
       h="70px"
+      px="15px"
     >
       <Flex
         p="10px"
         h="50px"
-        w="95%"
+        w="100%"
         rounded="full"
         border="1px solid"
         borderColor="fg.inverted"

@@ -5,11 +5,10 @@ import AppNavigatorBig, {
   AppNavigatorSmall,
 } from "./components/ui/app-navigator";
 
-import userDialogStore from "../store/user-dialog-store";
-import DialogContainer from "./dialog/dialog-container";
 import { useIdleTimer } from "react-idle-timer/legacy";
 import userAuthStore from "../store/user-auth-store";
 import userChatStore from "../store/user-chat-store";
+import { createDialog } from "./dialog/create-dialog";
 
 const AppTopRibbon = () => {
   const source = useColorModeValue("/black.svg", "/white.svg");
@@ -35,7 +34,6 @@ const AppContainer = () => {
   const shelfColor = useColorModeValue("#fbfbfcff", "gray.900");
   const contentBg = useColorModeValue("white", "gray.950");
 
-  const showDialogOf = userDialogStore((state) => state.showDialogOf);
   const socket = userAuthStore((state) => state.socket);
 
   const conversations = userChatStore((state) => state.conversations);
@@ -107,10 +105,9 @@ const AppContainer = () => {
 
         {/*Navigation Bottom Bar for mobile Screens*/}
 
+        <createDialog.Viewport />
         <AppNavigatorSmall />
       </Flex>
-
-      <DialogContainer showDialogOf={showDialogOf} />
     </Flex>
   );
 };

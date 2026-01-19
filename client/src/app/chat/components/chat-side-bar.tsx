@@ -30,6 +30,7 @@ const ChatSideBar = () => {
     if (conversation && conversation._id !== selectedConversation?._id) {
       userChatStore.setState({ selectedConversation: conversation });
     }
+    document.title = ` • Zen | @${conversation.otherUser.username}`;
   };
 
   return (
@@ -71,7 +72,12 @@ const ChatSideBar = () => {
             selectConnectionsDescription={selectConnectionsDescription}
             newChatText={newChatText}
           >
-            <IconButton focusRing="none" rounded="full" variant="ghost" size="xs">
+            <IconButton
+              focusRing="none"
+              rounded="full"
+              variant="ghost"
+              size="xs"
+            >
               <LuPlus />
             </IconButton>
           </CreateDmUI>

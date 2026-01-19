@@ -71,14 +71,21 @@ export type DocumentMimeType =
   | "application/vnd.openxmlformats-officedocument.presentationml.presentation" // PowerPoint PPTX
   | "text/plain"; // TXT
 
+export type AudioMimeType =
+  | "audio/mpeg" // MP3
+  | "audio/wav" // WAV
+  | "audio/ogg" // OGG
+  | "audio/webm" // WebM
+  | "audio/flac" // FLAC
+  | "audio/aac" // AAC
+  | "audio/mp4"; // M4A
+
 export type AttachmentType = "image" | "video" | "audio" | "document";
 
 export type MessageType = "default" | "gif";
 
 export interface AttachmentBase {
-  type: AttachmentType;
   url: string;
-  mimeType: string;
   size: number;
   name: string;
   createdAt: string;
@@ -87,12 +94,14 @@ export interface AttachmentBase {
 
 export interface ImageAttachment extends AttachmentBase {
   type: "image";
+  mimeType: ImageMimeType;
   width?: number;
   height?: number;
 }
 
 export interface VideoAttachment extends AttachmentBase {
   type: "video";
+  mimeType: VideoMimeType;
   duration?: number; // seconds
   width?: number;
   height?: number;
@@ -100,12 +109,14 @@ export interface VideoAttachment extends AttachmentBase {
 
 export interface AudioAttachment extends AttachmentBase {
   type: "audio";
+  mimeType: AudioMimeType;
   duration?: number; // seconds
   bitrate?: number;
 }
 
 export interface DocumentAttachment extends AttachmentBase {
   type: "document";
+  mimeType: DocumentMimeType;
   pages?: number;
 }
 
@@ -129,7 +140,7 @@ export interface GifMessage extends BaseMessage {
   };
 }
 
-export type Message = DefaultMessage | GifMessage;
+export type IMessage = DefaultMessage | GifMessage;
 
 export interface IConversation {
   createdAt: Date | string;

@@ -12,6 +12,7 @@ import { FaMicrophone } from "react-icons/fa";
 import { BsEmojiExpressionlessFill } from "react-icons/bs";
 import EmojiGif from "../emoji-gif";
 import { P2PChatIndicator } from "../activity-indicator";
+import { createDialog } from "../../dialog/create-dialog";
 
 export const DOCUMENT_MIME_TYPES: string[] = [
   "application/pdf", // PDF
@@ -66,8 +67,9 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   const [fileInputKey, setFileInputKey] = useState(0);
   const [inputValue, setInputValue] = useState("");
 
-  const { authUser } = userAuthStore();
-  const { selectedConversation } = userChatStore();
+  const selectedConversation = userChatStore(
+    (state) => state.selectedConversation,
+  );
 
   const MAX_SIZE = 15 * 1024 * 1024;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +113,11 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     if (files.length < 1) return;
 
     const iteratableFiles = Array.from(files);
+
+    createDialog.open("intl", {
+      title: "Dialog Title",
+      description: "Dialog Description",
+    });
   };
 
   const handleSendMessage = () => {};
@@ -128,20 +135,6 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
       borderRadius: "full",
     },
   };
-
-  // const scrollXCss = {
-  //   scrollBehavior: "smooth",
-  //   "&::-webkit-scrollbar": {
-  //     height: "5px",
-  //   },
-  //   "&::-webkit-scrollbar-track": {
-  //     background: "transparent",
-  //   },
-  //   "&::-webkit-scrollbar-thumb": {
-  //     background: "fg.muted",
-  //     borderRadius: "full",
-  //   },
-  // };
 
   return (
     <Flex
