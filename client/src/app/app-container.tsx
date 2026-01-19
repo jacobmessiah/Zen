@@ -4,16 +4,17 @@ import { Outlet } from "react-router-dom";
 import AppNavigatorBig, {
   AppNavigatorSmall,
 } from "./components/ui/app-navigator";
-import { useEffect } from "react";
+
+import userDialogStore from "../store/user-dialog-store";
+import DialogContainer from "./dialog/dialog-container";
+import { useIdleTimer } from "react-idle-timer/legacy";
 import userAuthStore from "../store/user-auth-store";
-import { handleEventAdd } from "../utils/socket-listener/socket-listener";
-import { handleSyncRemove } from "../utils/sync";
-import { handleSyncAdd } from "../utils/sync";
+import userChatStore from "../store/user-chat-store";
 
 const AppTopRibbon = () => {
   const source = useColorModeValue("/black.svg", "/white.svg");
 
-  //Add Electron close minimize maximize buttons here later
+  // Alert Add Electron close minimize, maximize buttons here later
 
   return (
     <Flex alignItems="center" w="full" h="full">
@@ -31,25 +32,37 @@ const AppTopRibbon = () => {
 };
 
 const AppContainer = () => {
-  const { socket } = userAuthStore();
-
-  useEffect(() => {
-    if (!socket) return;
-
-    socket.on("EVENT:ADD", handleEventAdd);
-    socket.on("SYNC:REMOVE", handleSyncRemove);
-    socket.on("SYNC:ADD", handleSyncAdd);
-
-    return () => {
-      socket.off("SYNC:REMOVE", handleSyncRemove);
-      socket.off("EVENT:ADD", handleEventAdd);
-      socket.off("SYNC:ADD", handleSyncAdd);
-    };
-  }, []);
-
   const shelfColor = useColorModeValue("#fbfbfcff", "gray.900");
-
   const contentBg = useColorModeValue("white", "gray.950");
+
+  const showDialogOf = userDialogStore((state) => state.showDialogOf);
+  const socket = userAuthStore((state) => state.socket);
+
+  const conversations = userChatStore((state) => state.conversations);
+  const storedMessages = userChatStore((s) => s.storedMessages);
+
+  console.log({
+    storedMessages,
+    conversations,
+  });
+
+  const handleOnIdle = () => {
+    if (socket) {
+      socket.emit("idlePresenseChange", "idle");
+    }
+  };
+
+  const handleOnActive = () => {
+    if (socket) {
+      socket.emit("idlePresenseChange", "online");
+    }
+  };
+
+  useIdleTimer({
+    timeout: 1000 * 60 * 5,
+    onIdle: handleOnIdle,
+    onActive: handleOnActive,
+  });
 
   return (
     <Flex bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
@@ -96,6 +109,8 @@ const AppContainer = () => {
 
         <AppNavigatorSmall />
       </Flex>
+
+      <DialogContainer showDialogOf={showDialogOf} />
     </Flex>
   );
 };

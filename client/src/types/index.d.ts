@@ -35,18 +35,6 @@ export type newConnectionPingResponse = {
   pingData?: connectionPingType;
 };
 
-export type checkUserResponse = {
-  receivedConnectionPings: connectionPingType[];
-  sentConnectionPings: connectionPingType[];
-  authUser: IUser;
-  connections: ConnectionType[];
-};
-
-/**
- * Tenor API Response Objects
- * Based on: https://developers.google.com/tenor/guides/response-objects-and-errors
- */
-
 export type TenorMediaObject = {
   url: string;
   dims: [number, number];
@@ -83,4 +71,21 @@ export type TenorCategoryObject = {
 export type TenorApiResponse<T = TenorResponseObject> = {
   results: T[];
   next?: string;
+};
+
+export type MessageActionTranslations = {
+  addReaction: string;
+  editMessage: string;
+  replyMessage: string;
+  forwardMessage: string;
+  speakText: string;
+  copyText: string;
+  deleteMessage: string;
+  moreText: string;
+};
+
+export type SocketPresenseEvent = {
+  type: string;
+  availability: "online" | "offline" | "dnd" | "idle";
+  userId: string;
 };

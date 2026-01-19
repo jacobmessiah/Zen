@@ -43,5 +43,10 @@
   "REMOVE_CONNECTION_TEXT": "Remove connection",
   "SEND_MESSAGE_TEXT": "Message",
   "MORE_TEXT": "More",
-  "ALL_CONNECTION_HEADER_TEXT": "All Connections"
+  "ALL_CONNECTION_HEADER_TEXT": "All Connections",
+  "DELETE_CONNECTION_RESPONSES": {
+    "SERVER_ERROR": "Internal server error. Try later",
+    "CONNECTION_NOT_FOUND": "Connection not found,"
+  },
+  "NO_INTERNET": "No internet connection"
 }

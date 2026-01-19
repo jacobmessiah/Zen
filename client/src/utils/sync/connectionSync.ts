@@ -11,7 +11,7 @@ export const REMOVE_SENT_PING_WITH_SYNC = (id: string | undefined | null) => {
 };
 
 export const ADD_SENT_PING_WITH_SYNC = (
-  connectionPing: connectionPingType | null | undefined
+  connectionPing: connectionPingType | null | undefined,
 ) => {
   if (!connectionPing) return;
   const AllSentPing = userConnectionStore.getState().sentConnectionPings;
@@ -36,9 +36,19 @@ export const REMOVE_RECEIVED_PING = (id: string | undefined | null) => {
   });
 };
 
+export const REMOVE_CONNECTION = (documentId: string | undefined) => {
+  if (!documentId) return;
+
+  userConnectionStore.setState((state) => {
+    return {
+      connections: state.connections.filter((p) => p._id !== documentId),
+    };
+  });
+};
+
 export const SYNC_CONNECTIONS = (
   connectionData: ConnectionType,
-  documentId: string | null | undefined
+  documentId: string | null | undefined,
 ) => {
   if (!connectionData || typeof connectionData !== "object" || !documentId)
     return;

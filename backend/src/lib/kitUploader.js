@@ -8,11 +8,10 @@ const credentials = {
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 };
 
-
-const imagekit = new ImageKit({
+const imageKitInstance = new ImageKit({
   publicKey: credentials.publicKey,
   privateKey: credentials.privateKey,
   urlEndpoint: credentials.urlEndpoint,
 });
 
-export default imagekit;
+export default imageKitInstance;

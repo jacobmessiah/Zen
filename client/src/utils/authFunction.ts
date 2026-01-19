@@ -1,7 +1,7 @@
 import type { AxiosError } from "axios";
 import userAuthStore from "../store/user-auth-store";
+import userPresenseStore, { type OnlinePresenses } from "../store/user-presense-store";
 import type {
-  checkUserResponse,
   loginDetails,
   signupDetails,
   signupResponse,
@@ -11,8 +11,41 @@ import { axiosInstance } from ".";
 import i8nextConfig from "../../i18next";
 import { io } from "socket.io-client";
 import userConnectionStore from "../store/user-connections-store";
+import type {
+  connectionPingType,
+  ConnectionType,
+  IConversation,
+  IUser,
+} from "../types/schema";
+import userChatStore from "../store/user-chat-store";
 
 const translate = i8nextConfig.getFixedT(null, "auth");
+
+type preloadType = {
+  connections: ConnectionType[];
+  sentConnectionPings: connectionPingType[];
+  receivedConnectionPings: connectionPingType[];
+  conversations: IConversation[];
+  onlinePresenses: OnlinePresenses;
+};
+
+export const handlePreload = async () => {
+  try {
+    const res = await axiosInstance.get("/auth/preload");
+
+    const resData: preloadType = res.data;
+
+    userConnectionStore.setState({
+      connections: resData.connections,
+      sentConnectionPings: resData.sentConnectionPings,
+      receivedConnectionPings: resData.receivedConnectionPings,
+    });
+
+    userPresenseStore.setState({ onlinePresenses: resData?.onlinePresenses || {} });
+
+    userChatStore.setState({ conversations: resData.conversations });
+  } catch (error) {}
+};
 
 export const ConnectSocket = (userId: string) => {
   const BACKEND_SOCKET_URI = import.meta.env.VITE_BACKEND_URL;
@@ -27,6 +60,8 @@ export const ConnectSocket = (userId: string) => {
       userId: userId,
     },
     withCredentials: true,
+    reconnection: true,
+    reconnectionDelay: 15000,
   });
   userAuthStore.setState({ socket: newSocket });
 };
@@ -35,16 +70,11 @@ export const handleCheckAuth = async () => {
   userAuthStore.setState({ isCheckingAuth: true });
   try {
     const res = await axiosInstance.get("/auth/check");
-    const resData: checkUserResponse = res.data;
+    const resData: IUser = res.data;
 
-    userAuthStore.setState({ authUser: resData.authUser });
-    userConnectionStore.setState({
-      receivedConnectionPings: resData?.receivedConnectionPings || [],
-      sentConnectionPings: resData?.sentConnectionPings || [],
-      connections: resData.connections,
-    });
-
-    ConnectSocket(resData.authUser._id);
+    userAuthStore.setState({ authUser: resData });
+    ConnectSocket(resData._id);
+    await handlePreload();
   } catch {
     userAuthStore.setState({ authUser: null });
   } finally {
@@ -71,7 +101,7 @@ export const handleLogin = async (loginDetails: loginDetails) => {
       isError: true,
       errorMessage: axiosError.response?.data.message
         ? translate(
-            `login.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data.message}`
+            `login.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data.message}`,
           )
         : translate("login.form.errorTexts.SERVER_ERRORS.NO_INTERNET"),
       authUser: null,
@@ -86,7 +116,7 @@ export const handleSignup = async (signupDetails: signupDetails) => {
   if (!signupDetails || typeof signupDetails !== "object") {
     return {
       isError: true,
-      errorText: "Invalid Params. Please Reload",
+      errorText: translate("somethingWentWrong"),
       errorOnInput: false,
       authUser: null,
     };
@@ -121,7 +151,7 @@ export const handleSignup = async (signupDetails: signupDetails) => {
 
     const errorText = axiosError.response?.data?.message
       ? translate(
-          `signup.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data?.message}`
+          `signup.form.errorTexts.SERVER_ERRORS.${axiosError.response?.data?.message}`,
         )
       : translate("signup.form.errorTexts.SERVER_ERRORS.NO_INTERNET");
     const errorOnInput = axiosError.response?.data?.errorOnInput || false;
@@ -162,7 +192,7 @@ export const handleCheckUsername = async (usernameQueryKey: string) => {
     }>;
 
     const message = translate(
-      `signup.form.usernameCheck.${axiosError.response?.data.message}`
+      `signup.form.usernameCheck.${axiosError.response?.data.message}`,
     );
 
     const returnObject = {

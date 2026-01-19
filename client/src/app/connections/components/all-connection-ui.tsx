@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { FiSearch } from "react-icons/fi";
 import type { ConnectionType } from "../../../types/schema";
 import { ConnectionItem } from "./connection-item";
+import userConnectionStore from "../../../store/user-connections-store";
 
 const AllConnectionsUI = ({
   connections,
@@ -11,7 +12,11 @@ const AllConnectionsUI = ({
 }) => {
   const { t: translate } = useTranslation(["connection"]);
   const searchConnectionsPlaceHolderText = translate(
-    "searchConnectionsPlaceHolderText"
+    "searchConnectionsPlaceHolderText",
+  );
+
+  const deletingConnection = userConnectionStore(
+    (state) => state.deletingConnection,
   );
 
   const connectionLength = connections.length;
@@ -63,17 +68,22 @@ const AllConnectionsUI = ({
                 {ALL_CONNECTION_HEADER_TEXT} - {connectionLength}
               </Text>
 
-              {connections.map((connection) => (
-                <ConnectionItem
-                  MORE_TEXT={MORE_TEXT}
-                  connectionItem={connection}
-                  START_VOICE_CALL_TEXT={START_VOICE_CALL_TEXT}
-                  SEND_MESSAGE_TEXT={SEND_MESSAGE_TEXT}
-                  key={connection._id}
-                  START_VIDEO_CALL_TEXT={START_VIDEO_CALL_TEXT}
-                  REMOVE_CONNECTION_TEXT={REMOVE_CONNECTION_TEXT}
-                />
-              ))}
+              {connections.map((connection) => {
+                const isDeleting = deletingConnection.includes(connection._id);
+
+                return (
+                  <ConnectionItem
+                    isDeleting={isDeleting}
+                    MORE_TEXT={MORE_TEXT}
+                    connectionItem={connection}
+                    START_VOICE_CALL_TEXT={START_VOICE_CALL_TEXT}
+                    SEND_MESSAGE_TEXT={SEND_MESSAGE_TEXT}
+                    key={connection._id}
+                    START_VIDEO_CALL_TEXT={START_VIDEO_CALL_TEXT}
+                    REMOVE_CONNECTION_TEXT={REMOVE_CONNECTION_TEXT}
+                  />
+                );
+              })}
             </Flex>
           </ScrollArea.Content>
         </ScrollArea.Viewport>

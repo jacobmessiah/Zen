@@ -1,7 +1,8 @@
 import { Avatar, Flex, IconButton, Text } from "@chakra-ui/react";
-import type { IUser } from "../../../types/schema";
-import { FiVideo } from "react-icons/fi";
+import type { IUser } from "../../../../types/schema";
+import { FiChevronLeft, FiVideo } from "react-icons/fi";
 import { IoCallOutline } from "react-icons/io5";
+import userChatStore from "../../../../store/user-chat-store";
 
 const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
   if (!otherUser) return null;
@@ -27,6 +28,21 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
         boxShadow="sm"
       >
         <Flex gap="2" alignItems="center">
+          <IconButton
+            onClick={() =>
+              userChatStore.setState({
+                displayedMessages: [],
+                selectedConversation: null,
+              })
+            }
+            rounded="full"
+            boxShadow="inner"
+            size="xs"
+            variant="outline"
+          >
+            <FiChevronLeft />
+          </IconButton>
+
           <Avatar.Root size="sm">
             <Avatar.Fallback name={otherUser?.displayName} />
             <Avatar.Image src={otherUser?.profile?.profilePic} />
@@ -37,12 +53,12 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
           </Text>
         </Flex>
 
-        <Flex gap="5px">
-          <IconButton variant="ghost" rounded="lg">
+        <Flex gap="10px">
+          <IconButton size="sm" variant="surface" rounded="full">
             <FiVideo />
           </IconButton>
 
-          <IconButton variant="ghost" rounded="lg">
+          <IconButton size="sm" variant="surface" rounded="full">
             <IoCallOutline />
           </IconButton>
         </Flex>

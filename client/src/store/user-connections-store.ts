@@ -7,7 +7,7 @@ type userConnectionStoreTypes = {
   onlineConnections: string[];
   receivedConnectionPings: connectionPingType[];
   sentConnectionPings: connectionPingType[];
-  deletingConnectionPing: string[];
+  deletingConnection: string[];
 };
 
 const userConnectionStore = create<userConnectionStoreTypes>(() => ({
@@ -16,7 +16,7 @@ const userConnectionStore = create<userConnectionStoreTypes>(() => ({
   onlineConnections: [],
   receivedConnectionPings: [],
   sentConnectionPings: [],
-  deletingConnectionPing: [],
+  deletingConnection: [],
 }));
 
 export default userConnectionStore;

@@ -11,7 +11,7 @@ const connectionSchema = new mongoose.Schema(
       ref: "user",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 connectionSchema.index({ senderId: 1, receiverId: 1 }, { unique: true });

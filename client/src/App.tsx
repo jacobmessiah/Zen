@@ -1,7 +1,4 @@
-import { useEffect } from "react";
-
-import { Flex, Image } from "@chakra-ui/react";
-import { useColorMode, type ColorMode } from "./components/ui/color-mode";
+import { lazy, Suspense, useEffect } from "react";
 import "./App.css";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
@@ -17,48 +14,61 @@ import ChatsContainer from "./app/chat/chat-container";
 import MomentsContainer from "./app/moment/momments-container";
 import ConnectionsContainer from "./app/connections/connections-container";
 import SpacesContainer from "./app/spaces/spaces-container";
+import {
+  handleEventAdd,
+  handleEventRemove,
+} from "./utils/socket-listener/socket-handler";
+import { handleSyncAdd, handleSyncRemove } from "./utils/sync";
+
+const LoadingAppUI = lazy(() => import("./app/loading-app-container"));
 
 const App = () => {
-  const { isCheckingAuth, authUser } = userAuthStore();
+  const authUser = userAuthStore((state) => state.authUser);
+  const isCheckingAuth = userAuthStore((state) => state.isCheckingAuth);
+  const isPoolingReconnection = userAuthStore(
+    (state) => state.isPoolingReconnection,
+  );
+
+  const socket = userAuthStore((state) => state.socket);
 
   useEffect(() => {
     handleCheckAuth();
   }, [handleCheckAuth]);
 
-  const { colorMode }: { colorMode: ColorMode } = useColorMode();
+  useEffect(() => {
+    if (!socket) return;
 
-  if (isCheckingAuth) {
+    socket.on("EVENT:ADD", handleEventAdd);
+    socket.on("EVENT:REMOVE", handleEventRemove);
+    socket.on("SYNC:REMOVE", handleSyncRemove);
+    socket.on("SYNC:ADD", handleSyncAdd);
+
+    return () => {
+      if (socket) {
+        socket.off("SYNC:REMOVE", handleSyncRemove);
+        socket.off("EVENT:ADD", handleEventAdd);
+        socket.off("SYNC:ADD", handleSyncAdd);
+      }
+    };
+  }, [socket]);
+
+  console.log(
+    "%cCAUGHT YOU!%c\n\n Why snitching just follow me on Linkedin --> https://www.linkedin.com/in/jacob-messiah/",
+    "color: red; font-size: 52px; font-weight: bold;",
+    "font-size: 18px;",
+  );
+
+  if (isCheckingAuth || isPoolingReconnection) {
     return (
-      <Flex
-        justifyContent="center"
-        alignItems="center"
-        minW="100%"
-        minHeight="100dvh"
-      >
-        <Image
-          draggable={false}
-          onDrag={(e) => e.preventDefault()}
-          userSelect="none"
-          pointerEvents="none"
-          onClick={(e) => e.preventDefault()}
-          animation="pulse 1.5s ease-in-out infinite"
-          width="50px"
-          filter={
-            colorMode === "light"
-              ? "drop-shadow(0 0 8px rgba(46, 51, 46, 0.6))"
-              : "drop-shadow(0 0 8px rgba(201, 209, 201, 0.6))"
-          }
-          src={colorMode === "light" ? "/black.svg" : "/white.svg"}
-        />
-      </Flex>
+      <Suspense>
+        <LoadingAppUI />
+      </Suspense>
     );
   }
 
-  console.log(authUser)
-
   return (
     <div>
-      <Toaster  richColors position="top-center" />
+      <Toaster richColors position="top-center" />
       <Routes>
         {/*HomePage Route */}
 

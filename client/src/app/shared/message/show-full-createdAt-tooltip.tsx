@@ -1,0 +1,36 @@
+import type { ReactNode } from "react";
+import { Tooltip } from "../../../components/ui/tooltip";
+import { formatDateForTooltip } from "../../../utils/chatFunctions";
+
+const ShowFullTimeStampTooltip = ({
+  children,
+  createdAt,
+}: {
+  children: ReactNode;
+  createdAt: string;
+}) => {
+  const formatedDate = formatDateForTooltip(createdAt);
+
+  return (
+    <Tooltip
+      lazyMount
+      unmountOnExit
+      content={formatedDate}
+      showArrow
+      positioning={{
+        placement: "top",
+      }}
+      contentProps={{
+        maxW: "175px",
+        boxShadow: "xs",
+
+        color: "fg",
+        css: { "--tooltip-bg": "colors.bg.muted" },
+      }}
+    >
+      {children}
+    </Tooltip>
+  );
+};
+
+export default ShowFullTimeStampTooltip;

@@ -5,6 +5,7 @@ import {
   handleCheckUsername,
   handleLogin,
   handleLogout,
+  handlePreload,
   handleSignup,
 } from "../controller/userController.js";
 
@@ -15,5 +16,6 @@ userRoute.post("/login", handleLogin);
 userRoute.post("/logout", handleLogout);
 userRoute.get("/check", ProtectRoute, checkUser);
 userRoute.post("/username/check", handleCheckUsername);
+userRoute.get("/preload", ProtectRoute, handlePreload);
 
 export default userRoute;

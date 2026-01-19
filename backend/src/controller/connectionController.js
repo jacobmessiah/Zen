@@ -231,7 +231,7 @@ export const handleIgnoreConnectionPing = async (req, res) => {
 
     if (!documentId) return res.status(400).json({ message: "WRONG_REQUEST" });
 
-    const updateShow = await ConnectionPing.findByIdAndUpdate(
+    await ConnectionPing.findByIdAndUpdate(
       documentId,
       { $pull: { showFor: user._id } },
       { new: true },
@@ -258,25 +258,71 @@ export const handleIgnoreConnectionPing = async (req, res) => {
   }
 };
 
-export const handleRemoveConnection = async (req, res) => {
+export const handleDeleteConnection = async (req, res) => {
   try {
-    const documentId = req.body.documentId;
+    const user = req.user;
+    const session = req.session;
 
-    if (!documentId)
-      return res.status(400).json({ message: "INVALID_REQUEST" });
+    const { documentId } = req?.params || {};
 
-    const findConnection = await Connection.findOne({ _id: documentId });
+    if (!documentId || typeof documentId !== "string")
+      return res.status(400).json({ message: "DOCUMENT_ID_REQUIRED" });
+
+    const findConnection = await Connection.findById(documentId);
 
     if (!findConnection)
       return res.status(400).json({ message: "CONNECTION_NOT_FOUND" });
 
     await findConnection.deleteOne();
+
+    const otherUserId =
+      findConnection.receiverId.toString() === user._id.toString()
+        ? findConnection.senderId.toString()
+        : findConnection.receiverId.toString();
+
+    emitPayloadToOtherSessions(
+      user._id.toString(),
+      "SYNC:REMOVE",
+      {
+        type: "REMOVE_CONNECTION",
+        documentId: documentId,
+      },
+      session._id.toString(),
+    );
+
+    emitPayLoadToUser(otherUserId, "EVENT:REMOVE", {
+      type: "REMOVE_CONNECTION",
+      documentId: documentId,
+    });
+
+    return res.status(204).end();
   } catch (error) {
     console.log(
-      "Error on #handleRemoveConnection #connectionController.js  error --> ",
+      "Error on #handleDeleteConnection #connectionController.js Error --->",
       error?.message || error,
     );
 
-    return res.status(400).json({ message: "SERVER_ERROR" });
+    return res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
+
+export const getConnectedPairUserIds = async (userId) => {
+  try {
+    const allConnections = await Connection.find({
+      $or: [{ receiverId: userId }, { senderId: userId }],
+    });
+
+    return allConnections.map((connection) => {
+      return connection.receiverId.toString() === userId.toString()
+        ? connection.senderId.toString()
+        : connection.receiverId.toString();
+    });
+  } catch (error) {
+    console.log(
+      "Error on getConnectedPairUserIds Error  --> ",
+      error.message || error,
+    );
+
+    return null;
   }
 };

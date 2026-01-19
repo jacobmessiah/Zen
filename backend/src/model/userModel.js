@@ -34,8 +34,14 @@ const userSchema = new mongoose.Schema(
     profile: {
       profilePic: String,
     },
+    availability: {
+      type: String,
+      required: true,
+      enum: ["online", "offline", "dnd"],
+      default: "online",
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const User = mongoose.model("user", userSchema);

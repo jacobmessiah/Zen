@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import cookie from "cookie";
 import jwt from "jsonwebtoken";
 import Session from "../model/sessionModel.js";
+import { getConnectedPairUserIds } from "../controller/connectionController.js";
 
 dotenv.config({ quiet: true });
 
@@ -21,6 +22,8 @@ const io = new Server(server, {
     origin: FRONTEND_URL,
     credentials: true,
   },
+  pingInterval: 200, // how often server pings client
+  pingTimeout: 200,
 });
 
 const connectedUserMap = new Map();
@@ -46,11 +49,11 @@ export const emitPayloadToOtherSessions = (
   userId,
   emitDestination,
   emitPayload,
-  sessionIdToAvoid
+  sessionIdToAvoid,
 ) => {
   if (!userId || !emitDestination || !emitPayload) {
     console.log(
-      "#emitPayloadToOtherSessions #io.js. Stopped process because of missing arg"
+      "#emitPayloadToOtherSessions #io.js. Stopped process because of missing arg",
     );
     return;
   }
@@ -59,7 +62,7 @@ export const emitPayloadToOtherSessions = (
 
   if (!connectedUser) {
     console.log(
-      "#emitPayloadToOtherSessions #io.js. Stopped Process because user was not found in socketMap"
+      "#emitPayloadToOtherSessions #io.js. Stopped Process because user was not found in socketMap",
     );
     return;
   }
@@ -80,14 +83,168 @@ export const emitPayloadToOtherSessions = (
   });
 };
 
-const updateMap = (userId, sessionId, socketId) => {
+const updatePresenseOnConnect = async (userDetails) => {
+  if (!userDetails || userDetails.availability === "offline") return;
+
+  const userId = userDetails._id.toString();
+
+  // Ensure user actually has an active session
+  const sessions = connectedUserMap.get(userId);
+  if (!Array.isArray(sessions) || sessions.length < 1) return;
+
+  const idsToEmitTo = await getConnectedPairUserIds(userId);
+  if (!Array.isArray(idsToEmitTo) || idsToEmitTo.length < 1) return;
+
+  for (const id of idsToEmitTo) {
+    emitPayLoadToUser(id, "EVENT:ADD", {
+      type: "ADD_NEW_PRESENSE",
+      userId,
+      availability: userDetails.availability,
+    });
+  }
+};
+
+const handleSocketDisconnect = async (reason, socket) => {
+  const userId = socket.userId;
+  const sessionId = socket.sessionId;
+
+  console.log(
+    "#handleSocketDisconnect Socket Disconnected Reason --->",
+    reason,
+  );
+
+  if (
+    !userId ||
+    !sessionId ||
+    typeof userId !== "string" ||
+    typeof sessionId !== "string"
+  )
+    return;
+
+  const userDetails = await User.findById(userId);
+  if (!userDetails) return;
+
+  const mapKey = userId.toString();
+
+  const userSessions = connectedUserMap.get(mapKey);
+  if (!Array.isArray(userSessions) || userSessions.length < 1) return;
+
+  const updatedSessions = userSessions.filter(
+    (cn) => cn.sessionId !== sessionId,
+  );
+
+  if (updatedSessions.length > 0) {
+    connectedUserMap.set(mapKey, updatedSessions);
+    return;
+  }
+
+  connectedUserMap.delete(mapKey);
+
+  if (userDetails.availability === "offline") return;
+
+  const idsToEmitTo = await getConnectedPairUserIds(mapKey);
+
+  if (Array.isArray(idsToEmitTo) && idsToEmitTo.length > 0) {
+    for (const id of idsToEmitTo) {
+      emitPayLoadToUser(id, "EVENT:REMOVE", {
+        type: "REMOVE_USER_PRESENCE",
+        userId,
+      });
+    }
+  }
+
+  console.log("Presence Updated for User's Connected Pairs UI if Online");
+};
+
+const updatePresenseOnIdleChange = async (args, socket) => {
+  const userId = socket.userId;
+  const sessionId = socket.sessionId;
+
+  if (
+    !userId ||
+    typeof userId !== "string" ||
+    !sessionId ||
+    typeof sessionId !== "string"
+  )
+    return;
+
+  const userDetails = await User.findOne({ _id: userId });
+  if (!userDetails) return;
+
+  if (userDetails.availability === "offline") return;
+
+  const connectedUserMapRes = connectedUserMap.get(userId);
+  if (!Array.isArray(connectedUserMapRes)) return;
+
+  if (args === "online") {
+    updatePresenseOnConnect(userDetails);
+    return;
+  }
+
+  if (args === "idle") {
+    const otherSessions = connectedUserMapRes.filter(
+      (cn) => cn.sessionId !== sessionId,
+    );
+
+    if (otherSessions.length > 0) return;
+
+    const updatedSessions = connectedUserMapRes.map((cn) => ({
+      ...cn,
+      availability: "idle",
+    }));
+
+    connectedUserMap.set(userId, updatedSessions);
+
+    const idsToEmitTo = await getConnectedPairUserIds(userId);
+    if (Array.isArray(idsToEmitTo) && idsToEmitTo.length > 0) {
+      for (const id of idsToEmitTo) {
+        await emitPayLoadToUser(id, "EVENT:ADD", {
+          type: "ADD_NEW_PRESENSE",
+          userId,
+          availability: "idle",
+        });
+      }
+    }
+  }
+};
+
+export const getPresenseOfPairs = (otherPairIds) => {
+  const returnObject = {};
+
+  if (Array.isArray(otherPairIds) && otherPairIds.length > 0) {
+    otherPairIds.forEach((id) => {
+      const getPresense = connectedUserMap.get(id);
+
+      if (Array.isArray(getPresense) && getPresense.length > 0) {
+        const latestPresense = getPresense[getPresense.length - 1];
+        const availability = latestPresense.availability;
+
+        if (availability && typeof availability === "string") {
+          returnObject[id] = { availability: availability };
+        }
+      }
+    });
+
+    return returnObject;
+  } else {
+    return null;
+  }
+};
+
+const updateMap = (userId, sessionId, socketId, availability) => {
   const getExisting = connectedUserMap.get(userId);
   if (getExisting) {
-    const object = { sessionId: sessionId, socketId: socketId };
+    const object = {
+      sessionId: sessionId,
+      socketId: socketId,
+      availability: availability,
+    };
     getExisting.push(object);
     connectedUserMap.set(userId, getExisting);
   } else {
-    const newArray = [{ sessionId: sessionId, socketId: socketId }];
+    const newArray = [
+      { sessionId: sessionId, socketId: socketId, availability: availability },
+    ];
     connectedUserMap.set(userId, newArray);
   }
 };
@@ -107,7 +264,7 @@ const protectSocket = async (socket, next) => {
 
   if (!ZenCookieToken) {
     console.log(
-      "Attempted socket connection without ZenCookies --> ZenChattyVerb"
+      "Attempted socket connection without ZenCookies --> ZenChattyVerb",
     );
     socket.disconnect();
     return;
@@ -120,7 +277,7 @@ const protectSocket = async (socket, next) => {
   } catch (error) {
     console.log(
       "Verify Failed on #io.js #protectSocket function error message --> ",
-      error?.message || error
+      error?.message || error,
     );
     socket.disconnect();
     return;
@@ -133,7 +290,7 @@ const protectSocket = async (socket, next) => {
 
   if (!userId || !sessionId) {
     console.log(
-      "Attempted connection without required ids supposed to be in cookies"
+      "Attempted connection without required ids supposed to be in cookies",
     );
     socket.disconnect();
     return;
@@ -144,7 +301,7 @@ const protectSocket = async (socket, next) => {
 
   if (!userDetails) {
     console.log(
-      "Attempted connection with id of USER schema with no existing value"
+      "Attempted connection with id of USER schema with no existing value",
     );
     socket.disconnect();
     return;
@@ -152,17 +309,22 @@ const protectSocket = async (socket, next) => {
 
   if (!userSession) {
     console.log(
-      "Attempted connection with id of SESSION schema with no existing value"
+      "Attempted connection with id of SESSION schema with no existing value",
     );
     socket.disconnect();
     return;
   }
 
-  socket.userId = userDetails._id;
-  socket.sessionId = userSession._id;
-  socket.user = userDetails;
+  socket.userId = userDetails._id.toString();
+  socket.sessionId = userSession._id.toString();
 
-  updateMap(userDetails._id.toString(), userSession._id.toString(), socket.id);
+  updateMap(
+    userDetails._id.toString(),
+    userSession._id.toString(),
+    socket.id,
+    userDetails.availability,
+  );
+  updatePresenseOnConnect(userDetails);
   next();
 };
 
@@ -182,8 +344,25 @@ io.use(protectSocket);
 io.on("connection", (socket) => {
   const userId = socket.userId;
   console.log(
-    `User Connected with USERID --> ${userId} and SOCKETID --> ${socket.id}`
+    `User Connected with USERID --> ${userId} and SOCKETID --> ${socket.id}`,
   );
+
+  socket.on("disconnect", (reason) => handleSocketDisconnect(reason, socket));
+
+  socket.on("idlePresenseChange", (args) =>
+    updatePresenseOnIdleChange(args, socket),
+  );
+
+  socket.on("typingevent", (args) => {
+    const to = args.to;
+
+    if (to) {
+      emitPayLoadToUser(to, "EVENT:ADD", {
+        type: "TYPING_RECEIVE",
+        userId: socket.userId,
+      });
+    }
+  });
 });
 
 export { io, server, app };
