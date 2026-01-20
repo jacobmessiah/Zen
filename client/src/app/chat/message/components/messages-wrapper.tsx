@@ -19,7 +19,7 @@ const MessagesWrapper = () => {
   const { t: translate } = useTranslation(["chat"]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const beginingOfChatText = translate("beginingOfChatText");
+  const beginningOfChatText = translate("beginningOfChatText");
   const messageActions: MessageActionTranslations = {
     addReaction: translate("messageActions.addReaction"),
     editMessage: translate("messageActions.editMessage"),
@@ -61,7 +61,7 @@ const MessagesWrapper = () => {
       }}
     >
       <MessageStartUI
-        beginingOfChatText={beginingOfChatText}
+        beginningOfChatText={beginningOfChatText}
         otherUser={selectedConversation?.otherUser}
       />
 

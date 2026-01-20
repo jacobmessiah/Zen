@@ -85,18 +85,16 @@ export type AttachmentType = "image" | "video" | "audio" | "document";
 export type MessageType = "default" | "gif";
 
 export interface AttachmentBase {
-  url: string;
+  previewUrl: string;
   size: number;
   name: string;
-  createdAt: string;
   fileId: string;
+  file?: File;
 }
 
 export interface ImageAttachment extends AttachmentBase {
   type: "image";
   mimeType: ImageMimeType;
-  width?: number;
-  height?: number;
 }
 
 export interface VideoAttachment extends AttachmentBase {
@@ -117,7 +115,6 @@ export interface AudioAttachment extends AttachmentBase {
 export interface DocumentAttachment extends AttachmentBase {
   type: "document";
   mimeType: DocumentMimeType;
-  pages?: number;
 }
 
 export type Attachment =

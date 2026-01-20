@@ -7,7 +7,6 @@ import AppNavigatorBig, {
 
 import { useIdleTimer } from "react-idle-timer/legacy";
 import userAuthStore from "../store/user-auth-store";
-import userChatStore from "../store/user-chat-store";
 import { createDialog } from "./dialog/create-dialog";
 
 const AppTopRibbon = () => {
@@ -35,14 +34,6 @@ const AppContainer = () => {
   const contentBg = useColorModeValue("white", "gray.950");
 
   const socket = userAuthStore((state) => state.socket);
-
-  const conversations = userChatStore((state) => state.conversations);
-  const storedMessages = userChatStore((s) => s.storedMessages);
-
-  console.log({
-    storedMessages,
-    conversations,
-  });
 
   const handleOnIdle = () => {
     if (socket) {

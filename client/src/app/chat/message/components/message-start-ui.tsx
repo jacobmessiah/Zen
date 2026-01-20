@@ -4,10 +4,10 @@ import type { IUser } from "../../../../types/schema";
 
 const MessageStartUI = ({
   otherUser,
-  beginingOfChatText,
+  beginningOfChatText,
 }: {
   otherUser: IUser | undefined;
-  beginingOfChatText: string;
+  beginningOfChatText: string;
 }) => {
   if (!otherUser) return null;
 
@@ -31,7 +31,7 @@ const MessageStartUI = ({
       <Heading fontWeight="400">{otherUser.username}</Heading>
 
       <Text textAlign="center">
-        {beginingOfChatText} <Text as="strong">{otherUser.displayName}</Text>
+        {beginningOfChatText} <Text as="strong">{otherUser.displayName}</Text>
       </Text>
     </Flex>
   );
