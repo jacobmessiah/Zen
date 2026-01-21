@@ -233,6 +233,7 @@ export const P2PChatIndicator = ({
       maxW="full"
       rounded="md"
       gap="10px"
+      minH="20px"
       background="transparent"
     >
       {isTyping && (

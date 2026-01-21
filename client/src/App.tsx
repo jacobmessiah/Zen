@@ -43,6 +43,7 @@ const App = () => {
     socket.on("SYNC:REMOVE", handleSyncRemove);
     socket.on("SYNC:ADD", handleSyncAdd);
 
+
     return () => {
       if (socket) {
         socket.off("SYNC:REMOVE", handleSyncRemove);

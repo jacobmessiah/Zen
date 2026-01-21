@@ -89,7 +89,9 @@ export interface AttachmentBase {
   size: number;
   name: string;
   fileId: string;
+  filePath?: string;
   file?: File;
+  _id: string;
 }
 
 export interface ImageAttachment extends AttachmentBase {

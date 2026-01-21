@@ -39,6 +39,8 @@ const MessagesWrapper = () => {
     }
   }, [displayedMessages]);
 
+  console.log(displayedMessages);
+
   return (
     <Flex
       flex={1}
@@ -72,7 +74,7 @@ const MessagesWrapper = () => {
           i > 0
             ? new Date(displayedMessages[i - 1].createdAt).setHours(0, 0, 0, 0)
             : null;
-        const showSeperator = i === 0 || currentDay !== prevDay;
+        const showSeparator = i === 0 || currentDay !== prevDay;
 
         const prevMessage = i > 0 ? displayedMessages[i - 1] : null;
 
@@ -90,7 +92,7 @@ const MessagesWrapper = () => {
 
         return (
           <Fragment key={message._id}>
-            {showSeperator && (
+            {showSeparator && (
               <MessageSeparator createdAt={message.createdAt} />
             )}
 

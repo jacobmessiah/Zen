@@ -1,8 +1,8 @@
 import { Flex, Separator, Tag } from "@chakra-ui/react";
-import { formatSeperatorTimestamp } from "../../../../utils/chatFunctions";
+import { formatSeparatorTimestamp } from "../../../../utils/chatFunctions";
 
 const MessageSeparator = ({ createdAt }: { createdAt: string | Date }) => {
-  const formatTimeStamp = formatSeperatorTimestamp(createdAt);
+  const formatTimeStamp = formatSeparatorTimestamp(createdAt);
 
   if (formatTimeStamp === null || !formatTimeStamp) return null;
   return (

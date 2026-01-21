@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import FileInvalidUI from "../../dialog/ui/file-invalid-ui";
 
 import AttachmentLimitUI from "../../dialog/ui/max-attachment-ui";
+import { sendMessage } from "../../../utils/chatFunctions";
 
 export const DOCUMENT_MIME_TYPES: string[] = [
   "application/pdf", // PDF
@@ -32,13 +33,13 @@ export const DOCUMENT_MIME_TYPES: string[] = [
 ];
 
 export const AUDIO_MIME_TYPES = [
-  "audio/mpeg", // MP3
-  "audio/wav", // WAV
-  "audio/ogg", // OGG
-  "audio/webm", // WebM
-  "audio/flac", // FLAC
-  "audio/aac", // AAC
-  "audio/mp4", // M4A
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/flac",
+  "audio/aac",
+  "audio/mp4",
 ];
 
 export const IMAGE_MIME_TYPES: string[] = [
@@ -198,6 +199,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
       }, TYPING_SEND_INTERVAL_MS);
     }
   };
+  const authUser = userAuthStore((state) => state.authUser);
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
@@ -244,7 +246,21 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     }
   };
 
-  const handleSendMessage = () => {};
+  const handleSendMessage = () => {
+    if (inputValue.trim().length < 1 && attachments.length < 1) return;
+
+    sendMessage(
+      inputValue,
+      attachments,
+      authUser?._id,
+      selectedConversation?.otherUser._id,
+      selectedConversation?._id,
+      selectedConversation?.connectionId,
+    );
+
+    setInputValue("");
+    setAttachments([]);
+  };
 
   const { t: translate } = useTranslation(["chat"]);
 
@@ -255,52 +271,65 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     const url = URL.createObjectURL(file);
 
     if (type === "video") {
+      const tempId = crypto.randomUUID().slice(0, 15);
+
       const newAttachment: Attachment = {
         type: "video",
         previewUrl: url,
-        fileId: crypto.randomUUID().slice(0, 15),
+        fileId: tempId,
         mimeType: file.type as "video/mp4",
         name: file.name,
         size: file.size,
+        file: file,
+        _id: tempId,
       };
 
       setAttachments((p) => [...p, newAttachment]);
     }
 
     if (type === "audio") {
+      const tempId = crypto.randomUUID().slice(0, 15);
       const newAttachment: Attachment = {
         type: "audio",
         previewUrl: url,
-        fileId: crypto.randomUUID().slice(0, 15),
+        fileId: tempId,
         mimeType: file.type as "audio/mp4",
         name: file.name,
         size: file.size,
+        file: file,
+        _id: tempId,
       };
 
       setAttachments((p) => [...p, newAttachment]);
     }
 
     if (type === "document") {
+      const tempId = crypto.randomUUID().slice(0, 15);
       const newAttachment: Attachment = {
         type: "document",
         previewUrl: url,
-        fileId: crypto.randomUUID().slice(0, 15),
+        fileId: tempId,
         mimeType: file.type as "application/pdf",
         name: file.name,
         size: file.size,
+        file: file,
+        _id: tempId,
       };
 
       setAttachments((p) => [...p, newAttachment]);
     }
 
     if (type === "image") {
+      const tempId = crypto.randomUUID().slice(0, 15);
       const newAttachment: Attachment = {
         type: "image",
         previewUrl: url,
-        fileId: crypto.randomUUID().slice(0, 15),
+        fileId: tempId,
         mimeType: file.type as "image/jpeg",
         name: file.name,
         size: file.size,
+        file: file,
+        _id: tempId,
       };
 
       setAttachments((p) => [...p, newAttachment]);
@@ -340,6 +369,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
 
     const onDragEnter = (e: DragEvent) => {
       e.preventDefault();
+
+      // ONLY react if files are being dragged
+      if (!e.dataTransfer?.types.includes("Files")) return;
+
       dragCounter++;
       createDialog.open(dialogId, {
         contentWidth: "300px",
@@ -361,8 +394,9 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     };
 
     const onDragOver = (e: DragEvent) => {
+      if (!e.dataTransfer?.types.includes("Files")) return;
       e.preventDefault();
-      e.dataTransfer!.dropEffect = "copy";
+      e.dataTransfer.dropEffect = "copy";
     };
 
     const onDrop = (e: DragEvent) => {
@@ -423,6 +457,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
 
         addAttachment(file);
       });
+
+      if (textAreaRef.current) {
+        textAreaRef.current.focus();
+      }
     };
 
     window.addEventListener("dragenter", onDragEnter);
@@ -505,6 +543,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
           ) {
             addAttachment(file);
           }
+        }
+
+        if (textAreaRef.current) {
+          textAreaRef.current.focus();
         }
       }
     };

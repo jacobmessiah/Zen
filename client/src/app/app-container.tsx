@@ -54,7 +54,7 @@ const AppContainer = () => {
   });
 
   return (
-    <Flex bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
+    <Flex  bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
       <Flex
         w="full"
         display={{ base: "none", md: "flex", lg: "flex" }}

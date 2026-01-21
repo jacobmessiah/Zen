@@ -1,2 +1,0 @@
-newConnectionPing --------> Gives Socket Event for new Connection see client/src/types/schema.d.ts <connectionPingType> for  Details
-        -Usage: For updating User Ui of connection request/ping of another user

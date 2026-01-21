@@ -40,5 +40,6 @@
     "moreText": "More"
   },
   "typingText": "{{name}} is typing...",
-  "IunderstandText": "Got It"
+  "IunderstandText": "Got It",
+  "ConversationCreateFailed": "Umm... we couldn't create the conversation. Please try again."
 }

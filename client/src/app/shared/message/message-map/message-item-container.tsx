@@ -25,6 +25,8 @@ import { IoCopy } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { BiSolidPencil } from "react-icons/bi";
 import { Tooltip } from "../../../../components/ui/tooltip";
+import UploadingFilesUI from "../uploading-files-ui";
+import MessageAttachmentRenderer from "./message-attachment-render";
 
 export type ActionMenuOnselectTypes =
   | "addReaction"
@@ -349,7 +351,15 @@ const MessageItemContainer = ({
   messageActions: MessageActionTranslations;
   getUploadingFilesText: (count: number) => string;
 }) => {
-  const formatedTimeStampLong = formatMessageTimestamp(message.createdAt);
+  const formattedTimeStampLong = formatMessageTimestamp(message.createdAt);
+
+  const isUploading =
+    message.type === "default" &&
+    message.status === "sending" &&
+    (message.attachments?.length ?? 0) > 0;
+
+  const hasText =
+    message.type === "default" && !!message.text && message.text.length > 0;
 
   return (
     <Flex
@@ -407,7 +417,7 @@ const MessageItemContainer = ({
                 userSelect="none"
                 fontSize="xs"
               >
-                {formatedTimeStampLong}
+                {formattedTimeStampLong}
               </Text>
             </ShowFullTimeStampTooltip>
           </Flex>
@@ -416,12 +426,36 @@ const MessageItemContainer = ({
         <Menu.Root unmountOnExit lazyMount>
           <Menu.ContextTrigger textAlign="left">
             {/*All Message Content Goes Here */}
-            <Flex w="full" direction="column"></Flex>
+            <Flex w="full" direction="column">
+              {message.type === "default" &&
+                !isUploading &&
+                message.text &&
+                message.text.length > 0 && (
+                  <MessageTextRenderer text={message.text} />
+                )}
+
+              {isUploading &&
+                message.attachments &&
+                message.attachments.length > 0 && (
+                  <UploadingFilesUI
+                    text={getUploadingFilesText(message.attachments.length)}
+                  />
+                )}
+
+              {!isUploading &&
+                message.type === "default" &&
+                message.attachments &&
+                message.attachments.length > 0 && (
+                  <MessageAttachmentRenderer
+                    attachments={message.attachments}
+                  />
+                )}
+            </Flex>
             {/*All Message Content Goes Here */}
           </Menu.ContextTrigger>
           {/** For Now */}
           <MessageActionMenuItems
-            hasText={false}
+            hasText={hasText}
             isMine={isMine}
             messageActions={messageActions}
           />
