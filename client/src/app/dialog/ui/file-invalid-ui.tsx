@@ -18,7 +18,7 @@ const FileInvalidUI = () => {
     >
       <RiFolderWarningFill size={120} />
 
-      <Text fontSize="xl" fontWeight="600" mt="4">
+      <Text textAlign="center" fontSize="xl" fontWeight="600" mt="4">
         {INVALID_FILE_HEADER}
       </Text>
 

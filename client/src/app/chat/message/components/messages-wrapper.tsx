@@ -39,8 +39,6 @@ const MessagesWrapper = () => {
     }
   }, [displayedMessages]);
 
-  console.log(displayedMessages);
-
   return (
     <Flex
       flex={1}
@@ -108,7 +106,7 @@ const MessagesWrapper = () => {
         );
       })}
 
-      <Flex ref={scrollRef} minH="20px" p="1px" w="full" />
+      <Flex ref={scrollRef} minH="5px" p="1px" w="full" />
     </Flex>
   );
 };

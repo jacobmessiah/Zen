@@ -21,6 +21,13 @@ const fileFilter = (req, file, cb) => {
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "text/plain",
+    "audio/wav",
+    "audio/ogg",
+    "audio/webm",
+    "audio/flac",
+    "audio/aac",
+    "audio/mp4",
+    "audio/mpeg",
     "image/jpeg",
     "image/png",
     "image/webp",
@@ -39,7 +46,7 @@ const fileFilter = (req, file, cb) => {
 const MAX_ATTACHMENT = 10;
 
 const limits = {
-  fileSize: 15 * 1024 * 1024,
+  fileSize: 11 * 1024 * 1024,
 };
 
 const upload = multer({ storage, fileFilter, limits });

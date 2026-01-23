@@ -3,7 +3,7 @@ import i18next from "../../i18next";
 import type { TenorApiResponse } from "../types";
 import type { Attachment, IConversation, IMessage } from "../types/schema";
 import dayjs from "dayjs";
-const translate = i18next.getFixedT("chat");
+const translate = i18next.getFixedT(null, "chat");
 import isToday from "dayjs/plugin/isToday";
 import isYesterday from "dayjs/plugin/isYesterday";
 import userChatStore from "../store/user-chat-store";
@@ -192,30 +192,12 @@ export const sendMessage = async (
 
     const tempId = crypto.randomUUID();
 
-    // First Check for conversation in store
-
+    //Check for conversation in store
     let conversation = userChatStore
       .getState()
       .conversations.find((p) => p._id === conversationId);
 
-    if (!conversation || conversation.isTemp) {
-      const res = await axiosInstance.post("/conversations/create", {
-        connectionId,
-      });
-
-      conversation = res.data;
-      const resData: IConversation = res.data;
-      userChatStore.setState((state) => ({
-        conversations: [resData!, ...state.conversations],
-        selectedConversation: resData,
-      }));
-    }
-
-    if (!conversation) {
-      toast.error(translate("ConversationCreateFailed"));
-      return;
-    }
-
+    // Append Message to DOM for quick UI Feedback
     const newMessage: IMessage = {
       senderId,
       receiverId,
@@ -228,14 +210,17 @@ export const sendMessage = async (
       status: "sending",
     };
 
+    // Add Text if Any
     if (inputValue && inputValue.trim().length > 1) {
       newMessage.text = inputValue;
     }
 
+    // Add attachments if any including File object just incase of failed upload. you can resendMessage
     if (attachments.length > 0) {
-      newMessage.attachments = attachments;
+      newMessage["attachments"] = attachments;
     }
 
+    // Append of Message to state
     userChatStore.setState((state) => {
       const storedMessages = state.storedMessages[conversationId] || [];
       const overflow = storedMessages.length + 1 - MAX_MESSAGE_PER_STORAGE;
@@ -258,9 +243,91 @@ export const sendMessage = async (
         displayedMessages: displayedMessages,
       };
     });
+    /*---------------------------------------------------------------- */
 
-    /*Send Logic */
+    // Create or get conversation and update state if there's no conversation or conversation is a temp
+    if (!conversation || conversation.isTemp) {
+      try {
+        const res = await axiosInstance.post("/conversations/create", {
+          connectionId,
+        });
 
+        if (!res.data) {
+          toast.error(translate("ConversationCreateFailed"));
+          return;
+        }
+
+        conversation = res.data;
+
+        const resData: IConversation = res.data;
+
+        userChatStore.setState((state) => {
+          const selectedConversation = state.selectedConversation
+            ? state.selectedConversation._id === conversationId
+              ? resData
+              : state.selectedConversation
+            : null;
+
+          const fullStoreMessages = state.storedMessages;
+          delete fullStoreMessages[conversationId];
+
+          return {
+            storedMessages: {
+              ...fullStoreMessages,
+              [resData._id]: [newMessage],
+            },
+            selectedConversation: selectedConversation,
+            conversations: [resData, ...state.conversations],
+          };
+        });
+      } catch (error) {
+        const axiosError = error as AxiosError<{ message: string }>;
+        userChatStore.setState((state) => {
+          const storedMessages = state.storedMessages[conversationId] || [];
+
+          const updatedMessages = storedMessages.map((msg) => {
+            if (msg.tempId && msg.tempId === tempId) {
+              const nMsg: IMessage = {
+                ...msg,
+                status: "failed",
+              };
+              return nMsg;
+            } else return msg;
+          });
+
+          const displayedMessages =
+            state.selectedConversation &&
+            state.selectedConversation._id === conversationId
+              ? updatedMessages
+              : (state.displayedMessages ?? []);
+
+          return {
+            displayedMessages: displayedMessages,
+            storedMessages: {
+              ...state.storedMessages,
+              [conversationId]: updatedMessages,
+            },
+          };
+        });
+
+        const errMessage = axiosError.response?.data.message
+          ? axiosError.response.data.message
+          : "NO_INTERNET";
+        const toastText = translate(errMessage);
+
+        toast.error(toastText);
+        return;
+      }
+    }
+    /*---------------------------------------------------------------- */
+
+    if (!conversation) {
+      /// Add a ui so user gets Error Messages ontop of the messageinput
+      return;
+    }
+
+    /*---------------------------------------------------------------- */
+    //  Upload Attachments before saving final message.
     if (attachments.length > 0) {
       const formData = new FormData();
 
@@ -268,30 +335,72 @@ export const sendMessage = async (
         if (attachment.file) {
           formData.append("attachment", attachment.file);
         }
-
-        URL.revokeObjectURL(attachment.previewUrl);
       }
 
-      const response = await axiosInstance.post(
-        "/messages/upload/attachments",
-        formData,
-      );
+      try {
+        const response = await axiosInstance.post(
+          "/messages/upload/attachments",
+          formData,
+        );
 
-      const resData: Attachment[] = response.data;
+        const resData: Attachment[] = response.data;
+        newMessage["attachments"] = resData;
+        for (const attachment of attachments) {
+          URL.revokeObjectURL(attachment.previewUrl);
+        }
+      } catch (error) {
+        console.log(error);
+        const text = translate("attachmentUploadFailed");
+        toast.error(text);
+        userChatStore.setState((state) => {
+          const storedMessages = state.storedMessages[conversation._id] || [];
 
-      newMessage["attachments"] = resData;
+          const updatedMessages = storedMessages.map((msg) => {
+            if (msg.tempId && msg.tempId === tempId) {
+              const nMsg: IMessage = {
+                ...msg,
+                status: "failed",
+              };
+              return nMsg;
+            } else return msg;
+          });
+
+          const displayedMessages =
+            state.selectedConversation &&
+            state.selectedConversation._id === conversation._id
+              ? updatedMessages
+              : (state.displayedMessages ?? []);
+
+          return {
+            displayedMessages: displayedMessages,
+            storedMessages: {
+              ...state.storedMessages,
+              [conversation._id]: updatedMessages,
+            },
+          };
+        });
+        return;
+      }
     }
+    /*---------------------------------------------------------------- */
 
+    /*---------------------------------------------------------------- */
+    // Message Creation
     try {
-      const res = await axiosInstance.post("/messages/send", {
+      const updatedMessage: IMessage = {
         ...newMessage,
+        conversationId: conversation._id,
+      };
+
+      const res = await axiosInstance.post("/messages/send", {
+        ...updatedMessage,
       });
 
       const resData: IMessage = res.data;
-      updateMessage(resData, conversationId, true, tempId);
+      updateMessage(resData, conversation._id, true, tempId);
     } catch (error) {
       userChatStore.setState((state) => {
-        const storeMessages = state.storedMessages[conversationId!] ?? [];
+        const storeMessages = state.storedMessages[conversation._id] ?? [];
 
         const updatedMessages = storeMessages.map((msg) => {
           if (msg.tempId && msg.tempId === tempId) {
@@ -306,7 +415,7 @@ export const sendMessage = async (
 
         const displayedMessages = !state.selectedConversation
           ? []
-          : state.selectedConversation._id === conversationId
+          : state.selectedConversation._id === conversation._id
             ? updatedMessages
             : state.displayedMessages;
 
@@ -314,11 +423,12 @@ export const sendMessage = async (
           displayedMessages,
           storedMessages: {
             ...state.storedMessages,
-            [conversationId!]: updatedMessages,
+            [conversation._id]: updatedMessages,
           },
         };
       });
     }
+    /*---------------------------------------------------------------- */
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string; tempId: string }>;
     console.log(

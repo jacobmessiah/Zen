@@ -8,7 +8,7 @@ import { IoDocumentText } from "react-icons/io5";
 import { BiSolidFileTxt } from "react-icons/bi";
 import userAuthStore from "../../../store/user-auth-store";
 import userChatStore from "../../../store/user-chat-store";
-import { FaMicrophone } from "react-icons/fa";
+import { FaFileAudio, FaMicrophone } from "react-icons/fa";
 import { BsEmojiExpressionlessFill } from "react-icons/bs";
 import EmojiGif from "../emoji-gif";
 import { P2PChatIndicator } from "../activity-indicator";
@@ -154,6 +154,11 @@ const AttachmentPreview = ({
             {getDocumentIcon(attachment.mimeType, 80)}
           </Flex>
         )}
+        {attachment.type === "audio" && (
+          <Flex alignItems="center" justifyContent="center" color="fg.muted">
+            <FaFileAudio size={80} />
+          </Flex>
+        )}
       </Flex>
 
       <Text
@@ -188,6 +193,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   const [isTyping, setIsTyping] = useState(false);
   const MAX_ATTACHMENT = 10;
   const TYPING_SEND_INTERVAL_MS = 3000;
+
   const sendTypingEvent = () => {
     if (isTyping) return;
     setIsTyping(true);
@@ -217,18 +223,56 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   const handleOnFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
 
+    const dialogId = "fileChangeDialog";
+
     if (!files) return;
     if (files.length < 1) return;
 
     const iterableFiles = Array.from(files);
 
-    if (attachments.length > MAX_ATTACHMENT) return;
+    if (attachments.length + files.length > MAX_ATTACHMENT) {
+      createDialog.open(dialogId, {
+        contentWidth: "sm",
+        bodyPadding: "15px",
+        showBackDrop: true,
+        showCloseButton: false,
+        content: <AttachmentLimitUI max={MAX_ATTACHMENT} />,
+      });
+      return;
+    }
 
-    if (iterableFiles.length > 0 && attachments.length < MAX_ATTACHMENT) {
+    if (iterableFiles.length > 0) {
       setFileInputKey((p) => p + 1);
       for (const file of iterableFiles) {
         if (file.size > MAX_SIZE) {
           // So big file with createDialog
+          createDialog.open(dialogId, {
+            contentWidth: "md",
+            bodyPadding: "15px",
+            showBackDrop: true,
+            showCloseButton: true,
+            closeButtonText: translate("IunderstandText"),
+            content: <FileTooLargeUI />,
+          });
+          return;
+        }
+
+        if (
+          !DOCUMENT_MIME_TYPES.includes(file.type) &&
+          !AUDIO_MIME_TYPES.includes(file.type) &&
+          !IMAGE_MIME_TYPES.includes(file.type) &&
+          !VIDEO_MIME_TYPES.includes(file.type)
+        ) {
+          // Unsupported file type with createDialog
+          createDialog.open(dialogId, {
+            contentWidth: "md",
+            bodyPadding: "15px",
+            showBackDrop: true,
+            showCloseButton: true,
+            closeButtonText: translate("IunderstandText"),
+            content: <FileInvalidUI />,
+          });
+          return;
         }
 
         if (
@@ -365,7 +409,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   };
   useEffect(() => {
     let dragCounter = 0;
-    const dialogId = "bleachIsBetter";
+    const dialogId = "dragDialogId";
 
     const onDragEnter = (e: DragEvent) => {
       e.preventDefault();
@@ -477,7 +521,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   }, [attachments]);
 
   useEffect(() => {
-    const dialogId = "IchigoBetterThanNaruto";
+    const dialogId = "pasteDialogId";
 
     const handleOnPaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -493,11 +537,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
 
         if (attachments.length + files.length > MAX_ATTACHMENT) {
           createDialog.open(dialogId, {
-            contentWidth: "md",
+            contentWidth: "sm",
             bodyPadding: "15px",
             showBackDrop: true,
-            showCloseButton: true,
-            closeButtonText: translate("IunderstandText"),
+            showCloseButton: false,
             content: <AttachmentLimitUI max={MAX_ATTACHMENT} />,
           });
           return;
@@ -564,7 +607,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
       alignItems="center"
       minW="full"
       maxW="full"
-      pb={{ base: "0px", lg: "10px", md: "10px" }}
+      pb="10px"
       direction="column"
       px="1.5"
     >
@@ -575,7 +618,8 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
 
       <Flex
         alignItems="flex-end"
-        rounded="lg"
+        rounded={{ base: "xl", md: "lg", lg: "lg" }}
+        boxShadow={{ base: "inner", lg: "none", md: "none" }}
         border="1px solid"
         borderColor="bg.emphasized"
         minW="full"
@@ -616,7 +660,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
         {/*Attachment Container */}
 
         <Flex gap="1" pb="10px" pr="5px" alignItems="flex-end" w="full">
-          <Flex w={{ lg: "6.5%" }} justifyContent="center">
+          <Flex w={{ lg: "6.5%", base: "15%" }} justifyContent="center">
             <Flex
               onClick={() => fileInputRef.current?.click()}
               alignItems="center"

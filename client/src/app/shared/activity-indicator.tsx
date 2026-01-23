@@ -234,7 +234,7 @@ export const P2PChatIndicator = ({
       rounded="md"
       gap="10px"
       minH="20px"
-      background="transparent"
+      bg="transparent"
     >
       {isTyping && (
         <Flex

@@ -6,7 +6,7 @@ export const handleCreateNewConversation = async (req, res) => {
   try {
     const user = req.user;
 
-    const { connectionId, receiverId } = req?.body || {};
+    const { connectionId } = req?.body || {};
 
     //Alert change this check after Space is set
     if (!connectionId) {

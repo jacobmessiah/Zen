@@ -104,6 +104,7 @@ const CreateDmUI = ({
       participants: [authUser?._id || "", selectedConnection.otherUser._id],
       relation: "connection",
       connectionId: selectedConnection._id,
+      showFor: [selectedConnection.otherUser._id, authUser?._id!],
     };
 
     userChatStore.setState({

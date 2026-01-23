@@ -151,6 +151,6 @@ export interface IConversation {
   relation: "space" | "connection";
   connectionId?: string;
   spaceContext?: string;
-  showFor: [string];
+  showFor: string[];
   unreadCount?: Record<string, number>;
 }

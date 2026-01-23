@@ -13,10 +13,7 @@ type userChatStoreTypes = {
   hasMoreBottom: Record<string, boolean>;
   isViewingOld: Record<string, boolean>;
 
-  selectedMediaAttachments: Extract<
-    Attachment,
-    { type: "image" | "video" | "audio" }
-  >[];
+  selectedVisualAttachments: Extract<Attachment, { type: "video" | "image" }>[];
 };
 const userChatStore = create<userChatStoreTypes>(() => ({
   conversations: [],
@@ -29,8 +26,7 @@ const userChatStore = create<userChatStoreTypes>(() => ({
   hasMoreTop: {},
   isViewingOld: {},
   hasMoreBottom: {},
-
-  selectedMediaAttachments: [],
+  selectedVisualAttachments: [],
 }));
 
 export default userChatStore;

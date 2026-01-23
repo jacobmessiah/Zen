@@ -4,5 +4,6 @@
   "FILE_LIMIT_HEADER": "Uh oh, this file exceeds the size limit.",
   "FILE_LIMIT_TEXT": "The max file size is 15 MB. Upload a valid file within the size limit",
   "TOO_MANY_ATTACHMENTS_HEADER": "Too many uploads!",
-  "TOO_MANY_ATTACHMENTS_TEXT": "You can only upload up to {{max}} files at a time."
+  "TOO_MANY_ATTACHMENTS_TEXT": "You can only upload up to {{max}} files at a time.",
+  "iunderstandText": "Got it"
 }

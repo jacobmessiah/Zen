@@ -40,6 +40,7 @@ export const createDialog = createOverlay<DialogProps>((props) => {
         <Dialog.Positioner boxShadow="md">
           <Dialog.Content
             userSelect="none"
+            rounded="lg"
             h={contentHeight}
             width={contentWidth}
           >

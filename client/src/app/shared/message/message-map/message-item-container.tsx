@@ -379,7 +379,7 @@ const MessageItemContainer = ({
       minH={showSimpleStyle ? "25px" : "auto"}
     >
       <Flex
-        w={{ lg: "7%", base: "10%" }}
+        w={{ lg: "7%", base: "15%" }}
         fontSize="12.5px"
         color="fg.muted"
         userSelect="none"
@@ -403,10 +403,12 @@ const MessageItemContainer = ({
         )}
       </Flex>
 
-      <Flex gap="0px" flex={1} flexDir="column">
+      <Flex  flex={1} flexDir="column">
         {!showSimpleStyle && (
           <Flex gap="5px" alignItems="center">
-            <Text cursor="pointer">{senderProfile?.displayName}</Text>
+            <Text fontWeight="600" cursor="pointer">
+              {senderProfile?.displayName}
+            </Text>
             <ShowFullTimeStampTooltip createdAt={message.createdAt}>
               <Text
                 cursor="pointer"
@@ -424,11 +426,19 @@ const MessageItemContainer = ({
         )}
 
         <Menu.Root unmountOnExit lazyMount>
-          <Menu.ContextTrigger textAlign="left">
+          <Menu.ContextTrigger
+            asChild
+            onFocus={(e) => {
+              e.target.blur();
+            }}
+            focusRing="none"
+            textAlign="left"
+          >
             {/*All Message Content Goes Here */}
-            <Flex w="full" direction="column">
+            <Flex gap="2px" w="full" direction="column">
               {message.type === "default" &&
                 !isUploading &&
+                message.status === "sent" &&
                 message.text &&
                 message.text.length > 0 && (
                   <MessageTextRenderer text={message.text} />
