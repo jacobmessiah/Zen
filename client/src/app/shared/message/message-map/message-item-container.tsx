@@ -403,7 +403,7 @@ const MessageItemContainer = ({
         )}
       </Flex>
 
-      <Flex  flex={1} flexDir="column">
+      <Flex flex={1} flexDir="column">
         {!showSimpleStyle && (
           <Flex gap="5px" alignItems="center">
             <Text fontWeight="600" cursor="pointer">
@@ -457,6 +457,8 @@ const MessageItemContainer = ({
                 message.attachments &&
                 message.attachments.length > 0 && (
                   <MessageAttachmentRenderer
+                    senderProfile={senderProfile}
+                    createdAt={message.createdAt}
                     attachments={message.attachments}
                   />
                 )}

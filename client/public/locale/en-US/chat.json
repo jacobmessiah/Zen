@@ -42,7 +42,22 @@
   "typingText": "{{name}} is typing...",
   "IunderstandText": "Got It",
   "ConversationCreateFailed": "Umm... we couldn't create the conversation. Please try again.",
-  "attachmentUploadFailed": "Attachment upload went wrong. Try again", 
+  "attachmentUploadFailed": "Attachment upload went wrong. Try again",
   "NO_INTERNET": "No internet connection",
-  "openFullScreenText": "FullScreen"
+  "openFullScreenText": "FullScreen",
+  "selectedVisualAttachmentsText": {
+    "forward": "Forward",
+    "more": "More",
+    "openInBrowser": "Open in Browser",
+    "close": "Close",
+    "copyLink": "Copy Link",
+    "copyAttachmentId": "Copy Attachment ID",
+    "id": "ID",
+    "openFullScreen": "Full Screen",
+    "viewDetails": {
+      "filename": "Filename",
+      "size": "Size",
+      "text": "View Details"
+    }
+  }
 }

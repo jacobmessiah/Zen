@@ -17,6 +17,10 @@ interface DialogProps {
   bodyPadding?: string;
   showCloseButton?: boolean;
   closeButtonText?: string;
+  contentRounded?: string;
+  dialogSize?: "lg" | "md" | "sm" | "xl" | "xs" | "cover" | "full" | undefined;
+  contentBg?: string;
+  backdropBg?: string;
 }
 
 export const createDialog = createOverlay<DialogProps>((props) => {
@@ -31,21 +35,32 @@ export const createDialog = createOverlay<DialogProps>((props) => {
     bodyPadding = "10px",
     showCloseButton = true,
     closeButtonText,
+    contentRounded = "lg",
+    contentBg = "",
+    dialogSize = "md",
+    backdropBg = "",
     ...rest
   } = props;
   return (
-    <Dialog.Root unmountOnExit lazyMount placement={placement} {...rest}>
+    <Dialog.Root
+      size={dialogSize}
+      unmountOnExit
+      lazyMount
+      placement={placement}
+      {...rest}
+    >
       <Portal>
-        {showBackDrop && <Dialog.Backdrop />}
+        {showBackDrop && <Dialog.Backdrop bg={backdropBg} />}
         <Dialog.Positioner boxShadow="md">
           <Dialog.Content
             userSelect="none"
-            rounded="lg"
+            rounded={contentRounded}
             h={contentHeight}
             width={contentWidth}
+            bg={contentBg}
           >
             {title && (
-              <Dialog.Header bg="red">
+              <Dialog.Header>
                 <Dialog.Title>{title}</Dialog.Title>
 
                 <Dialog.CloseTrigger asChild>

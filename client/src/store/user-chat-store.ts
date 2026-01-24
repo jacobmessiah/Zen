@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import type { Attachment, IConversation, IMessage } from "../types/schema";
+import type {
+  Attachment,
+  IConversation,
+  IMessage,
+  IUser,
+} from "../types/schema";
 
 type userChatStoreTypes = {
   conversations: IConversation[];
@@ -13,7 +18,11 @@ type userChatStoreTypes = {
   hasMoreBottom: Record<string, boolean>;
   isViewingOld: Record<string, boolean>;
 
-  selectedVisualAttachments: Extract<Attachment, { type: "video" | "image" }>[];
+  selectedVisualAttachments: {
+    attachments: Extract<Attachment, { type: "video" | "image" }>[];
+    createdAt: string;
+    senderProfile: IUser | undefined;
+  } | null;
 };
 const userChatStore = create<userChatStoreTypes>(() => ({
   conversations: [],
@@ -26,7 +35,7 @@ const userChatStore = create<userChatStoreTypes>(() => ({
   hasMoreTop: {},
   isViewingOld: {},
   hasMoreBottom: {},
-  selectedVisualAttachments: [],
+  selectedVisualAttachments: null,
 }));
 
 export default userChatStore;
