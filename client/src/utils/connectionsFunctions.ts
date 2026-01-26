@@ -41,7 +41,7 @@ export const createNewConnectionPing = async (pingArg: string) => {
 
     const message = translate(
       `NewConnectionResponses.${
-        axiosError.response?.data.message || "NO_INTERNET"
+        axiosError.response?.data?.message || "NO_INTERNET"
       }`,
     );
 

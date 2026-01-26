@@ -46,6 +46,7 @@ export interface BaseMessage {
   replyTo?: string;
   createdAt: string;
   updatedAt: string;
+  reactions?: Record<string, { username: string; userId: string }[]>;
 }
 
 export type ImageMimeType =

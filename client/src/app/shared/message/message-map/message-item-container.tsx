@@ -27,6 +27,7 @@ import { BiSolidPencil } from "react-icons/bi";
 import { Tooltip } from "../../../../components/ui/tooltip";
 import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
+import MessageReactionsRenderer from "./reaction/message-reactions-renderer";
 
 export type ActionMenuOnselectTypes =
   | "addReaction"
@@ -363,12 +364,12 @@ const MessageItemContainer = ({
 
   return (
     <Flex
-      mb={showSimpleStyle ? "0px" : "5px"}
       minW="full"
       alignContent="flex-start"
       _hover={{
         bg: "bg.muted",
       }}
+      mt={showSimpleStyle ? "0px" : "5px"}
       color={message.status === "sending" ? "fg.muted" : ""}
       _active={{
         bg: "bg.muted",
@@ -376,16 +377,18 @@ const MessageItemContainer = ({
       rounded="sm"
       pos="relative"
       data-message-container
-      minH={showSimpleStyle ? "25px" : "auto"}
+      pr={{ base: "10px", lg: "0px" }}
+      className="group"
     >
       <Flex
-        w={{ lg: "7%", base: "15%" }}
+        minW={{ lg: "7%", base: "15%" }}
+        maxW={{ lg: "7%", base: "15%" }}
         fontSize="12.5px"
         color="fg.muted"
         userSelect="none"
         alignItems="start"
         justifyContent="center"
-        pt={showSimpleStyle ? "2px" : "7px"}
+        pt={showSimpleStyle ? "5px" : "7px"}
       >
         {!showSimpleStyle && senderProfile && (
           <SenderProfileDisplay senderProfile={senderProfile} />
@@ -397,8 +400,9 @@ const MessageItemContainer = ({
             _groupHover={{
               opacity: 100,
             }}
+            fontSize="xs"
           >
-            {formatDateSimpleStyle(message.createdAt)}
+            {formatDateSimpleStyle(message.createdAt).toLowerCase()}
           </Text>
         )}
       </Flex>
@@ -435,7 +439,7 @@ const MessageItemContainer = ({
             textAlign="left"
           >
             {/*All Message Content Goes Here */}
-            <Flex gap="2px" w="full" direction="column">
+            <Flex pb="4px" pt="2px" w="full" direction="column">
               {message.type === "default" &&
                 !isUploading &&
                 message.status === "sent" &&
@@ -474,12 +478,21 @@ const MessageItemContainer = ({
         </Menu.Root>
       </Flex>
 
-      {/** For Now */}
       <MessageActionToolBar
-        hasText={false}
+        hasText={
+          message.type === "default" &&
+          !!message.text &&
+          message.text.length > 0
+        }
         isMine={isMine}
         messageActions={messageActions}
       />
+
+      {message.reactions &&
+        typeof message.reactions === "object" &&
+        Object.keys(message.reactions).length > 0 && (
+          <MessageReactionsRenderer />
+        )}
     </Flex>
   );
 };

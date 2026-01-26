@@ -12,17 +12,26 @@ import {
 } from "@chakra-ui/react";
 import type { Attachment, IUser } from "../../../../types/schema";
 import { generateCDN_URL } from "../../../../utils/generalFunctions";
-import { Suspense, useRef, useState, type ChangeEvent } from "react";
+import {
+  forwardRef,
+  Suspense,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { FaFileAudio, FaPause, FaPlay } from "react-icons/fa";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
-import { RiFullscreenFill } from "react-icons/ri";
+
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "../../../../components/ui/tooltip";
 import { AiOutlineLoading } from "react-icons/ai";
 import { getDocumentIcon } from "../message-input-ui";
 import userChatStore from "../../../../store/user-chat-store";
 import { createDialog } from "../../../dialog/create-dialog";
 import AttachmentFullScreenUI from "../../../dialog/ui/attachment-preview/attachment-fullscreen-renderer";
+import { RiFullscreenExitLine, RiFullscreenFill } from "react-icons/ri";
+import { Tooltip } from "../../../../components/ui/tooltip";
+
+import { HiDownload } from "react-icons/hi";
 
 export const getSource = (
   filePath: string | undefined,
@@ -37,9 +46,35 @@ export const getSource = (
   }
 };
 
+const VideoPlayerButton = forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<"div">
+>((props, ref) => {
+  const { children, ...rest } = props;
+
+  return (
+    <Flex
+      color="whiteAlpha.600"
+      _hover={{
+        color: "white",
+      }}
+      justifyContent="center"
+      p="5px"
+      alignItems="center"
+      fontSize="22px"
+      ref={ref}
+      {...rest}
+    >
+      {children}
+    </Flex>
+  );
+});
+
+VideoPlayerButton.displayName = "VideoPlayerButton";
+
 const LoadingMedia = () => {
   return (
-    <Flex pos="relative" w="250px" h="300px">
+    <Flex pos="relative" minW="full" minH="full">
       <Flex
         bg="rgba(26, 26, 26, 0.4)"
         color="white"
@@ -103,12 +138,12 @@ const ImageAttachment = ({
 const VideoAttachment = ({
   attachment,
   openFullScreenText,
-  showControl,
+  isAlone,
   displayAttachmentFullscreen,
 }: {
   attachment: Extract<Attachment, { type: "video" }>;
   openFullScreenText: string;
-  showControl: boolean;
+  isAlone: boolean;
   displayAttachmentFullscreen: (
     att: Extract<Attachment, { type: "video" }>,
   ) => void;
@@ -120,51 +155,44 @@ const VideoAttachment = ({
   );
 
   const [videoDetails, setVideoDetails] = useState({
-    isPlaying: false,
     duration: 0,
-    isMuted: false,
     currentTime: 0,
-    volume: 100,
-    isClicked: false,
-    showPlayButton: true,
+    isFinishedPlay: false,
+    isLoadingTrue: true,
+    isPlaying: false,
+    isMuted: false,
     isFullScreen: false,
-    isLoading: true,
+    showControls: false,
     buttonFocused: false,
+    isClicked: false,
   });
 
+  const [showControlsTimer, setShowControlsTimer] = useState<number | null>(
+    null,
+  );
+
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sliderRef = useRef<HTMLInputElement>(null);
+  const volumeSliderRef = useRef<HTMLInputElement>(null);
+
   const isMobile = !window.matchMedia("(hover: hover)").matches;
 
-  const handlePlayVideo = () => {
-    if (!showControl) {
-      displayAttachmentFullscreen(attachment);
+  const handleToggleFullscreen = () => {
+    const el = containerRef.current;
+
+    if (!el) return;
+    if (document.fullscreenElement) {
+      setVideoDetails((p) => ({ ...p, isFullScreen: false }));
+      document.exitFullscreen();
       return;
     }
 
-    if (videoDetails.showPlayButton) {
-      setVideoDetails((p) => ({ ...p, showPlayButton: !p.showPlayButton }));
-    }
-    if (videoRef.current) {
-      const paused = videoRef.current.paused;
-      if (paused) {
-        videoRef.current.play();
-        setVideoDetails((p) => ({ ...p, isPlaying: true }));
-      } else {
-        videoRef.current.pause();
-        setVideoDetails((p) => ({ ...p, isPlaying: false }));
-      }
-    }
+    el.requestFullscreen().catch((e) =>
+      console.log("Error enabling full screen: ", e.message),
+    );
+    setVideoDetails((p) => ({ ...p, isFullScreen: true }));
   };
-
-  const handleSliderChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const time = Number(value);
-    if (videoRef.current) {
-      videoRef.current.currentTime = time;
-    }
-  };
-
   const handleToggleMute = (event: React.MouseEvent<HTMLDivElement>) => {
     const currentTarget = event.currentTarget;
 
@@ -188,131 +216,135 @@ const VideoAttachment = ({
         if (videoDetails.isMuted) {
           videoRef.current.volume = 1.0;
           setVideoDetails((p) => ({ ...p, isMuted: false, volume: 100 }));
+          if (volumeSliderRef.current) {
+            volumeSliderRef.current.value = "100";
+          }
         } else {
           videoRef.current.volume = 0.0;
           setVideoDetails((p) => ({ ...p, isMuted: true, volume: 0 }));
+          if (volumeSliderRef.current) {
+            volumeSliderRef.current.value = "0";
+          }
         }
       }
     }
   };
-  const handleToggleFullscreen = () => {
-    const el = document.getElementById(attachment.fileId);
 
-    if (!el) return;
-    if (document.fullscreenElement) {
-      setVideoDetails((p) => ({ ...p, isFullScreen: false }));
-      document.exitFullscreen();
-      return;
+  const handleMouseLeave = () => {
+    if (isAlone) {
+      setVideoDetails((p) => ({ ...p, showControls: false }));
     }
+  };
 
-    setVideoDetails((p) => ({ ...p, isFullScreen: true }));
-    el.requestFullscreen().catch((e) =>
-      console.log("Error enabling full screen: ", e.message),
-    );
+  const handleMouseEnter = () => {
+    if (isAlone) {
+      if (showControlsTimer && typeof showControlsTimer === "number") {
+        clearTimeout(showControlsTimer);
+      }
+      const timer = setTimeout(() => {
+        setVideoDetails((p) => ({ ...p, showControls: false }));
+      }, 4000);
+      setVideoDetails((p) => ({ ...p, showControls: true }));
+      setShowControlsTimer(timer);
+    }
+  };
+  const handleTogglePlay = () => {
+    if (isAlone) {
+      if (videoRef.current) {
+        handleMouseEnter();
+        if (videoDetails.isPlaying) {
+          videoRef.current.pause();
+          setVideoDetails((p) => ({ ...p, isPlaying: false }));
+        } else {
+          videoRef.current.play();
+          setVideoDetails((p) => ({ ...p, isPlaying: true }));
+          if (!videoDetails.isClicked) {
+            if (!videoDetails.isClicked) {
+              setVideoDetails((p) => ({ ...p, isClicked: true }));
+            }
+          }
+        }
+      }
+    } else {
+      displayAttachmentFullscreen(attachment);
+    }
   };
 
   return (
     <Flex
-      id={attachment.fileId}
-      maxW="300px"
-      maxH="350px"
-      h="350px"
-      w="250px"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      ref={containerRef}
       overflow="hidden"
       rounded="5px"
       pos="relative"
       data-video-container
+      bg={videoDetails.isFullScreen ? "gray.900" : "bg"}
     >
-      <Flex
-        display={videoDetails.isLoading ? "none" : "flex"}
-        w="full"
-        h="full"
-        direction="column"
-      >
-        <Flex w="full" overflow="hidden">
-          <video
-            onClick={handlePlayVideo}
-            ref={videoRef}
-            onLoadedMetadata={(event) => {
-              const duration = event.currentTarget.duration;
-              if (duration && !isNaN(duration)) {
-                setVideoDetails((p) => ({
-                  ...p,
-                  duration,
-                }));
-              }
-            }}
-            onTimeUpdate={(event) => {
-              const currentTime = event.currentTarget.currentTime;
-              if (sliderRef.current) {
-                sliderRef.current.value = currentTime.toString();
-              }
-            }}
-            onEnded={() => {
-              if (sliderRef.current) {
-                sliderRef.current.value = "0";
-              }
-              setVideoDetails((p) => ({ ...p, isPlaying: false }));
-            }}
-            preload="metadata"
-            src={url}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: videoDetails.isFullScreen ? "contain" : "cover",
-            }}
-            onLoadedData={() => {
-              setVideoDetails((p) => ({ ...p, isLoading: false }));
-            }}
-          />
-        </Flex>
+      <video
+        onClick={handleTogglePlay}
+        preload="metadata"
+        style={{
+          width: "100%",
+          height: "100%",
+          border: "none",
+          outline: "none",
+          objectFit: isAlone
+            ? videoDetails.isFullScreen
+              ? "contain"
+              : "cover"
+            : "cover",
+        }}
+        src={url}
+        onLoadedMetadata={(e) => {
+          const duration = e.currentTarget.duration;
+          setVideoDetails((p) => ({ ...p, duration }));
+        }}
+        onTimeUpdate={(e) => {
+          const currentTime = e.currentTarget.currentTime;
+          if (sliderRef.current) {
+            sliderRef.current.value = currentTime.toString();
+          }
+        }}
+        onEnded={() => {
+          setVideoDetails((p) => ({
+            ...p,
+            currentTime: 0,
+            isFinishedPlay: true,
+            isPlaying: false,
+          }));
+          if (sliderRef.current) {
+            sliderRef.current.value = "0";
+          }
+        }}
+        ref={videoRef}
+      />
 
-        {showControl && !videoDetails.showPlayButton && (
-          <Flex
-            bg="fg.muted"
-            opacity={!videoDetails.showPlayButton ? 100 : 0}
-            zIndex={88}
-            transition="0.1s ease"
-            w="100%"
-            alignItems="center"
+      {isAlone && videoDetails.isClicked && (
+        <Flex
+          bg="blackAlpha.500"
+          w="full"
+          pos="absolute"
+          transition="0.5s ease"
+          bottom={videoDetails.showControls ? "0px" : "-50px"}
+        >
+          <VideoPlayerButton
+            onClick={handleTogglePlay}
+            style={{ fontSize: "18px" }}
           >
-            <IconButton
-              focusRing="none"
-              color="whiteAlpha.800"
-              _hover={{
-                color: "white",
-              }}
-              size="md"
-              rounded="full"
-              variant="plain"
-              onClick={handlePlayVideo}
-            >
-              {videoDetails.isPlaying ? <FaPause /> : <FaPlay />}
-            </IconButton>
-            <input
-              ref={sliderRef}
-              type="range"
-              min={0}
-              max={videoDetails.duration}
-              step={1}
-              onChange={handleSliderChange}
-              style={{ flex: 1, accentColor: "black" }}
-            />
+            {!videoDetails.isPlaying ? <FaPlay /> : <FaPause />}
+          </VideoPlayerButton>
 
-            <Flex
-              tabIndex={0}
-              focusRing="none"
-              color="whiteAlpha.800"
-              _hover={{
-                color: "white",
-              }}
-              boxSize="25px"
-              alignItems="center"
-              justifyContent="center"
-              pos="relative"
-              data-audio-speaker
-              className="group"
-              onClick={handleToggleMute}
+          <input
+            ref={sliderRef}
+            max={videoDetails.duration}
+            defaultValue={videoDetails.currentTime}
+            type="range"
+            style={{ flex: 1 }}
+          />
+
+          {videoDetails.showControls && (
+            <VideoPlayerButton
               onFocus={(e) => {
                 e.stopPropagation();
                 setVideoDetails((p) => ({ ...p, buttonFocused: true }));
@@ -320,99 +352,107 @@ const VideoAttachment = ({
               onBlur={() => {
                 setVideoDetails((p) => ({ ...p, buttonFocused: false }));
               }}
+              onClick={handleToggleMute}
+              style={{ position: "relative" }}
+              data-volume-change
             >
-              <Float placement="top-center" offsetY="-60px">
-                <Slider.Root
-                  onClick={(e) => {
-                    e.stopPropagation();
+              {!videoDetails.isMuted ? <HiSpeakerWave /> : <HiSpeakerXMark />}
+
+              <Flex
+                pos="absolute"
+                bottom="65px"
+                opacity={videoDetails.buttonFocused ? 100 : 0}
+                transform="rotate(-90deg)"
+                transformOrigin="center"
+                css={{
+                  "[data-volume-change]:hover &": {
+                    opacity: { lg: "100" },
+                  },
+                }}
+                bg="gray.700"
+                px="2px"
+                rounded="10px"
+              >
+                <input
+                  onClick={(e) => e.stopPropagation()}
+                  ref={volumeSliderRef}
+                  className="no-focus"
+                  type="range"
+                  style={{
+                    height: "15px",
+                    width: "75px",
                   }}
-                  size="sm"
-                  transition="0.1s ease"
-                  transform={
-                    videoDetails.buttonFocused
-                      ? "translateY(0px)"
-                      : "translateY(40px)"
-                  }
-                  opacity={videoDetails.buttonFocused ? 100 : 0}
-                  css={{
-                    "[data-audio-speaker]:hover &": {
-                      opacity: { lg: "100" },
-                      transform: "translateY(0px)",
-                      h: "100px",
-                    },
-                  }}
-                  onValueChange={(e) => {
+                  defaultValue={100}
+                  onChange={(e) => {
+                    const volume = Number(e.currentTarget.value);
+
+                    setVideoDetails((p) => ({
+                      ...p,
+                      volume,
+                      isMuted: volume === 0 ? true : false,
+                    }));
+
                     if (videoRef.current) {
-                      const volume = e.value[0] / 100;
+                      videoRef.current.volume = volume / 100;
 
-                      if (e.value[0] === 0) {
-                        setVideoDetails((p) => ({ ...p, isMuted: true }));
-                      } else {
-                        setVideoDetails((p) => ({ ...p, isMuted: false }));
+                      if (volume === 0) {
+                        videoRef.current.muted = true;
+                      } else if (volume > 0) {
+                        videoRef.current.muted = false;
                       }
-
-                      videoRef.current.volume = volume;
                     }
-                    setVideoDetails((p) => ({ ...p, volume: e.value[0] }));
                   }}
-                  height={videoDetails.buttonFocused ? "100px" : "0px"}
-                  orientation="vertical"
-                  value={[videoDetails.volume]}
                   max={100}
-                >
-                  <Slider.Control>
-                    <Slider.Track>
-                      <Slider.Range />
-                    </Slider.Track>
-                    <Slider.Thumbs />
-                  </Slider.Control>
-                </Slider.Root>
-              </Float>
-              {videoDetails.isMuted ? (
-                <HiSpeakerXMark style={{ width: "20px", height: "20px" }} />
-              ) : (
-                <HiSpeakerWave style={{ width: "20px", height: "20px" }} />
-              )}
-            </Flex>
+                />
+              </Flex>
+            </VideoPlayerButton>
+          )}
 
+          {/*Full Screen Toggler */}
+          {videoDetails.isFullScreen ? (
+            <VideoPlayerButton onClick={handleToggleFullscreen}>
+              <RiFullscreenExitLine />
+            </VideoPlayerButton>
+          ) : (
             <Tooltip
-              showArrow
               positioning={{ placement: "top" }}
+              showArrow
+              contentProps={{
+                padding: "8px",
+                rounded: "lg",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                css: {
+                  "--tooltip-bg": "colors.gray.900",
+                  color: "white",
+                },
+              }}
               content={openFullScreenText}
             >
-              <IconButton
-                focusRing="none"
-                color="whiteAlpha.800"
-                _hover={{
-                  color: "white",
-                }}
-                size="md"
-                rounded="full"
-                variant="plain"
-                onClick={handleToggleFullscreen}
-              >
-                <RiFullscreenFill style={{ width: "24px", height: "24px" }} />
-              </IconButton>
+              <VideoPlayerButton onClick={handleToggleFullscreen}>
+                <RiFullscreenFill />
+              </VideoPlayerButton>
             </Tooltip>
-          </Flex>
-        )}
-        {videoDetails.showPlayButton && !videoDetails.isLoading && (
-          <IconButton
-            onClick={() => {
-              setVideoDetails((p) => ({ ...p, showPlayButton: false }));
-              handlePlayVideo();
-            }}
-            rounded="full"
-            pos="absolute"
-            top="50%"
-            left="50%"
-            transform="translate(-50%, -50%)"
-          >
-            <FaPlay />
-          </IconButton>
-        )}
-      </Flex>
-      {videoDetails.isLoading && <LoadingMedia />}
+          )}
+        </Flex>
+      )}
+
+      {!videoDetails.isPlaying && (
+        <VideoPlayerButton
+          onClick={handleTogglePlay}
+          style={{
+            background: "rgba(24, 23, 23, 0.89)",
+            position: "absolute",
+            padding: "10px",
+            borderRadius: "100px",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+          }}
+        >
+          <FaPlay style={{ width: "20px", height: "20px" }} />
+        </VideoPlayerButton>
+      )}
     </Flex>
   );
 };
@@ -431,12 +471,82 @@ function formatTime(timeInSeconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
 
+const DownloadButton = ({
+  filePath,
+  downloadText,
+  mimeType,
+  name,
+}: {
+  filePath: string;
+  mimeType: string;
+  downloadText: string;
+  name: string;
+}) => {
+  const handleDownload = () => {
+    if (!filePath || filePath === "") return;
+
+    const downloadUrl = generateCDN_URL(filePath, mimeType, true);
+    const url = downloadUrl;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    link.target = "_blank";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <Float
+      opacity={0}
+      _groupHover={{
+        opacity: 100,
+      }}
+      bg="bg"
+      rounded="3px"
+      p="1px"
+    >
+      <Tooltip
+        showArrow
+        positioning={{
+          placement: "top",
+        }}
+        contentProps={{
+          padding: "8px",
+          boxShadow: "xs",
+          css: { "--tooltip-bg": "colors.bg", color: "fg.muted" },
+        }}
+        content={downloadText}
+      >
+        <IconButton
+          unstyled
+          onClick={handleDownload}
+          boxSize="30px"
+          justifyContent="center"
+          alignItems="center"
+          rounded="3px"
+          display="flex"
+          _hover={{
+            bg: "bg.muted",
+          }}
+          fontSize="18px"
+        >
+          <HiDownload />
+        </IconButton>
+      </Tooltip>
+    </Float>
+  );
+};
+
 const AudioAttachment = ({
   attachment,
   language,
+  downloadText,
 }: {
   attachment: Attachment;
   language: string;
+  downloadText: string;
 }) => {
   const url = getSource(
     attachment.filePath,
@@ -539,6 +649,8 @@ const AudioAttachment = ({
       rounded="md"
       direction="column"
       userSelect="none"
+      pos="relative"
+      className="group"
     >
       <audio
         onTimeUpdate={(e) => {
@@ -623,6 +735,7 @@ const AudioAttachment = ({
           min={0}
           max={audioDetails.duration}
           step={1}
+          onClick={(e) => e.stopPropagation()}
           onChange={handleSliderChange}
           style={{ flex: 1, accentColor: "black" }}
         />
@@ -700,6 +813,15 @@ const AudioAttachment = ({
           )}
         </Flex>
       </Flex>
+
+      {attachment.filePath && (
+        <DownloadButton
+          downloadText={downloadText}
+          filePath={attachment.filePath}
+          name={attachment.name}
+          mimeType={attachment.mimeType}
+        />
+      )}
     </Flex>
   );
 };
@@ -707,9 +829,11 @@ const AudioAttachment = ({
 const DocumentAttachmnet = ({
   attachment,
   lang,
+  downloadText,
 }: {
   attachment: Extract<Attachment, { type: "document" }>;
   lang: string;
+  downloadText: string;
 }) => {
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -738,6 +862,8 @@ const DocumentAttachmnet = ({
       userSelect="none"
       gap="10px"
       alignItems="center"
+      className="group"
+      pos="relative"
     >
       {getDocumentIcon(attachment.mimeType, 40)}
 
@@ -766,6 +892,15 @@ const DocumentAttachmnet = ({
           </LocaleProvider>
         </Text>
       </Flex>
+
+      {attachment.filePath && (
+        <DownloadButton
+          downloadText={downloadText}
+          filePath={attachment.filePath}
+          name={attachment.name}
+          mimeType={attachment.mimeType}
+        />
+      )}
     </Flex>
   );
 };
@@ -783,10 +918,8 @@ const MessageAttachmentRenderer = ({
   const visualAttachments = attachments.filter(
     (att) => att.type === "video" || att.type === "image",
   );
-
   // Get audioAttachments
   const audioAttachments = attachments.filter((att) => att.type === "audio");
-
   // Get documentAttachments
   const documentAttachments = attachments.filter(
     (att) => att.type === "document",
@@ -794,6 +927,7 @@ const MessageAttachmentRenderer = ({
 
   const { t: translate, i18n } = useTranslation(["chat"]);
   const openFullScreenText = translate("openFullScreenText");
+  const downloadText = translate("downloadText");
 
   const displayAttachmentFullscreen = (
     att: Extract<Attachment, { type: "video" | "image" }>,
@@ -828,7 +962,7 @@ const MessageAttachmentRenderer = ({
   };
 
   return (
-    <Flex maxW={{ lg: "90%" }} pb="10px" textAlign="center">
+    <Flex maxW={{ lg: "90%" }}  textAlign="center">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
         <Box className={`gallery count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {
@@ -846,7 +980,7 @@ const MessageAttachmentRenderer = ({
               return (
                 <VideoAttachment
                   displayAttachmentFullscreen={displayAttachmentFullscreen}
-                  showControl={visualAttachments.length === 1}
+                  isAlone={visualAttachments.length === 1}
                   openFullScreenText={openFullScreenText}
                   key={att.fileId}
                   attachment={att}
@@ -860,6 +994,7 @@ const MessageAttachmentRenderer = ({
         <Flex w="full" direction="column" gap="10px">
           {audioAttachments.map((att) => (
             <AudioAttachment
+              downloadText={downloadText}
               language={i18n.language}
               key={att.fileId}
               attachment={att}
@@ -871,6 +1006,7 @@ const MessageAttachmentRenderer = ({
         <Flex direction="column">
           {documentAttachments.map((att) => (
             <DocumentAttachmnet
+              downloadText={downloadText}
               key={att.fileId}
               lang={i18n.language}
               attachment={att}

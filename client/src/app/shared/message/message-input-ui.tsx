@@ -646,6 +646,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
             css={scrollXCss}
             p="10px"
             w="full"
+            minH="205px"
             gap="10px"
           >
             {attachments.map((attachment) => (

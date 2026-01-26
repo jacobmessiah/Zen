@@ -23,7 +23,6 @@ const AttachmentSchema = new mongoose.Schema({
  * BaseMessage Schema - common fields for all message types
  */
 const BaseMessageSchema = new mongoose.Schema({
-
   conversationId: {
     type: mongoose.Types.ObjectId,
     ref: "conversation",
@@ -46,6 +45,10 @@ const BaseMessageSchema = new mongoose.Schema({
     required: true,
   },
   replyTo: String,
+  reactions: {
+    type: Object,
+    default: {},
+  },
 });
 
 const MessageSchema = new mongoose.Schema(

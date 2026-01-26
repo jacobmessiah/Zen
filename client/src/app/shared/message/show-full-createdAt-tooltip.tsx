@@ -23,6 +23,9 @@ const ShowFullTimeStampTooltip = ({
       contentProps={{
         maxW: "175px",
         boxShadow: "xs",
+        padding: "8px",
+        rounded: "md",
+        fontSize: "xs",
 
         color: "fg",
         css: { "--tooltip-bg": "colors.bg.muted" },
