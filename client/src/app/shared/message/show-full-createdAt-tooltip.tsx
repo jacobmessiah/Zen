@@ -1,6 +1,7 @@
+import { Tooltip } from "@/components/ui/tooltip";
+import { formatDateForTooltip } from "@/utils/chatFunctions";
 import type { ReactNode } from "react";
-import { Tooltip } from "../../../components/ui/tooltip";
-import { formatDateForTooltip } from "../../../utils/chatFunctions";
+
 
 const ShowFullTimeStampTooltip = ({
   children,

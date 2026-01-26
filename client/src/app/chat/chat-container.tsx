@@ -1,9 +1,9 @@
 import { Flex } from "@chakra-ui/react";
+import userChatStore from "@/store/user-chat-store";
 import ChatSideBar from "./components/chat-side-bar";
 import MessageContainer, {
   NoConversationSelectedUI,
 } from "./message/message-container";
-import userChatStore from "../../store/user-chat-store";
 
 const ChatsContainer = () => {
   const { selectedConversation } = userChatStore();

@@ -1,3 +1,9 @@
+import { CreateDmConnectionItem } from "@/app/connections/components/connection-item";
+import { Tooltip } from "@/components/ui/tooltip";
+import userAuthStore from "@/store/user-auth-store";
+import userChatStore from "@/store/user-chat-store";
+import userConnectionStore from "@/store/user-connections-store";
+import type { ConnectionType, IConversation } from "@/types/schema";
 import {
   Button,
   CloseButton,
@@ -7,13 +13,6 @@ import {
   useDialog,
 } from "@chakra-ui/react";
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
-// import { Tooltip } from "../../../components/ui/tooltip";
-import type { ConnectionType, IConversation } from "../../../types/schema";
-import { Tooltip } from "../../../components/ui/tooltip";
-import userConnectionStore from "../../../store/user-connections-store";
-import { CreateDmConnectionItem } from "../../connections/components/connection-item";
-import userAuthStore from "../../../store/user-auth-store";
-import userChatStore from "../../../store/user-chat-store";
 
 const CreateDmUI = ({
   children,
@@ -28,9 +27,9 @@ const CreateDmUI = ({
   selectConnectionsTitle: string;
   searchConnectionsPlaceHolder: string;
 }) => {
-  const { connections } = userConnectionStore();
+  const connections = userConnectionStore((state) => state.connections);
 
-  const { authUser } = userAuthStore();
+  const authUser = userAuthStore((state) => state.authUser);
 
   const [selectedConnection, setSelectedConnection] =
     useState<ConnectionType | null>();

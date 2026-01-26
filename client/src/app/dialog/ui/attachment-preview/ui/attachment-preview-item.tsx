@@ -1,11 +1,12 @@
+import { getSource } from "@/app/shared/message/message-map/message-attachment-render";
+import { Tooltip } from "@/components/ui/tooltip";
+import type { Attachment } from "@/types/schema";
 import { Flex, Image, Text, useBreakpointValue } from "@chakra-ui/react";
-import type { Attachment } from "../../../../../types/schema";
-import { getSource } from "../../../../shared/message/message-map/message-attachment-render";
 import { forwardRef, useRef, useState } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 import { HiMiniSpeakerWave, HiMiniSpeakerXMark } from "react-icons/hi2";
 import { RiFullscreenExitLine, RiFullscreenFill } from "react-icons/ri";
-import { Tooltip } from "../../../../../components/ui/tooltip";
+
 
 function formatTime(timeInSeconds: number) {
   const totalSeconds = Math.floor(timeInSeconds);

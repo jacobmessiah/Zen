@@ -1,12 +1,11 @@
 import { Flex, Image } from "@chakra-ui/react";
-import { useColorModeValue } from "../components/ui/color-mode";
+
 import { Outlet } from "react-router-dom";
-import AppNavigatorBig, {
-  AppNavigatorSmall,
-} from "./components/ui/app-navigator";
 
 import { useIdleTimer } from "react-idle-timer/legacy";
-import userAuthStore from "../store/user-auth-store";
+import { useColorModeValue } from "@/components/ui/color-mode";
+import userAuthStore from "@/store/user-auth-store";
+import AppNavigatorBig, { AppNavigatorSmall } from "./components/ui/app-navigator";
 import { createDialog } from "./dialog/create-dialog";
 
 const AppTopRibbon = () => {
@@ -54,7 +53,7 @@ const AppContainer = () => {
   });
 
   return (
-    <Flex  bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
+    <Flex bg={shelfColor} direction="column" minH="100dvh" h="100dvh">
       <Flex
         w="full"
         display={{ base: "none", md: "flex", lg: "flex" }}

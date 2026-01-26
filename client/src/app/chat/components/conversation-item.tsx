@@ -1,7 +1,8 @@
+import { ConversationActivityIndicator } from "@/app/shared/activity-indicator";
+import type { IConversation } from "@/types/schema";
 import { Avatar, 
   Flex, Text } from "@chakra-ui/react";
-import type { IConversation } from "../../../types/schema";
-import { ConversationActivityIndicator } from "../../shared/activity-indicator";
+
 
 const ConversationItem = ({
   convoItem,

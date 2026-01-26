@@ -1,5 +1,6 @@
+import type { IUser } from "@/types/schema";
 import { Avatar, Flex, Heading, Text } from "@chakra-ui/react";
-import type { IUser } from "../../../../types/schema";
+
 
 
 const MessageStartUI = ({

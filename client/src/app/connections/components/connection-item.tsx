@@ -8,25 +8,20 @@ import {
   Text,
   type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import type {
-  connectionPingType,
-  ConnectionType,
-  IUser,
-} from "../../../types/schema";
+
 import { LuX } from "react-icons/lu";
-import { Tooltip } from "../../../components/ui/tooltip";
+
 import { useTranslation } from "react-i18next";
-import {
-  acceptConnectionPing,
-  deleteSentConnectionPing,
-  handleRemoveConnection,
-  ignoreConnectionPing,
-} from "../../../utils/connectionsFunctions";
+
 import { IoMdCheckmark } from "react-icons/io";
 import { HiOutlineDotsVertical } from "react-icons/hi";
 import { IoChatbubbleSharp } from "react-icons/io5";
 import { useId } from "react";
-import { OnlineIndicator } from "../../shared/activity-indicator";
+import type { connectionPingType, ConnectionType, IUser } from "@/types/schema";
+import { Tooltip } from "@/components/ui/tooltip";
+import { acceptConnectionPing, deleteSentConnectionPing, handleRemoveConnection, ignoreConnectionPing } from "@/utils/connectionsFunctions";
+import { OnlineIndicator } from "@/app/shared/activity-indicator";
+
 
 export const SentPendingConnectionPingItem = ({
   pendingItem,

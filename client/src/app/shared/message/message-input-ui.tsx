@@ -1,25 +1,23 @@
 import { CloseButton, Flex, Float, Image, Text } from "@chakra-ui/react";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { LuPlus, LuX } from "react-icons/lu";
-import { type Attachment, type DocumentMimeType } from "../../../types/schema";
 import { FaFilePdf, FaFilePowerpoint } from "react-icons/fa6";
 import { PiMicrosoftExcelLogoFill } from "react-icons/pi";
 import { IoDocumentText } from "react-icons/io5";
 import { BiSolidFileTxt } from "react-icons/bi";
-import userAuthStore from "../../../store/user-auth-store";
-import userChatStore from "../../../store/user-chat-store";
+import type { Attachment, DocumentMimeType } from "@/types/schema";
 import { FaFileAudio, FaMicrophone } from "react-icons/fa";
-import { BsEmojiExpressionlessFill } from "react-icons/bs";
-import EmojiGif from "../emoji-gif";
-import { P2PChatIndicator } from "../activity-indicator";
-import { createDialog } from "../../dialog/create-dialog";
-import FileDragUI from "../../dialog/ui/file-drag-ui";
-import FileTooLargeUI from "../../dialog/ui/file-too-large";
+import userChatStore from "@/store/user-chat-store";
+import userAuthStore from "@/store/user-auth-store";
+import { createDialog } from "@/app/dialog/create-dialog";
+import AttachmentLimitUI from "@/app/dialog/ui/max-attachment-ui";
+import { sendMessage } from "@/utils/chatFunctions";
+import FileTooLargeUI from "@/app/dialog/ui/file-too-large";
+import FileInvalidUI from "@/app/dialog/ui/file-invalid-ui";
 import { useTranslation } from "react-i18next";
-import FileInvalidUI from "../../dialog/ui/file-invalid-ui";
-
-import AttachmentLimitUI from "../../dialog/ui/max-attachment-ui";
-import { sendMessage } from "../../../utils/chatFunctions";
+import FileDragUI from "@/app/dialog/ui/file-drag-ui";
+import { P2PChatIndicator } from "../activity-indicator";
+import { BsEmojiExpressionlessFill } from "react-icons/bs";
 
 export const DOCUMENT_MIME_TYPES: string[] = [
   "application/pdf", // PDF
@@ -715,18 +713,16 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
               <FaMicrophone />
             </Flex>
 
-            <EmojiGif showTabOff="gif" onEmojiSelect={(e) => console.log(e)}>
-              <Flex
-                alignItems="center"
-                justifyContent="center"
-                h="35px"
-                w="35px"
-                rounded="lg"
-                _hover={{ bg: "bg.emphasized" }}
-              >
-                <BsEmojiExpressionlessFill size={20} />
-              </Flex>
-            </EmojiGif>
+            <Flex
+              alignItems="center"
+              justifyContent="center"
+              h="35px"
+              w="35px"
+              rounded="lg"
+              _hover={{ bg: "bg.emphasized" }}
+            >
+              <BsEmojiExpressionlessFill size={20} />
+            </Flex>
           </Flex>
         </Flex>
       </Flex>

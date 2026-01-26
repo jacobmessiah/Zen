@@ -1,13 +1,13 @@
 import { Flex } from "@chakra-ui/react";
-import userChatStore from "../../../../store/user-chat-store";
 import MessageStartUI from "./message-start-ui";
 import { useTranslation } from "react-i18next";
-import userAuthStore from "../../../../store/user-auth-store";
 import MessageSeparator from "./message-separator";
 import { Fragment } from "react/jsx-runtime";
 import { useEffect, useRef } from "react";
-import MessageItemContainer from "../../../shared/message/message-map/message-item-container";
-import type { MessageActionTranslations } from "../../../../types";
+import userChatStore from "@/store/user-chat-store";
+import userAuthStore from "@/store/user-auth-store";
+import type { MessageActionTranslations } from "@/types";
+import MessageItemContainer from "@/app/shared/message/message-map/message-item-container";
 
 const MessagesWrapper = () => {
   const selectedConversation = userChatStore(

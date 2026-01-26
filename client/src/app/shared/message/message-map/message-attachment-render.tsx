@@ -6,7 +6,6 @@ import {
   IconButton,
   Image,
   LocaleProvider,
-  Skeleton,
   Slider,
   Text,
 } from "@chakra-ui/react";
@@ -72,29 +71,6 @@ const VideoPlayerButton = forwardRef<
 
 VideoPlayerButton.displayName = "VideoPlayerButton";
 
-const LoadingMedia = () => {
-  return (
-    <Flex pos="relative" minW="full" minH="full">
-      <Flex
-        bg="rgba(26, 26, 26, 0.4)"
-        color="white"
-        top="10px"
-        right="10px"
-        pos="absolute"
-        boxSize="25px"
-        justifyContent="center"
-        rounded="full"
-      >
-        <Flex animation="spin" alignItems="center" animationDuration="slower">
-          <AiOutlineLoading size={18} />
-        </Flex>
-      </Flex>
-
-      <Skeleton variant="shine" h="full" w="full" />
-    </Flex>
-  );
-};
-
 const ImageAttachment = ({
   attachment,
   displayAttachmentFullscreen,
@@ -119,18 +95,36 @@ const ImageAttachment = ({
       onClick={() => displayAttachmentFullscreen(attachment)}
       rounded="5px"
       overflow="hidden"
-      height="200px"
+      className={isLoaded ? "" : "isLoading"}
+      pos="relative"
     >
       <Image
         onLoad={() => setIsLoaded(true)}
-        display={isLoaded ? "unset" : "none"}
+        style={{ visibility: isLoaded ? "visible" : "hidden" }}
         src={src}
         minH="full"
         minW="full"
         maxH="full"
         maxW="full"
+        zIndex={10}
       />
-      {!isLoaded && <LoadingMedia />}
+
+      {!isLoaded && (
+        <Flex
+          bg="rgba(26, 26, 26, 0.4)"
+          color="white"
+          top="10px"
+          right="10px"
+          pos="absolute"
+          boxSize="25px"
+          justifyContent="center"
+          rounded="full"
+        >
+          <Flex animation="spin" alignItems="center" animationDuration="slower">
+            <AiOutlineLoading size={18} />
+          </Flex>
+        </Flex>
+      )}
     </Flex>
   );
 };
@@ -158,13 +152,13 @@ const VideoAttachment = ({
     duration: 0,
     currentTime: 0,
     isFinishedPlay: false,
-    isLoadingTrue: true,
     isPlaying: false,
     isMuted: false,
     isFullScreen: false,
     showControls: false,
     buttonFocused: false,
     isClicked: false,
+    isLoaded: false,
   });
 
   const [showControlsTimer, setShowControlsTimer] = useState<number | null>(
@@ -279,12 +273,20 @@ const VideoAttachment = ({
       rounded="5px"
       pos="relative"
       data-video-container
-      bg={videoDetails.isFullScreen ? "gray.900" : "bg"}
+      bg={
+        videoDetails.isLoaded
+          ? videoDetails.isFullScreen
+            ? "gray.900"
+            : "bg"
+          : ""
+      }
+      className={videoDetails.isLoaded ? "" : "isLoading"}
     >
       <video
         onClick={handleTogglePlay}
         preload="metadata"
         style={{
+          visibility: videoDetails.isLoaded ? "visible" : "hidden",
           width: "100%",
           height: "100%",
           border: "none",
@@ -294,6 +296,9 @@ const VideoAttachment = ({
               ? "contain"
               : "cover"
             : "cover",
+        }}
+        onLoadedData={() => {
+          setVideoDetails((p) => ({ ...p, isLoaded: true }));
         }}
         src={url}
         onLoadedMetadata={(e) => {
@@ -320,7 +325,7 @@ const VideoAttachment = ({
         ref={videoRef}
       />
 
-      {isAlone && videoDetails.isClicked && (
+      {videoDetails.isLoaded && isAlone && videoDetails.isClicked && (
         <Flex
           bg="blackAlpha.500"
           w="full"
@@ -437,7 +442,7 @@ const VideoAttachment = ({
         </Flex>
       )}
 
-      {!videoDetails.isPlaying && (
+      {videoDetails.isLoaded && !videoDetails.isPlaying && (
         <VideoPlayerButton
           onClick={handleTogglePlay}
           style={{
@@ -452,6 +457,23 @@ const VideoAttachment = ({
         >
           <FaPlay style={{ width: "20px", height: "20px" }} />
         </VideoPlayerButton>
+      )}
+
+      {!videoDetails.isLoaded && (
+        <Flex
+          bg="rgba(26, 26, 26, 0.4)"
+          color="white"
+          top="10px"
+          right="10px"
+          pos="absolute"
+          boxSize="25px"
+          justifyContent="center"
+          rounded="full"
+        >
+          <Flex animation="spin" alignItems="center" animationDuration="slower">
+            <AiOutlineLoading size={18} />
+          </Flex>
+        </Flex>
       )}
     </Flex>
   );
@@ -962,7 +984,7 @@ const MessageAttachmentRenderer = ({
   };
 
   return (
-    <Flex maxW={{ lg: "90%" }}  textAlign="center">
+    <Flex maxW={{ lg: "50%" }} textAlign="center">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
         <Box className={`gallery count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {

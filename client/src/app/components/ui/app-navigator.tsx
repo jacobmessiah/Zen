@@ -1,12 +1,12 @@
 import { Flex, Float } from "@chakra-ui/react";
 import { FiLayers, FiMessageCircle, FiZap } from "react-icons/fi";
 import { HiOutlineShare } from "react-icons/hi";
-import { Tooltip } from "../../../components/ui/tooltip";
-import { useColorModeValue } from "../../../components/ui/color-mode";
-import userCallStore from "../../../store/user-call-store";
 import { useLocation, useNavigate } from "react-router-dom";
-import userConnectionStore from "../../../store/user-connections-store";
 import { GrSettingsOption } from "react-icons/gr";
+import userCallStore from "@/store/user-call-store";
+import userConnectionStore from "@/store/user-connections-store";
+import { useColorModeValue } from "@/components/ui/color-mode";
+import { Tooltip } from "@/components/ui/tooltip";
 
 const AppNavigatorBig = () => {
   const { isCalling } = userCallStore();

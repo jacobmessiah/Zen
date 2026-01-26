@@ -129,18 +129,21 @@
 
   .gallery.count-7 > *:nth-child(1) {
     grid-column: span 6;
+    height: 250px;
   }
 
   .gallery.count-7 > *:nth-child(2),
   .gallery.count-7 > *:nth-child(3),
   .gallery.count-7 > *:nth-child(4) {
     grid-column: span 2;
+    height: 120px;
   }
 
   .gallery.count-7 > *:nth-child(5),
   .gallery.count-7 > *:nth-child(6),
   .gallery.count-7 > *:nth-child(7) {
     grid-column: span 2;
+    height: 120px;
   }
 
   .gallery.count-8 {
@@ -152,25 +155,28 @@
   .gallery.count-8 > *:nth-child(1),
   .gallery.count-8 > *:nth-child(2) {
     grid-column: span 3;
+    height: 220px;
   }
 
   .gallery.count-8 > *:nth-child(3),
   .gallery.count-8 > *:nth-child(4),
   .gallery.count-8 > *:nth-child(5) {
     grid-column: span 2;
+    height: 120px;
   }
 
   .gallery.count-8 > *:nth-child(6),
   .gallery.count-8 > *:nth-child(7),
   .gallery.count-8 > *:nth-child(8) {
     grid-column: span 2;
+    height: 120px;
   }
 
   .gallery.count-9 {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 5px;
-    grid-auto-rows: 200px;
+    grid-auto-rows: 150px;
   }
 
   .gallery.count-9 > * {
@@ -187,24 +193,28 @@
 
   .gallery.count-10 > *:nth-child(1) {
     grid-column: span 6;
+    height: 250px;
   }
 
   .gallery.count-10 > *:nth-child(2),
   .gallery.count-10 > *:nth-child(3),
   .gallery.count-10 > *:nth-child(4) {
     grid-column: span 2;
+    height: 150px;
   }
 
   .gallery.count-10 > *:nth-child(5),
   .gallery.count-10 > *:nth-child(6),
   .gallery.count-10 > *:nth-child(7) {
     grid-column: span 2;
+    height: 150px;
   }
 
   .gallery.count-10 > *:nth-child(8),
   .gallery.count-10 > *:nth-child(9),
   .gallery.count-10 > *:nth-child(10) {
     grid-column: span 2;
+    height: 150px;
   }
 }
 
@@ -308,6 +318,7 @@
 
   .gallery.count-7 > *:nth-child(1) {
     grid-column: span 6;
+    height: 180px; /* Add this - adjust the value as needed */
   }
 
   .gallery.count-7 > *:nth-child(2),
@@ -428,4 +439,39 @@ input[type="range"]::-moz-range-thumb {
   width: 10px;
   background: #313131;
   border-radius: 50%;
+}
+
+/* Shimmer base */
+.isLoading {
+  background: linear-gradient(
+    110deg,
+    var(--shimmer-base) 25%,
+    var(--shimmer-highlight) 37%,
+    var(--shimmer-base) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Light mode */
+:root {
+  --shimmer-base: #e5e7eb;
+  --shimmer-highlight: #f3f4f6;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --shimmer-base: #2a2a2a;
+    --shimmer-highlight: #3a3a3a;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }

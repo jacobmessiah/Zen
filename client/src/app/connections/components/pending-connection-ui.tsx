@@ -1,12 +1,14 @@
 import { Flex, Input, InputGroup, ScrollArea, Text } from "@chakra-ui/react";
-import type { connectionPingType } from "../../../types/schema";
+
 import { FiSearch } from "react-icons/fi";
 import { useTranslation } from "react-i18next";
 import {
   ReceivedConnectionPingItem,
   SentPendingConnectionPingItem,
 } from "./connection-item";
-import userConnectionStore from "../../../store/user-connections-store";
+import type { connectionPingType } from "@/types/schema";
+import userConnectionStore from "@/store/user-connections-store";
+
 
 const PendingSentConnectionPingMapper = ({
   sentConnectionPings,

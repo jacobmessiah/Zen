@@ -13,12 +13,13 @@ import { IoEyeOffOutline } from "react-icons/io5";
 import { MdOutlineRemoveRedEye } from "react-icons/md";
 import { chakra } from "@chakra-ui/react";
 import { Link, useNavigate } from "react-router-dom";
-import userAuthStore from "../../../store/user-auth-store";
-import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
-import { handleCheckAuth, handleLogin } from "../../../utils/authFunction";
 import { useTranslation } from "react-i18next";
-import AuthLogo from "../../../components/ui/logo-export";
+import userAuthStore from "@/store/user-auth-store";
+import { useColorModeValue } from "@/components/ui/color-mode";
+import { handleCheckAuth, handleLogin } from "@/utils/authFunction";
+import AuthLogo from "@/components/ui/logo-export";
+
 
 const LoginContainer = () => {
   const { isLoginIn, authUser } = userAuthStore();
