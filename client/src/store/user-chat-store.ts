@@ -5,6 +5,7 @@ import type {
   IMessage,
   IUser,
 } from "../types/schema";
+import type { GifData } from "@/types";
 
 type userChatStoreTypes = {
   conversations: IConversation[];

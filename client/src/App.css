@@ -475,3 +475,10 @@ input[type="range"]::-moz-range-thumb {
     background-position: -100% 0;
   }
 }
+
+.emojiGrid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+
+  gap: 10px;
+}

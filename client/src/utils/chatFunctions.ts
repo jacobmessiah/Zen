@@ -1,6 +1,6 @@
-import axios, { AxiosError } from "axios";
-import i18next from "../../i18next";
-import type { TenorApiResponse } from "../types";
+import { AxiosError, isAxiosError } from "axios";
+import i18next from "../../i18nextConfig";
+
 import type { Attachment, IConversation, IMessage } from "../types/schema";
 import dayjs from "dayjs";
 const translate = i18next.getFixedT(null, "chat");
@@ -9,39 +9,12 @@ import isYesterday from "dayjs/plugin/isYesterday";
 import userChatStore from "../store/user-chat-store";
 import { axiosInstance } from ".";
 import { toast } from "sonner";
+import type { GifData } from "@/types";
 
 dayjs.extend(isToday);
 dayjs.extend(isYesterday);
 
 export const MAX_MESSAGE_PER_STORAGE = 120;
-
-export const searchTenor = async (queryKey: string) => {
-  try {
-    const TENOR_API_KEY = import.meta.env.VITE_TENOR_API_KEY;
-
-    const locale = i18next.language;
-
-    const params = new URLSearchParams({
-      key: TENOR_API_KEY || "",
-      q: queryKey,
-      limit: "30",
-      locale,
-      media_filter: "mp4",
-    });
-
-    const url = `https://tenor.googleapis.com/v2/search?${params.toString()}`;
-
-    const res = await axios.get(url);
-
-    const resData: TenorApiResponse = res.data;
-
-    console.log("ResData", resData);
-    return { results: resData.results, isError: false, errMessage: "" };
-  } catch (error) {
-    const message = translate("TenorSearchFailed");
-    return { results: [], isError: false, errMessage: message };
-  }
-};
 
 export const formatMessageTimestamp = (timestamp: string | Date) => {
   const msgDate = dayjs(timestamp).locale(i18next.language);
@@ -437,3 +410,32 @@ export const sendMessage = async (
     );
   }
 };
+
+export const SearchGiphy = async (query: string) => {
+  try {
+    if (!query && query.length === 0) return;
+
+    const res = await axiosInstance.get(
+      `/gif/search/${query}/${i18next.language}`,
+    );
+
+    const resData: { message: string; Data: GifData[] } = res.data;
+
+    if (resData.Data && Array.isArray(resData.Data)) {
+      return resData.Data;
+    } else {
+      return [];
+    }
+  } catch (error) {
+    const isAxiosErr = isAxiosError(error);
+
+    const message = isAxiosErr
+      ? translate(`SearchGiphy.${error.message}`)
+      : translate("NO_INTERNET");
+
+    console.log("GIF Search Failed Error Message  ---> ", message);
+    return [];
+  }
+};
+
+

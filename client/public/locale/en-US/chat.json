@@ -61,5 +61,31 @@
       "size": "Size",
       "text": "View Details"
     }
+  },
+  "EmojiGifPickerTranslate": {
+    "toolTipContent": "Add Emojis and Gifs",
+    "EmojisText": "Emoji",
+    "GifsText": "Gifs"
+  },
+  "EmojiMappingUI": {
+    "inputPlaceHolderText": "Find the perfect emoji",
+    "people": "People",
+    "nature": "Nature",
+    "food": "Food",
+    "activities": "Activities",
+    "travel": "Travel",
+    "objects": "Objects",
+    "symbols": "Symbols",
+    "flags": "Flags",
+    "noSearchResults": "No emojis match your search"
+  },
+  "GifsUI": {
+    "inputPlaceHolderText": "Search Tenor",
+    "emojiCategories": {
+      "anime": {
+        "value": "anime",
+        "name": "anime"
+      }
+    }
   }
 }

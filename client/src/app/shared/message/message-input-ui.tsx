@@ -1,5 +1,5 @@
 import { CloseButton, Flex, Float, Image, Text } from "@chakra-ui/react";
-import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { lazy, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { LuPlus, LuX } from "react-icons/lu";
 import { FaFilePdf, FaFilePowerpoint } from "react-icons/fa6";
 import { PiMicrosoftExcelLogoFill } from "react-icons/pi";
@@ -17,7 +17,6 @@ import FileInvalidUI from "@/app/dialog/ui/file-invalid-ui";
 import { useTranslation } from "react-i18next";
 import FileDragUI from "@/app/dialog/ui/file-drag-ui";
 import { P2PChatIndicator } from "../activity-indicator";
-import { BsEmojiExpressionlessFill } from "react-icons/bs";
 
 export const DOCUMENT_MIME_TYPES: string[] = [
   "application/pdf", // PDF
@@ -83,6 +82,10 @@ export function getDocumentIcon(arg: DocumentMimeType, size: number) {
       return <BiSolidFileTxt size={size} />;
   }
 }
+
+const EmojiGifPicker = lazy(
+  () => import("@/app/shared/emoji-and-reactions/emoji-gif-picker"),
+);
 
 const AttachmentPreview = ({
   attachment,
@@ -405,6 +408,29 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
       borderRadius: "full",
     },
   };
+
+  const insertEmoji = (emoji: string) => {
+    const textarea = textAreaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const before = inputValue.slice(0, start);
+    const after = inputValue.slice(end);
+
+    const newValue = before + emoji + after;
+
+    setInputValue(newValue);
+
+    const newCursorPos = start + emoji.length;
+
+    requestAnimationFrame(() => {
+      textarea.selectionStart = newCursorPos;
+      textarea.selectionEnd = newCursorPos;
+    });
+  };
+
   useEffect(() => {
     let dragCounter = 0;
     const dialogId = "dragDialogId";
@@ -600,6 +626,12 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     setAttachments((p) => p.filter((att) => att.fileId !== fileId));
   };
 
+  const handleOnEmojiSelect = (emoji: string) => {
+    if (emoji) {
+      insertEmoji(emoji);
+    }
+  };
+
   return (
     <Flex
       alignItems="center"
@@ -713,16 +745,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
               <FaMicrophone />
             </Flex>
 
-            <Flex
-              alignItems="center"
-              justifyContent="center"
-              h="35px"
-              w="35px"
-              rounded="lg"
-              _hover={{ bg: "bg.emphasized" }}
-            >
-              <BsEmojiExpressionlessFill size={20} />
-            </Flex>
+            <EmojiGifPicker onEmojiSelect={handleOnEmojiSelect} />
           </Flex>
         </Flex>
       </Flex>

@@ -442,7 +442,6 @@ const MessageItemContainer = ({
             <Flex pb="4px" pt="2px" w="full" direction="column">
               {message.type === "default" &&
                 !isUploading &&
-                message.status === "sent" &&
                 message.text &&
                 message.text.length > 0 && (
                   <MessageTextRenderer text={message.text} />
