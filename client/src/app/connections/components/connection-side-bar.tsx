@@ -1,11 +1,11 @@
 import { Button, Flex, Heading } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
-import userConnectionStore from "../../../store/user-connections-store";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import AllConnectionsUI from "./all-connection-ui";
 import NewConnectionUI from "./new-connection-ui";
 import PendingConnectionsUI from "./pending-connection-ui";
+import userConnectionStore from "@/store/user-connections-store";
 
 const ConnectionSideBar = () => {
   const {

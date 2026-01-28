@@ -1,6 +1,7 @@
+import { Tooltip } from "@/components/ui/tooltip";
+import { formatDateForTooltip } from "@/utils/chatFunctions";
 import type { ReactNode } from "react";
-import { Tooltip } from "../../../components/ui/tooltip";
-import { formatDateForTooltip } from "../../../utils/chatFunctions";
+
 
 const ShowFullTimeStampTooltip = ({
   children,
@@ -23,6 +24,9 @@ const ShowFullTimeStampTooltip = ({
       contentProps={{
         maxW: "175px",
         boxShadow: "xs",
+        padding: "8px",
+        rounded: "md",
+        fontSize: "xs",
 
         color: "fg",
         css: { "--tooltip-bg": "colors.bg.muted" },

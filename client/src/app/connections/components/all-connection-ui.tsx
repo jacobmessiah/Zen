@@ -1,9 +1,11 @@
 import { Flex, Input, InputGroup, ScrollArea, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import { FiSearch } from "react-icons/fi";
-import type { ConnectionType } from "../../../types/schema";
+
 import { ConnectionItem } from "./connection-item";
-import userConnectionStore from "../../../store/user-connections-store";
+import type { ConnectionType } from "@/types/schema";
+import userConnectionStore from "@/store/user-connections-store";
+
 
 const AllConnectionsUI = ({
   connections,

@@ -1,88 +1,74 @@
 import mongoose from "mongoose";
 
-const AttachmentBaseSchema = new mongoose.Schema({
-  type: { type: String, enum: ["image", "video", "audio", "document"], required: true },
-  url: { type: String, required: true },
-  mimeType: { type: String, required: true },
-  size: { type: Number, required: true },
-  name: { type: String, required: true },
-  createdAt: { type: String, required: true },
-  fileId: { type: String, required: true },
-});
-
-const ImageAttachmentSchema = new mongoose.Schema({
-  ...AttachmentBaseSchema.obj,
-  type: { type: String, enum: ["image"], required: true },
-  width: Number,
-  height: Number,
-});
-
-const VideoAttachmentSchema = new mongoose.Schema({
-  ...AttachmentBaseSchema.obj,
-  type: { type: String, enum: ["video"], required: true },
-  duration: Number,
-  width: Number,
-  height: Number,
-});
-
-const AudioAttachmentSchema = new mongoose.Schema({
-  ...AttachmentBaseSchema.obj,
-  type: { type: String, enum: ["audio"], required: true },
-  duration: Number,
-  bitrate: Number,
-});
-
-const DocumentAttachmentSchema = new mongoose.Schema({
-  ...AttachmentBaseSchema.obj,
-  type: { type: String, enum: ["document"], required: true },
-  pages: Number,
-});
-
+/**
+ * Attachment Schema - represents file attachments in messages
+ * Supports: image, video, audio, document
+ */
 const AttachmentSchema = new mongoose.Schema({
-  type: { type: String, enum: ["image", "video", "audio", "document"], required: true },
-  url: { type: String, required: true },
+  type: {
+    type: String,
+    enum: ["image", "video", "audio", "document"],
+    required: true,
+  },
   mimeType: { type: String, required: true },
   size: { type: Number, required: true },
   name: { type: String, required: true },
-  createdAt: { type: String, required: true },
   fileId: { type: String, required: true },
-  width: Number,
-  height: Number,
+  filePath: { type: String, required: true },
   duration: Number,
   bitrate: Number,
-  pages: Number,
 });
 
+/**
+ * BaseMessage Schema - common fields for all message types
+ */
 const BaseMessageSchema = new mongoose.Schema({
-  _id: { type: String, required: true },
-  tempId: String,
-  conversationId: { type: String, required: true },
-  senderId: { type: String, required: true },
-  receiverId: String,
-  status: { 
-    type: String, 
-    enum: ["sending", "sent", "delivered", "read", "failed"], 
-    default: "sent" 
+  conversationId: {
+    type: mongoose.Types.ObjectId,
+    ref: "conversation",
+    required: true,
+  },
+  senderId: {
+    type: mongoose.Types.ObjectId,
+    ref: "user",
+    required: true,
+  },
+  receiverId: {
+    type: mongoose.Types.ObjectId,
+    ref: "user",
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["sending", "sent", "delivered", "read", "failed"],
+    default: "sent",
+    required: true,
   },
   replyTo: String,
-  createdAt: { type: String, required: true },
-  updatedAt: { type: String, required: true },
+  reactions: {
+    type: Object,
+    default: {},
+  },
 });
 
-const MessageSchema = new mongoose.Schema({
-  ...BaseMessageSchema.obj,
-  type: { 
-    type: String, 
-    enum: ["default", "gif"], 
-    required: true 
+const MessageSchema = new mongoose.Schema(
+  {
+    ...BaseMessageSchema.obj,
+    type: {
+      type: String,
+      enum: ["default", "gif"],
+      default: "default",
+      required: true,
+    },
+    text: String,
+    attachments: [AttachmentSchema],
+    gif: {
+      url: String,
+      name: String,
+    },
   },
-  text: String,
-  attachments: [AttachmentSchema],
-  gif: {
-    url: { type: String, required: true },
-    name: { type: String, required: true },
-  },
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 const Message = mongoose.model("message", MessageSchema);
 

@@ -2,7 +2,8 @@ import { Avatar, Flex, IconButton, Text } from "@chakra-ui/react";
 import type { IUser } from "../../../../types/schema";
 import { FiChevronLeft, FiVideo } from "react-icons/fi";
 import { IoCallOutline } from "react-icons/io5";
-import userChatStore from "../../../../store/user-chat-store";
+import userChatStore from "@/store/user-chat-store";
+
 
 const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
   if (!otherUser) return null;
@@ -14,11 +15,12 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
       maxW="full"
       justifyContent="center"
       h="70px"
+      px="15px"
     >
       <Flex
         p="10px"
         h="50px"
-        w="95%"
+        w="100%"
         rounded="full"
         border="1px solid"
         borderColor="fg.inverted"

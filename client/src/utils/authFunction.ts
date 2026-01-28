@@ -8,7 +8,7 @@ import type {
   usernameCheckResponse,
 } from "../types";
 import { axiosInstance } from ".";
-import i8nextConfig from "../../i18next";
+import i8nextConfig from "../../i18nextConfig";
 import { io } from "socket.io-client";
 import userConnectionStore from "../store/user-connections-store";
 import type {

@@ -8,12 +8,10 @@ import {
   Portal,
   Separator,
   Text,
-  type MenuSelectionDetails,
 } from "@chakra-ui/react";
 import type { IMessage, IUser } from "../../../../types/schema";
 import type { MessageActionTranslations } from "../../../../types";
 import {
-  copyText,
   formatDateSimpleStyle,
   formatMessageTimestamp,
 } from "../../../../utils/chatFunctions";
@@ -27,6 +25,9 @@ import { IoCopy } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { BiSolidPencil } from "react-icons/bi";
 import { Tooltip } from "../../../../components/ui/tooltip";
+import UploadingFilesUI from "../uploading-files-ui";
+import MessageAttachmentRenderer from "./message-attachment-render";
+import MessageReactionsRenderer from "./reaction/message-reactions-renderer";
 
 export type ActionMenuOnselectTypes =
   | "addReaction"
@@ -351,57 +352,24 @@ const MessageItemContainer = ({
   messageActions: MessageActionTranslations;
   getUploadingFilesText: (count: number) => string;
 }) => {
-  const formatedTimeStampLong = formatMessageTimestamp(message.createdAt);
+  const formattedTimeStampLong = formatMessageTimestamp(message.createdAt);
+
+  const isUploading =
+    message.type === "default" &&
+    message.status === "sending" &&
+    (message.attachments?.length ?? 0) > 0;
 
   const hasText =
-    message.type === "text"
-      ? !!message.text?.length
-      : message.type === "media" || message.type === "document"
-        ? !!message.caption?.length
-        : false;
-
-  const handleMenuSelect = (event: MenuSelectionDetails) => {
-    const text = event.value as ActionMenuOnselectTypes;
-
-    switch (text) {
-      case "addReaction":
-        console.log(text);
-        break;
-      case "replyMessage":
-        console.log(text);
-        break;
-      case "copyText":
-        const messageText =
-          message.type === "text"
-            ? message.text
-            : message.type === "document" || message.type === "media"
-              ? message.caption
-              : "";
-
-        if (messageText) {
-          copyText(messageText);
-        }
-        break;
-      case "speakText":
-        console.log(text);
-        break;
-      case "deleteMessage":
-        console.log(text);
-        break;
-      case "editMessage":
-        console.log(text);
-        break;
-    }
-  };
+    message.type === "default" && !!message.text && message.text.length > 0;
 
   return (
     <Flex
-      mb={showSimpleStyle ? "0px" : "5px"}
       minW="full"
       alignContent="flex-start"
       _hover={{
         bg: "bg.muted",
       }}
+      mt={showSimpleStyle ? "0px" : "5px"}
       color={message.status === "sending" ? "fg.muted" : ""}
       _active={{
         bg: "bg.muted",
@@ -409,16 +377,18 @@ const MessageItemContainer = ({
       rounded="sm"
       pos="relative"
       data-message-container
-      minH={showSimpleStyle ? "25px" : "auto"}
+      pr={{ base: "10px", lg: "0px" }}
+      className="group"
     >
       <Flex
-        w={{ lg: "7%", base: "10%" }}
+        minW={{ lg: "7%", base: "15%" }}
+        maxW={{ lg: "7%", base: "15%" }}
         fontSize="12.5px"
         color="fg.muted"
         userSelect="none"
         alignItems="start"
         justifyContent="center"
-        pt={showSimpleStyle ? "2px" : "7px"}
+        pt={showSimpleStyle ? "5px" : "7px"}
       >
         {!showSimpleStyle && senderProfile && (
           <SenderProfileDisplay senderProfile={senderProfile} />
@@ -430,16 +400,19 @@ const MessageItemContainer = ({
             _groupHover={{
               opacity: 100,
             }}
+            fontSize="xs"
           >
-            {formatDateSimpleStyle(message.createdAt)}
+            {formatDateSimpleStyle(message.createdAt).toLowerCase()}
           </Text>
         )}
       </Flex>
 
-      <Flex gap="0px" flex={1} flexDir="column">
+      <Flex flex={1} flexDir="column">
         {!showSimpleStyle && (
           <Flex gap="5px" alignItems="center">
-            <Text cursor="pointer">{senderProfile?.displayName}</Text>
+            <Text fontWeight="600" cursor="pointer">
+              {senderProfile?.displayName}
+            </Text>
             <ShowFullTimeStampTooltip createdAt={message.createdAt}>
               <Text
                 cursor="pointer"
@@ -450,23 +423,52 @@ const MessageItemContainer = ({
                 userSelect="none"
                 fontSize="xs"
               >
-                {formatedTimeStampLong}
+                {formattedTimeStampLong}
               </Text>
             </ShowFullTimeStampTooltip>
           </Flex>
         )}
 
-        <Menu.Root onSelect={handleMenuSelect} unmountOnExit lazyMount>
-          <Menu.ContextTrigger textAlign="left">
+        <Menu.Root unmountOnExit lazyMount>
+          <Menu.ContextTrigger
+            asChild
+            onFocus={(e) => {
+              e.target.blur();
+            }}
+            focusRing="none"
+            textAlign="left"
+          >
             {/*All Message Content Goes Here */}
-            <Flex w="full" direction="column">
-              {message.type === "text" && (
-                <MessageTextRenderer text={message.text} />
-              )}
-            </Flex>
+            <Flex pb="4px" pt="2px" w="full" direction="column">
+              {message.type === "default" &&
+                !isUploading &&
+                message.text &&
+                message.text.length > 0 && (
+                  <MessageTextRenderer text={message.text} />
+                )}
 
+              {isUploading &&
+                message.attachments &&
+                message.attachments.length > 0 && (
+                  <UploadingFilesUI
+                    text={getUploadingFilesText(message.attachments.length)}
+                  />
+                )}
+
+              {!isUploading &&
+                message.type === "default" &&
+                message.attachments &&
+                message.attachments.length > 0 && (
+                  <MessageAttachmentRenderer
+                    senderProfile={senderProfile}
+                    createdAt={message.createdAt}
+                    attachments={message.attachments}
+                  />
+                )}
+            </Flex>
             {/*All Message Content Goes Here */}
           </Menu.ContextTrigger>
+          {/** For Now */}
           <MessageActionMenuItems
             hasText={hasText}
             isMine={isMine}
@@ -476,10 +478,20 @@ const MessageItemContainer = ({
       </Flex>
 
       <MessageActionToolBar
-        hasText={hasText}
+        hasText={
+          message.type === "default" &&
+          !!message.text &&
+          message.text.length > 0
+        }
         isMine={isMine}
         messageActions={messageActions}
       />
+
+      {message.reactions &&
+        typeof message.reactions === "object" &&
+        Object.keys(message.reactions).length > 0 && (
+          <MessageReactionsRenderer />
+        )}
     </Flex>
   );
 };

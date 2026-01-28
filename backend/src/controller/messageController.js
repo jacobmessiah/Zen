@@ -2,286 +2,233 @@ import Message from "../model/messageModel.js";
 import Conversation from "../model/conversationModel.js";
 import imageKitInstance from "../lib/kitUploader.js";
 import { emitPayLoadToUser } from "../lib/io.js";
+import unClaimedUpload from "../model/UnClaimedUploadModel.js";
 
 export const DOCUMENT_MIME_TYPES = [
-  "application/pdf", // PDF
-  "application/msword", // Word DOC
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word DOCX
-  "application/vnd.ms-excel", // Excel XLS
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel XLSX
-  "application/vnd.ms-powerpoint", // PowerPoint PPT
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint PPTX
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
   "text/plain", // TXT
 ];
 
+export const AUDIO_MIME_TYPES = [
+  "audio/mpeg",
+  "audio/wav",
+  "audio/ogg",
+  "audio/webm",
+  "audio/flac",
+  "audio/aac",
+  "audio/mp4",
+];
+
 export const IMAGE_MIME_TYPES = [
-  "image/jpeg", // JPG / JPEG
-  "image/png", // PNG
-  "image/webp", // WebP
-  "image/gif", // GIF
-  "image/avif", // AVIF
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
 ];
 
 export const VIDEO_MIME_TYPES = [
-  "video/mp4", // MP4
-  "video/webm", // WebM
-  "video/ogg", // OGG
-  "video/quicktime", // MOV
+  "video/mp4",
+  "video/webm",
+  "video/ogg",
+  "video/quicktime",
 ];
+
+const failedUploads = [];
+
+const getAttachmentType = (mimeType) => {
+  if (
+    !mimeType ||
+    typeof mimeType !== "string" ||
+    mimeType.trim().length === 0
+  ) {
+    return null;
+  }
+
+  const normalized = mimeType.trim();
+
+  if (DOCUMENT_MIME_TYPES.includes(normalized)) return "document";
+  if (IMAGE_MIME_TYPES.includes(normalized)) return "image";
+  if (VIDEO_MIME_TYPES.includes(normalized)) return "video";
+  if (AUDIO_MIME_TYPES.includes(normalized)) return "audio";
+
+  return null;
+};
+
+export const handleUploadAttachment = async (req, res) => {
+  try {
+    const files = req.files?.attachment || [];
+
+    // For Simplicity. i will proceed to upload
+    // Multer middleware already handles file validation and limits before this point 😏
+
+    // Upload files to ImageKit
+    /// For Simplicity, I will upload with all or nothing approach
+    const uploadedFiles = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const type = getAttachmentType(file.mimetype);
+
+          if (!type) return null;
+
+          const response = await imageKitInstance.upload({
+            file: file.buffer,
+            fileName: file.originalname,
+            folder: "/zen/chat/attachments",
+          });
+
+          failedUploads.push(response.fileId);
+
+          return {
+            createdBy: req.user._id,
+            fileId: response.fileId,
+            filePath: response.filePath,
+            name: response.name,
+            size: file.size,
+            type,
+            mimeType: file.mimetype,
+            canDeleteAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          };
+        } catch (err) {
+          console.error("Upload failed:", file.originalname, err);
+          return null;
+        }
+      }),
+    );
+
+    const validUploads = uploadedFiles.filter(Boolean);
+
+    if (validUploads.length === 0) {
+      return res.status(400).json({ message: "NO_VALID_ATTACHMENTS" });
+    }
+
+    await unClaimedUpload.insertMany(validUploads);
+
+    if (validUploads.length === 0) {
+      return res.status(400).json({ message: "UPLOAD_FAILED" });
+    }
+
+    await unClaimedUpload.insertMany(uploadedFiles);
+
+    const filteredUploads = uploadedFiles.map((upload) => {
+      const { canDeleteAt, createdBy, ...rest } = upload || {};
+      return rest;
+    });
+
+    return res.status(200).json(filteredUploads);
+  } catch (error) {
+    console.log(
+      "Error on #handleUploadAttachment  #messageCotroller.js error -->",
+      error?.message || error,
+    );
+    if (failedUploads.length > 0) {
+      // Rollback uploaded files
+      await Promise.all(
+        failedUploads.map(async (fileId) => {
+          await imageKitInstance.deleteFile(fileId);
+        }),
+      ).catch((err) => {
+        console.log(
+          "Error rolling back files in #handleUploadAttachment #messageController.js -->",
+          err,
+        );
+      });
+    }
+    return res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
 
 export const handleSendMessage = async (req, res) => {
   try {
     const user = req.user;
 
-    if (!req.body) {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-
-    const { conversationId, receiverId, replyTo, tempId, text } =
+    const { attachments, receiverId, conversationId, text, replyTo, type } =
       req.body || {};
 
-    if (!text && typeof text !== "string") {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-
-    if (!conversationId || !receiverId) {
+    if (
+      !conversationId ||
+      typeof conversationId !== "string" ||
+      !receiverId ||
+      typeof receiverId !== "string"
+    ) {
       return res.status(400).json({ message: "NO_DESTINATION" });
     }
 
-    const convo =
-      await Conversation.findById(conversationId).populate("connectionId");
-
-    if (!convo || !convo.connectionId) {
-      return res.status(400).json({ message: "NOT_CONNECTED" });
+    // Note Expand type validation when message evolves
+    if (
+      !type ||
+      typeof type !== "string" ||
+      (type !== "default" && type !== "gif")
+    ) {
+      return res.status(400).json({ message: "INVALID_MESSAGE_TYPE" });
     }
 
-    const newMessage = await Message.create({
+    const messageOBJ = {
       senderId: user._id,
       receiverId,
       conversationId,
-      type: "text",
-      text: text,
-    });
-
-    const returnObject = {
-      ...newMessage.toObject(),
-      tempId: tempId,
     };
 
-    const currentUnreadCount = convo.unreadCount || {};
-    const otherUnreadCounts = currentUnreadCount[receiverId] || 0;
-    await convo.updateOne({
-      $set: {
-        [`unreadCount.${user._id}`]: 0,
-        [`unreadCount.${receiverId}`]: otherUnreadCounts + 1,
-      },
-      $addToSet: {
-        showFor: { $each: [user._id, receiverId] },
-      },
+    if (text && typeof text == "string") {
+      messageOBJ.text = text.trim();
+    }
+
+    if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+      if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+        for (const att of attachments) {
+          if (
+            !att.fileId ||
+            typeof att.fileId !== "string" ||
+            !att.filePath ||
+            typeof att.filePath !== "string" ||
+            !att.mimeType ||
+            typeof att.mimeType !== "string" ||
+            !att.size ||
+            typeof att.size !== "number" ||
+            !att.name ||
+            typeof att.name !== "string"
+          ) {
+            return res
+              .status(400)
+              .json({ message: "INVALID_ATTACHMENT_IN_LIST" });
+          }
+        }
+
+        await Promise.all(
+          attachments.map((att) =>
+            unClaimedUpload.deleteOne({ fileId: att.fileId }),
+          ),
+        );
+
+        messageOBJ.attachments = attachments;
+      }
+
+      messageOBJ.attachments = attachments;
+    }
+
+    const newMessage = await Message.create({
+      ...messageOBJ,
     });
 
     emitPayLoadToUser(receiverId, "EVENT:ADD", {
       type: "RECEIVE_MESSAGE",
-      message: newMessage,
+      message: newMessage.toObject(),
     });
 
-    return res.status(200).json(returnObject);
+    return res.status(200).json(newMessage.toObject());
   } catch (error) {
-    console.log("Error on handleSendMessage", error);
+    console.log(
+      "Error on #handleSendMessage #messageController.js Error --->",
+      error,
+    );
+
     return res.status(500).json({ message: "SERVER_ERROR" });
-  }
-};
-
-export const handleSendMediaTypeMessage = async (req, res) => {
-  try {
-    const user = req.user;
-
-    // Note add switching when space setup is finalized
-    const { conversationId, receiverId, replyTo, tempId, caption } =
-      req.body || {};
-
-    if (!req.body) {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-
-    if (!conversationId || !receiverId) {
-      return res.status(400).json({ message: "NO_DESTINATION" });
-    }
-
-    const convo =
-      await Conversation.findById(conversationId).populate("connectionId");
-
-    if (!convo || !convo.connectionId) {
-      return res.status(400).json({ message: "NOT_CONNECTED" });
-    }
-
-    const files = req.files;
-
-    if (!files || !Array.isArray(files) || files.length < 1) {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-
-    const newMessageOBJ = {
-      receiverId,
-      conversationId,
-      senderId: user._id,
-      type: "media",
-    };
-
-    if (caption) {
-      newMessageOBJ.caption = caption;
-    }
-    const uploadedMedia = await Promise.all(
-      files.map(async (file) => {
-        const uploadRes = await imageKitInstance.upload({
-          file: file.buffer,
-          fileName: file.originalname,
-          folder: "/zen/chat/attachment/media",
-        });
-
-        const kind = IMAGE_MIME_TYPES.includes(file.mimetype)
-          ? "image"
-          : VIDEO_MIME_TYPES.includes(file.mimetype)
-            ? "video"
-            : "other";
-
-        return {
-          fileId: uploadRes.fileId,
-          filePath: uploadRes.filePath,
-          fileSize: uploadRes.size,
-          fileName: uploadRes.name || file.originalname,
-          kind,
-          mimeType: file.mimetype,
-          ...(uploadRes.thumbnailUrl && {
-            thumbnailUrl: uploadRes.thumbnailUrl,
-          }),
-        };
-      }),
-    );
-
-    const newMessage = await Message.create({
-      ...newMessageOBJ,
-      media: uploadedMedia,
-    });
-
-    console.log("New Message Created with Media Attached");
-
-    const returnObject = {
-      ...newMessage.toObject(),
-      tempId: tempId,
-    };
-
-    const currentUnreadCount = convo.unreadCount || {};
-    const otherUnreadCounts = currentUnreadCount[receiverId] || 0;
-    await convo.updateOne({
-      $set: {
-        [`unreadCount.${user._id}`]: 0,
-        [`unreadCount.${receiverId}`]: otherUnreadCounts + 1,
-      },
-      $addToSet: {
-        showFor: { $each: [user._id, receiverId] },
-      },
-    });
-    emitPayLoadToUser(receiverId, "EVENT:ADD", {
-      type: "RECEIVE_MESSAGE",
-      message: newMessage,
-    });
-
-    return res.status(200).json(returnObject);
-  } catch (error) {
-    console.log(
-      "Error on #handleSendMediaTypeMessage  #messageController.js ERROR -->  ",
-      error?.message || error,
-    );
-  }
-};
-
-export const handleSendDocumentTypeMessage = async (req, res) => {
-  try {
-    const user = req.user;
-
-    // Note add switching when space setup is finalized
-    const { conversationId, receiverId, replyTo, tempId, text } =
-      req.body || {};
-
-    if (!req.body) {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-    if (!conversationId || !receiverId) {
-      return res.status(400).json({ message: "NO_DESTINATION" });
-    }
-    const convo =
-      await Conversation.findById(conversationId).populate("connectionId");
-    if (!convo || !convo.connectionId) {
-      return res.status(400).json({ message: "NOT_CONNECTED" });
-    }
-    const file = req.file;
-    const { buffer, ...rest } = file;
-    if (!file || !file.buffer) {
-      return res.status(400).json({ message: "NO_PARAMS" });
-    }
-
-    const uploadRes = await imageKitInstance.upload({
-      file: file.buffer,
-      fileName: file.originalname,
-      folder: "/zen/chat/attachment/documents",
-    });
-
-    const documentObject = {
-      fileName: file?.originalname || "Document",
-      mimeType: file.mimetype,
-      fileId: uploadRes.fileId,
-      mimeType: file.mimetype,
-      fileSize: file.size,
-      url: uploadRes.url,
-    };
-
-    const newMessageOBJ = {
-      receiverId,
-      conversationId,
-      senderId: user._id,
-      type: "document",
-    };
-
-    if (text) {
-      newMessageOBJ.caption = text;
-    }
-
-    const newMessage = await Message.create({
-      ...newMessageOBJ,
-      document: documentObject,
-    });
-
-    console.log("New Message Created with Document Attached");
-
-    const returnObject = {
-      ...newMessage.toObject(),
-      tempId: tempId,
-    };
-
-    const currentUnreadCount = convo.unreadCount || {};
-    const otherUnreadCounts = currentUnreadCount[receiverId] || 0;
-    await convo.updateOne({
-      $set: {
-        [`unreadCount.${user._id}`]: 0,
-        [`unreadCount.${receiverId}`]: otherUnreadCounts + 1,
-      },
-      $addToSet: {
-        showFor: { $each: [user._id, receiverId] },
-      },
-    });
-
-    emitPayLoadToUser(receiverId, "EVENT:ADD", {
-      type: "RECEIVE_MESSAGE",
-      message: newMessage,
-    });
-
-    return res.status(200).json(returnObject);
-  } catch (error) {
-    console.log(
-      "Error on #handleSendMediaTypeMessage  #messageController.js ERROR -->  ",
-      error?.message || error,
-    );
   }
 };
 

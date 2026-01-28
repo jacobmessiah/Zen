@@ -1,12 +1,14 @@
 import { AbsoluteCenter, Flex, Heading, Text } from "@chakra-ui/react";
-import AuthLogo from "../../../components/ui/logo-export";
-import type { IConversation } from "../../../types/schema";
+
 import MessageTopRibbon from "./components/top-message-ribbon";
 import { useTranslation } from "react-i18next";
 import MessagesWrapper from "./components/messages-wrapper";
-import MessageInputUI from "../../shared/message/message-input-ui";
+
 import { useEffect } from "react";
-import { getMessages } from "../../../utils/chatFunctions";
+import AuthLogo from "@/components/ui/logo-export";
+import type { IConversation } from "@/types/schema";
+import { getMessages } from "@/utils/chatFunctions";
+import MessageInputUI from "@/app/shared/message/message-input-ui";
 
 export const NoConversationSelectedUI = () => {
   return (

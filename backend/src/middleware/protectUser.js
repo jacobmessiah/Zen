@@ -13,6 +13,16 @@ const ProtectRoute = async (req, res, next) => {
     try {
       verify = jwt.verify(cookie, process.env.JWT_SECRET);
     } catch (error) {
+
+
+      //Remove cookie since it's useless anyway
+      res.cookie("ZenChattyVerb", "", {
+      maxAge: 0, 
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV !== "development" ? "Strict" : "none",
+      secure: process.env.NODE_ENV !== "development",
+      path: "/",
+    });
       console.log("Error verify jwt", error.message || error);
       return res.status(400).json({ message: "UNAUTHORIZED" });
     }

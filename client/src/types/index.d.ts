@@ -35,44 +35,6 @@ export type newConnectionPingResponse = {
   pingData?: connectionPingType;
 };
 
-export type TenorMediaObject = {
-  url: string;
-  dims: [number, number];
-  duration: number;
-  size: number;
-  preview: string;
-};
-
-export type TenorContentFormats = {
-  mp4: TenorMediaObject;
-};
-
-export type TenorResponseObject = {
-  id: string;
-  title: string;
-  content_description: string;
-  itemurl: string;
-  media_formats: TenorContentFormats;
-  created: number;
-  tags: string[];
-  url: string;
-  flags: string[];
-  hasaudio: boolean;
-  content_description_source: string;
-};
-
-export type TenorCategoryObject = {
-  searchterm: string;
-  path: string;
-  image: string;
-  name: string;
-};
-
-export type TenorApiResponse<T = TenorResponseObject> = {
-  results: T[];
-  next?: string;
-};
-
 export type MessageActionTranslations = {
   addReaction: string;
   editMessage: string;
@@ -89,3 +51,17 @@ export type SocketPresenseEvent = {
   availability: "online" | "offline" | "dnd" | "idle";
   userId: string;
 };
+
+
+export type GifCategory = {
+  name: string,
+  
+}
+
+export interface GifData {
+  id: string;
+  preview: string;
+  full: string;
+  width: string | number;
+  height: string | number;
+}

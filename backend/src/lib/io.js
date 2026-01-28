@@ -22,8 +22,6 @@ const io = new Server(server, {
     origin: FRONTEND_URL,
     credentials: true,
   },
-  pingInterval: 200, // how often server pings client
-  pingTimeout: 200,
 });
 
 const connectedUserMap = new Map();

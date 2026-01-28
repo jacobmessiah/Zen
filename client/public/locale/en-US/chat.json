@@ -26,7 +26,7 @@
     "flags": "Flags"
   },
   "messageInputPlaceholder": "Message @{{username}}",
-  "beginingOfChatText": "This is the beginning of your direct message history with",
+  "beginningOfChatText": "This is the beginning of your direct message history with",
   "yesterdayText": "Yesterday",
   "NOT_CONNECTED": "You cannot message this user because you are not connected. Try sending a connection ping first",
   "messageActions": {
@@ -39,5 +39,53 @@
     "deleteMessage": "Delete Message",
     "moreText": "More"
   },
-  "typingText": "{{name}} is typing..."
+  "typingText": "{{name}} is typing...",
+  "IunderstandText": "Got It",
+  "ConversationCreateFailed": "Umm... we couldn't create the conversation. Please try again.",
+  "attachmentUploadFailed": "Attachment upload went wrong. Try again",
+  "NO_INTERNET": "No internet connection",
+  "openFullScreenText": "FullScreen",
+  "downloadText": "Download",
+  "selectedVisualAttachmentsText": {
+    "forward": "Forward",
+    "more": "More",
+    "openInBrowser": "Open in Browser",
+    "close": "Close",
+    "copyLink": "Copy Link",
+    "copyAttachmentId": "Copy Attachment ID",
+    "id": "ID",
+    "openFullScreen": "Full Screen",
+    "saveVideo": "Save Video",
+    "viewDetails": {
+      "filename": "Filename",
+      "size": "Size",
+      "text": "View Details"
+    }
+  },
+  "EmojiGifPickerTranslate": {
+    "toolTipContent": "Add Emojis and Gifs",
+    "EmojisText": "Emoji",
+    "GifsText": "Gifs"
+  },
+  "EmojiMappingUI": {
+    "inputPlaceHolderText": "Find the perfect emoji",
+    "people": "People",
+    "nature": "Nature",
+    "food": "Food",
+    "activities": "Activities",
+    "travel": "Travel",
+    "objects": "Objects",
+    "symbols": "Symbols",
+    "flags": "Flags",
+    "noSearchResults": "No emojis match your search"
+  },
+  "GifsUI": {
+    "inputPlaceHolderText": "Search Tenor",
+    "emojiCategories": {
+      "anime": {
+        "value": "anime",
+        "name": "anime"
+      }
+    }
+  }
 }

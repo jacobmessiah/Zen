@@ -12,6 +12,7 @@ import connectionRoute from "./routes/connectionRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import conversationRoute from "./routes/conversationRoute.js";
 import axios from "axios";
+import GifRoute from "./routes/gifRoute.js";
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 app.use(
@@ -97,6 +98,8 @@ app.get("/cdn/file", async (req, res) => {
     }
   }
 });
+
+app.use("/api/gif", GifRoute);
 
 app.set("trust proxy", true);
 

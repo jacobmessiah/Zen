@@ -1,10 +1,10 @@
 import { Flex, Heading, IconButton, Input, InputGroup } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
+import userChatStore from "@/store/user-chat-store";
+import type { IConversation } from "@/types/schema";
 import CreateDmUI from "./create-dm";
-import userChatStore from "../../../store/user-chat-store";
 import ConversationItem from "./conversation-item";
-import type { IConversation } from "../../../types/schema";
 
 const ChatSideBar = () => {
   const { t: translate } = useTranslation(["chat"]);
@@ -30,6 +30,7 @@ const ChatSideBar = () => {
     if (conversation && conversation._id !== selectedConversation?._id) {
       userChatStore.setState({ selectedConversation: conversation });
     }
+    document.title = ` • Zen | @${conversation.otherUser.username}`;
   };
 
   return (
@@ -71,7 +72,12 @@ const ChatSideBar = () => {
             selectConnectionsDescription={selectConnectionsDescription}
             newChatText={newChatText}
           >
-            <IconButton focusRing="none" rounded="full" variant="ghost" size="xs">
+            <IconButton
+              focusRing="none"
+              rounded="full"
+              variant="ghost"
+              size="xs"
+            >
               <LuPlus />
             </IconButton>
           </CreateDmUI>

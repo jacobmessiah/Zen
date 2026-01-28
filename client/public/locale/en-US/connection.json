@@ -18,7 +18,7 @@
     "PING_ALREADY_SENT": "You have already sent a ping to this user. Please wait",
     "CONNECTION_PING_CREATED": "Connection ping sent successfully!",
     "CANNOT_CONNECT_TO_YOURSELF": "You cannot add yourself as a connection.",
-    "SERVER_ERROR": "Internal server error. Try later",
+    "SERVER_ERROR": "Something went wrong, try again",
     "NO_INTERNET": "No internet connection",
     "PING_ALREADY_RECEIVED": "You already have a connection request waiting. Open your requests to accept or decline.",
     "ALREADY_CONNECTED": "You are already connected with this person",
@@ -28,14 +28,14 @@
   "SERVER_RESPONSES": {
     "INVALID_REQUEST": "Sorry!. Ping delete failed",
     "DOES_NOT_EXIST": "Failed to delete. Please Reload",
-    "SERVER_ERROR": "Internal server error. Try later",
+    "SERVER_ERROR": "Something went wrong, try again",
     "NO_INTERNET": "No internet connection"
   },
   "CancelConnectionPing": "Cancel",
 
   "DOCUMENT_ID_REQUIRED": "Could not complete this request",
   "PING_NOT_FOUND": "Something went wrong",
-  "SERVER_ERROR": "Internal server error. Try later",
+  "SERVER_ERROR": "Something went wrong, try again",
   "CONNECTION_ALREADY_EXISTS": "You're already connected with this user.",
   "WRONG_REQUEST": "Something wrong with your request",
   "START_VIDEO_CALL_TEXT": "Start Video call",
@@ -45,7 +45,7 @@
   "MORE_TEXT": "More",
   "ALL_CONNECTION_HEADER_TEXT": "All Connections",
   "DELETE_CONNECTION_RESPONSES": {
-    "SERVER_ERROR": "Internal server error. Try later",
+    "SERVER_ERROR": "Something went wrong, try again",
     "CONNECTION_NOT_FOUND": "Connection not found,"
   },
   "NO_INTERNET": "No internet connection"
