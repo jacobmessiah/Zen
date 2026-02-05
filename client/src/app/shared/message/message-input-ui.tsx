@@ -11,12 +11,18 @@ import userChatStore from "@/store/user-chat-store";
 import userAuthStore from "@/store/user-auth-store";
 import { createDialog } from "@/app/dialog/create-dialog";
 import AttachmentLimitUI from "@/app/dialog/ui/max-attachment-ui";
-import { sendMessage } from "@/utils/chatFunctions";
+import {
+  removeInitiatedReply,
+  sendGifMessage,
+  sendMessage,
+} from "@/utils/chatFunctions";
 import FileTooLargeUI from "@/app/dialog/ui/file-too-large";
 import FileInvalidUI from "@/app/dialog/ui/file-invalid-ui";
 import { useTranslation } from "react-i18next";
 import FileDragUI from "@/app/dialog/ui/file-drag-ui";
 import { P2PChatIndicator } from "../activity-indicator";
+import type { GifData } from "@/types";
+import { MdCancel } from "react-icons/md";
 
 export const DOCUMENT_MIME_TYPES: string[] = [
   "application/pdf", // PDF
@@ -178,6 +184,65 @@ const AttachmentPreview = ({
   );
 };
 
+const IniatedReplyUI = ({
+  conversationId,
+  replyingToText,
+  replyingToUser,
+  messageId,
+}: {
+  replyingToText: string;
+  conversationId: string;
+  replyingToUser: string;
+  messageId: string;
+}) => {
+  const replyToClick = () => {
+    const el = document.getElementById(messageId);
+
+    if (el) {
+      el.scrollIntoView();
+      el.classList.remove("message-blink");
+      void el.offsetHeight;
+      el.classList.add("message-blink");
+    }
+  };
+
+  return (
+    <Flex
+      w="full"
+      p="5px"
+      px="8px"
+      pr="15px"
+      borderBottom="1px solid"
+      borderColor="bg.emphasized"
+      justifyContent="space-between"
+      alignItems="center"
+      userSelect="none"
+    >
+      <Flex
+        onClick={replyToClick}
+        cursor="pointer"
+        fontSize="sm"
+        alignItems="center"
+        gap="5px"
+      >
+        <Text>{replyingToText}</Text>{" "}
+        <Text fontWeight="600">{replyingToUser}</Text>
+      </Flex>
+
+      <Flex
+        color="fg.muted"
+        transition="0.3s ease"
+        _hover={{
+          color: "fg",
+        }}
+        onClick={() => removeInitiatedReply({ conversationId, messageId })}
+      >
+        <MdCancel />
+      </Flex>
+    </Flex>
+  );
+};
+
 const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const MIN_HEIGHT = 45;
@@ -186,6 +251,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
 
   const selectedConversation = userChatStore(
     (state) => state.selectedConversation,
+  );
+
+  const replyInitiated = userChatStore(
+    (state) => state.p2pInitiatedReply[selectedConversation?._id || ""],
   );
   const MAX_SIZE = 15 * 1024 * 1024;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -632,6 +701,21 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     }
   };
 
+  const handleOnGifSelect = ({ gifData }: { gifData: GifData }) => {
+    if (textAreaRef.current) {
+      textAreaRef.current.focus();
+    }
+    sendGifMessage({
+      gifData: gifData,
+      connectionId: selectedConversation?.connectionId,
+      senderId: authUser?._id,
+      conversationId: selectedConversation?._id,
+      receiverId: selectedConversation?.otherUser._id,
+    });
+  };
+
+  const isReplyIniated = !!replyInitiated;
+
   return (
     <Flex
       alignItems="center"
@@ -667,6 +751,17 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
           key={fileInputKey}
           ref={fileInputRef}
         />
+
+        {isReplyIniated &&
+          selectedConversation &&
+          selectedConversation.otherUser && (
+            <IniatedReplyUI
+              messageId={replyInitiated}
+              conversationId={selectedConversation._id}
+              replyingToText={translate("replyingToText")}
+              replyingToUser={selectedConversation.otherUser.displayName}
+            />
+          )}
 
         {/*Attachment Container */}
         {attachments.length > 0 && (
@@ -745,7 +840,10 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
               <FaMicrophone />
             </Flex>
 
-            <EmojiGifPicker onEmojiSelect={handleOnEmojiSelect} />
+            <EmojiGifPicker
+              onGifSelect={handleOnGifSelect}
+              onEmojiSelect={handleOnEmojiSelect}
+            />
           </Flex>
         </Flex>
       </Flex>

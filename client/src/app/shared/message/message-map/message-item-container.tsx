@@ -1,41 +1,31 @@
+import type { Attachment, IMessage, IUser } from "@/types/schema";
 import {
   Avatar,
-  ButtonGroup,
   Flex,
-  Float,
-  IconButton,
   Menu,
   Portal,
-  Separator,
   Text,
+  type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import type { IMessage, IUser } from "../../../../types/schema";
-import type { MessageActionTranslations } from "../../../../types";
+import ShowFullTimeStampTooltip from "../show-full-createdAt-tooltip";
 import {
   formatDateSimpleStyle,
   formatMessageTimestamp,
-} from "../../../../utils/chatFunctions";
-import ShowFullTimeStampTooltip from "../show-full-createdAt-tooltip";
-import { memo, useId } from "react";
-import MessageTextRenderer from "./message-text-item";
-import { FaSmile } from "react-icons/fa";
-import { HiOutlineReply, HiReply, HiSpeakerphone } from "react-icons/hi";
-import { FiMoreHorizontal } from "react-icons/fi";
-import { IoCopy } from "react-icons/io5";
+  initiateReplyTo,
+} from "@/utils/chatFunctions";
+import type { MessageActionTranslations } from "@/types";
+import { BsRobot } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
+import { FaSmile } from "react-icons/fa";
+import { HiReply, HiSpeakerphone } from "react-icons/hi";
 import { BiSolidPencil } from "react-icons/bi";
-import { Tooltip } from "../../../../components/ui/tooltip";
+import { IoCopy } from "react-icons/io5";
+import MessageTextRenderer from "./message-text-renderer";
 import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
-import MessageReactionsRenderer from "./reaction/message-reactions-renderer";
-
-export type ActionMenuOnselectTypes =
-  | "addReaction"
-  | "replyMessage"
-  | "copyText"
-  | "speakText"
-  | "deleteMessage"
-  | "editMessage";
+import { lazy, Suspense } from "react";
+import { createDialog } from "@/app/dialog/create-dialog";
+import { P2PMessageReplyUI } from "./message-reply-ui";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -51,18 +41,10 @@ const scrollCSS = {
   },
 };
 
-const SenderProfileDisplay = ({ senderProfile }: { senderProfile: IUser }) => {
-  return (
-    <Avatar.Root rounded="md" size="sm">
-      <Avatar.Fallback
-        name={senderProfile?.displayName || "This user is Deleted"}
-      />
-      {senderProfile.profile?.profilePic && (
-        <Avatar.Image src={senderProfile.profile.profilePic} />
-      )}
-    </Avatar.Root>
-  );
-};
+const AttachmentFullScreenUI = lazy(
+  () =>
+    import("@/app/dialog/ui/attachment-preview/attachment-fullscreen-renderer"),
+);
 
 const MessageActionMenuItems = ({
   messageActions,
@@ -148,7 +130,7 @@ const MessageActionMenuItems = ({
             <HiReply style={{ transform: "scaleX(-1)" }} size={18} />
           </Menu.Item>
 
-          {isMine && (
+          {isMine && hasText && (
             <Menu.Item
               p="10px"
               color="fg.muted"
@@ -160,29 +142,31 @@ const MessageActionMenuItems = ({
             </Menu.Item>
           )}
 
-          <Menu.Separator />
-
           {hasText && (
-            <Menu.Item
-              p="10px"
-              color="fg.muted"
-              justifyContent="space-between"
-              rounded="md"
-              value="copyText"
-            >
-              <Text color="fg">{copyText}</Text> <IoCopy size={18} />
-            </Menu.Item>
-          )}
+            <>
+              <Menu.Separator />
 
-          <Menu.Item
-            p="10px"
-            color="fg.muted"
-            justifyContent="space-between"
-            rounded="md"
-            value="speakText"
-          >
-            <Text color="fg">{speakText}</Text> <HiSpeakerphone size={18} />
-          </Menu.Item>
+              <Menu.Item
+                p="10px"
+                color="fg.muted"
+                justifyContent="space-between"
+                rounded="md"
+                value="copyText"
+              >
+                <Text color="fg">{copyText}</Text> <IoCopy size={18} />
+              </Menu.Item>
+
+              <Menu.Item
+                p="10px"
+                color="fg.muted"
+                justifyContent="space-between"
+                rounded="md"
+                value="speakText"
+              >
+                <Text color="fg">{speakText}</Text> <HiSpeakerphone size={18} />
+              </Menu.Item>
+            </>
+          )}
 
           {isMine && (
             <>
@@ -206,269 +190,212 @@ const MessageActionMenuItems = ({
   );
 };
 
-const MessageActionToolBar = ({
-  messageActions,
-  isMine,
-  hasText,
-}: {
-  messageActions: MessageActionTranslations;
-  isMine: boolean;
-  hasText: boolean;
-}) => {
-  const quickReactArray = [
-    { text: "👍", value: "👍" },
-    { text: "❤️", value: "❤️" },
-    { text: "😂", value: "😂" },
-  ];
-
-  const { addReaction, replyMessage, forwardMessage, moreText } =
-    messageActions || {};
-
-  const triggerId = useId();
-
-  return (
-    <Float offsetX="10rem" placement="top-end">
-      <ButtonGroup
-        opacity={0}
-        css={{
-          "[data-message-container]:hover &": {
-            opacity: { lg: "100" },
-          },
-        }}
-        size="sm"
-        bg="bg"
-        border="1px solid"
-        borderColor="bg.muted"
-        attached
-        rounded="md"
-        boxShadow="sm"
-      >
-        {quickReactArray.map((react) => (
-          <IconButton
-            fontSize="lg"
-            focusRing="none"
-            key={react.value}
-            variant="ghost"
-          >
-            {react.text}
-          </IconButton>
-        ))}
-
-        <Separator ml="2px" mr="2px" orientation="vertical" h="30px" />
-
-        <Tooltip
-          openDelay={100}
-          closeDelay={100}
-          showArrow
-          positioning={{ placement: "top" }}
-          contentProps={{
-            css: { "--tooltip-bg": "colors.bg", p: "10px", color: "fg.muted" },
-          }}
-          content={addReaction}
-        >
-          <IconButton focusRing="none" variant="ghost">
-            <FaSmile style={{ width: "20px", height: "20px" }} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip
-          openDelay={100}
-          closeDelay={100}
-          showArrow
-          positioning={{ placement: "top" }}
-          contentProps={{
-            css: { "--tooltip-bg": "colors.bg", p: "10px", color: "fg.muted" },
-          }}
-          content={replyMessage}
-        >
-          <IconButton focusRing="none" variant="ghost">
-            <HiOutlineReply style={{ width: "20px", height: "20px" }} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip
-          openDelay={100}
-          closeDelay={100}
-          showArrow
-          positioning={{ placement: "top" }}
-          contentProps={{
-            css: { "--tooltip-bg": "colors.bg", p: "10px", color: "fg.muted" },
-          }}
-          content={forwardMessage}
-        >
-          <IconButton focusRing="none" variant="ghost">
-            <HiOutlineReply
-              style={{ width: "20px", height: "20px", transform: "scaleX(-1)" }}
-            />
-          </IconButton>
-        </Tooltip>
-
-        <Menu.Root ids={{ trigger: triggerId }} unmountOnExit lazyMount>
-          <Tooltip
-            ids={{ trigger: triggerId }}
-            openDelay={100}
-            closeDelay={100}
-            showArrow
-            positioning={{ placement: "top" }}
-            contentProps={{
-              css: {
-                "--tooltip-bg": "colors.bg",
-                p: "10px",
-                color: "fg.muted",
-              },
-            }}
-            content={moreText}
-          >
-            <Menu.Trigger asChild>
-              <IconButton focusRing="none" variant="ghost">
-                <FiMoreHorizontal style={{ width: "20px", height: "20px" }} />
-              </IconButton>
-            </Menu.Trigger>
-          </Tooltip>
-
-          <MessageActionMenuItems
-            hasText={hasText}
-            isMine={isMine}
-            messageActions={messageActions}
-          />
-        </Menu.Root>
-      </ButtonGroup>
-    </Float>
-  );
-};
-
 const MessageItemContainer = ({
-  message,
   senderProfile,
+  message,
   showSimpleStyle,
-  isMine,
   messageActions,
+  isMine,
   getUploadingFilesText,
 }: {
-  message: IMessage;
   senderProfile: IUser | undefined;
+  message: IMessage;
   showSimpleStyle: boolean;
-  isMine: boolean;
   messageActions: MessageActionTranslations;
-  getUploadingFilesText: (count: number) => string;
+  getUploadingFilesText: (attachments: Attachment[]) => string;
+  isMine: boolean;
 }) => {
-  const formattedTimeStampLong = formatMessageTimestamp(message.createdAt);
+  const hasText =
+    message.type === "default" && !!message.text && message.text.length > 0;
 
   const isUploading =
     message.type === "default" &&
     message.status === "sending" &&
     (message.attachments?.length ?? 0) > 0;
 
-  const hasText =
-    message.type === "default" && !!message.text && message.text.length > 0;
+  const displayAttachmentFullscreen = (fileId: string) => {
+    if (
+      message.type === "default" &&
+      message.attachments &&
+      message.attachments.length > 0
+    ) {
+      const visualAttachments = message.attachments.filter(
+        (p) => p.type === "video" || p.type === "image",
+      );
+
+      const findAttachmentClicked = visualAttachments.find(
+        (p) => p.fileId === fileId,
+      );
+
+      const arrangedArray = findAttachmentClicked
+        ? [
+            findAttachmentClicked,
+            ...visualAttachments.filter((p) => p.fileId !== fileId),
+          ]
+        : visualAttachments;
+
+      const id = "showAttachmentId";
+
+      createDialog.open(id, {
+        contentWidth: "100%",
+        contentRounded: "0px",
+        dialogSize: "full",
+        showCloseButton: false,
+        showBackDrop: true,
+        contentHeight: "100%",
+        bodyPadding: "0px",
+
+        contentBg: "transparent",
+        content: (
+          <Suspense>
+            <AttachmentFullScreenUI
+              attachments={arrangedArray}
+              createdAt={message.createdAt}
+              senderProfile={senderProfile}
+            />
+          </Suspense>
+        ),
+      });
+    }
+  };
+
+  const handleInitiateReply = () => {
+    if (message.status === "sending") return;
+
+    initiateReplyTo({
+      conversationId: message.conversationId,
+      messageId: message._id,
+    });
+  };
+
+  const handleMenuValueSelect = (event: MenuSelectionDetails) => {
+    const value = event.value;
+
+    switch (value) {
+      case "replyMessage":
+        handleInitiateReply();
+        break;
+    }
+  };
 
   return (
     <Flex
-      minW="full"
-      alignContent="flex-start"
-      _hover={{
-        bg: "bg.muted",
-      }}
-      mt={showSimpleStyle ? "0px" : "5px"}
       color={message.status === "sending" ? "fg.muted" : ""}
-      _active={{
-        bg: "bg.muted",
-      }}
-      rounded="sm"
-      pos="relative"
-      data-message-container
-      pr={{ base: "10px", lg: "0px" }}
-      className="group"
+      w="full"
+      className="messageItem"
+      mb="5px"
+      alignItems="start"
+      id={message._id}
+      bg="blue.muted"
     >
+      {/* Profile */}
       <Flex
-        minW={{ lg: "7%", base: "15%" }}
-        maxW={{ lg: "7%", base: "15%" }}
-        fontSize="12.5px"
-        color="fg.muted"
-        userSelect="none"
-        alignItems="start"
         justifyContent="center"
-        pt={showSimpleStyle ? "5px" : "7px"}
+        alignItems="center"
+        h={
+          showSimpleStyle
+            ? message.isReplied
+              ? "70px"
+              : "25px"
+            : message.isReplied
+              ? "75px"
+              : "50px"
+        }
+        minW={{ base: "16%", lg: "7%" }}
+        maxW={{ base: "16%", lg: "7%" }}
+        direction="column"
+        alignSelf="stretch"
+        gap="3px"
       >
-        {!showSimpleStyle && senderProfile && (
-          <SenderProfileDisplay senderProfile={senderProfile} />
+        {message.isReplied && (
+          <Flex minW="full" maxW="full" justifyContent="flex-end">
+            <Flex
+              w="50%"
+              p="1px"
+              h="12px"
+              borderColor="fg.muted"
+              _hover={{
+                borderColor: "fg",
+              }}
+              roundedTopLeft="8px"
+              borderLeftWidth="2.5px"
+              borderTopWidth="2px"
+            />
+          </Flex>
+        )}
+
+        {!showSimpleStyle && (
+          <Avatar.Root>
+            <Avatar.Fallback>
+              <BsRobot />
+            </Avatar.Fallback>
+          </Avatar.Root>
         )}
 
         {showSimpleStyle && (
-          <Text
-            opacity={0}
-            _groupHover={{
-              opacity: 100,
-            }}
-            fontSize="xs"
-          >
-            {formatDateSimpleStyle(message.createdAt).toLowerCase()}
+          <Text userSelect="none" cursor="pointer" fontSize="xs">
+            {formatDateSimpleStyle(message.createdAt)}{" "}
           </Text>
         )}
       </Flex>
 
-      <Flex flex={1} flexDir="column">
+      {/*Content */}
+      <Flex direction="column">
+        {message.isReplied && (
+          <P2PMessageReplyUI replyToMessage={message.replyTo} />
+        )}
+
         {!showSimpleStyle && (
           <Flex gap="5px" alignItems="center">
-            <Text fontWeight="600" cursor="pointer">
-              {senderProfile?.displayName}
+            <Text
+              _hover={{
+                textDecoration: "underline",
+              }}
+              cursor="pointer"
+              color="fg.muted"
+              fontWeight="600"
+            >
+              {senderProfile?.displayName || "Deleted User"}
             </Text>
+
             <ShowFullTimeStampTooltip createdAt={message.createdAt}>
               <Text
+                color="gray.fg"
+                fontWeight="normal"
                 cursor="pointer"
-                color="fg.muted"
-                _hover={{
-                  textDecoration: "underline",
-                }}
-                userSelect="none"
                 fontSize="xs"
               >
-                {formattedTimeStampLong}
+                {formatMessageTimestamp(message.createdAt)}
               </Text>
             </ShowFullTimeStampTooltip>
           </Flex>
         )}
 
-        <Menu.Root unmountOnExit lazyMount>
-          <Menu.ContextTrigger
-            asChild
-            onFocus={(e) => {
-              e.target.blur();
-            }}
-            focusRing="none"
-            textAlign="left"
-          >
-            {/*All Message Content Goes Here */}
-            <Flex pb="4px" pt="2px" w="full" direction="column">
-              {message.type === "default" &&
-                !isUploading &&
-                message.text &&
-                message.text.length > 0 && (
-                  <MessageTextRenderer text={message.text} />
-                )}
+        <Menu.Root onSelect={handleMenuValueSelect}>
+          <Menu.ContextTrigger minW="full" asChild>
+            <Flex direction="column" w="full">
+              {message.type === "default" && !isUploading && message.text && (
+                <MessageTextRenderer text={message.text} />
+              )}
 
-              {isUploading &&
-                message.attachments &&
-                message.attachments.length > 0 && (
-                  <UploadingFilesUI
-                    text={getUploadingFilesText(message.attachments.length)}
-                  />
-                )}
+              {isUploading && message.attachments && (
+                <UploadingFilesUI
+                  text={getUploadingFilesText(message.attachments)}
+                />
+              )}
 
               {!isUploading &&
                 message.type === "default" &&
                 message.attachments &&
                 message.attachments.length > 0 && (
                   <MessageAttachmentRenderer
-                    senderProfile={senderProfile}
-                    createdAt={message.createdAt}
                     attachments={message.attachments}
+                    displayAttachmentFullscreen={displayAttachmentFullscreen}
                   />
                 )}
             </Flex>
-            {/*All Message Content Goes Here */}
           </Menu.ContextTrigger>
-          {/** For Now */}
+
           <MessageActionMenuItems
             hasText={hasText}
             isMine={isMine}
@@ -476,24 +403,8 @@ const MessageItemContainer = ({
           />
         </Menu.Root>
       </Flex>
-
-      <MessageActionToolBar
-        hasText={
-          message.type === "default" &&
-          !!message.text &&
-          message.text.length > 0
-        }
-        isMine={isMine}
-        messageActions={messageActions}
-      />
-
-      {message.reactions &&
-        typeof message.reactions === "object" &&
-        Object.keys(message.reactions).length > 0 && (
-          <MessageReactionsRenderer />
-        )}
     </Flex>
   );
 };
 
-export default memo(MessageItemContainer);
+export default MessageItemContainer;

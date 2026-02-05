@@ -1,5 +1,4 @@
 import { Tooltip } from "@/components/ui/tooltip";
-import userChatStore from "@/store/user-chat-store";
 import {
   Avatar,
   Badge,
@@ -15,15 +14,16 @@ import { useTranslation } from "react-i18next";
 import { FaX } from "react-icons/fa6";
 import { HiDownload, HiReply } from "react-icons/hi";
 import { IoIosMore } from "react-icons/io";
-import { LuChevronRight, LuExternalLink, LuLink } from "react-icons/lu";
-import { createDialog } from "../../create-dialog";
-
+import { LuExternalLink, LuLink } from "react-icons/lu";
 import useSlideAction from "@/hooks/use-slide-action";
 import { generateCDN_URL } from "@/utils/generalFunctions";
 import { formatDateForTooltip } from "@/utils/chatFunctions";
 import AttachmentPreviewItem from "./ui/attachment-preview-item";
 import { GoArrowLeft } from "react-icons/go";
 import { GoArrowRight } from "react-icons/go";
+import type { Attachment, IUser } from "@/types/schema";
+import { createDialog } from "../../create-dialog";
+import { BsRobot } from "react-icons/bs";
 
 function Button({
   children,
@@ -99,8 +99,6 @@ function AttachmentMenu({
   attachmentSize: number;
   handleOnMenuSelect: (event: MenuSelectionDetails) => void;
 }) {
-  const isMobile = !window.matchMedia("(hover: hover)").matches;
-
   return (
     <Menu.Root
       onSelect={handleOnMenuSelect}
@@ -141,7 +139,11 @@ function AttachmentMenu({
       </Tooltip>
 
       <Menu.Positioner>
-        <Menu.Content bg="gray.900" rounded="lg">
+        <Menu.Content
+          maxW={{ base: "250px", lg: "250px" }}
+          bg="gray.900"
+          rounded="lg"
+        >
           <Menu.Item
             _highlighted={{
               bg: "gray.800",
@@ -156,180 +158,77 @@ function AttachmentMenu({
             {copyLink} <LuLink />
           </Menu.Item>
 
-          {!isMobile && (
-            <Menu.Root
-              onSelect={handleOnMenuSelect}
-              positioning={{
-                placement: "right-start",
-                gutter: 8,
-              }}
+          <Menu.Item
+            _highlighted={{
+              bg: "gray.800",
+            }}
+            color="white"
+            display="flex"
+            rounded="md"
+            p="8px"
+            value="filename"
+            flexDir="column"
+            alignItems="flex-start"
+            minW="full"
+            gap="0px"
+          >
+            <Text
+              maxW="100%"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
             >
-              <Menu.TriggerItem
-                display="flex"
-                rounded="md"
-                p="8px"
-                _highlighted={{
-                  bg: "gray.800",
-                }}
-                color="white"
-                justifyContent="space-between"
-              >
-                {viewDetails.text} <LuChevronRight size={19} />
-              </Menu.TriggerItem>
+              {viewDetails.filename}
+            </Text>
 
-              <Menu.Positioner>
-                <Menu.Content w="250px" bg="gray.900" rounded="lg">
-                  <Menu.Item
-                    _highlighted={{
-                      bg: "gray.800",
-                    }}
-                    color="white"
-                    display="flex"
-                    rounded="md"
-                    p="8px"
-                    value="filename"
-                    flexDir="column"
-                    alignItems="flex-start"
-                    minW="full"
-                    gap="0px"
-                  >
-                    <Text
-                      maxW="100%"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                    >
-                      {viewDetails.filename}
-                    </Text>
+            <Text
+              maxW="100%"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              color="fg.muted"
+              fontSize="sm"
+            >
+              {attachmentFileName}
+            </Text>
+          </Menu.Item>
 
-                    <Text
-                      maxW="100%"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                      color="fg.muted"
-                      fontSize="sm"
-                    >
-                      {attachmentFileName}
-                    </Text>
-                  </Menu.Item>
+          <Menu.Item
+            _highlighted={{
+              bg: "gray.800",
+            }}
+            color="white"
+            display="flex"
+            rounded="md"
+            p="8px"
+            value="size"
+            flexDir="column"
+            alignItems="flex-start"
+            minW="full"
+            gap="0px"
+          >
+            <Text
+              maxW="100%"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
+            >
+              {viewDetails.size}
+            </Text>
 
-                  <Menu.Item
-                    _highlighted={{
-                      bg: "gray.800",
-                    }}
-                    color="white"
-                    display="flex"
-                    rounded="md"
-                    p="8px"
-                    value="size"
-                    flexDir="column"
-                    alignItems="flex-start"
-                    minW="full"
-                    gap="0px"
-                  >
-                    <Text
-                      maxW="100%"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                    >
-                      {viewDetails.size}
-                    </Text>
-
-                    <Text
-                      maxW="100%"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textOverflow="ellipsis"
-                      color="fg.muted"
-                      fontSize="sm"
-                    >
-                      <LocaleProvider locale={lang}>
-                        <FormatByte value={attachmentSize} />
-                      </LocaleProvider>
-                    </Text>
-                  </Menu.Item>
-                </Menu.Content>
-              </Menu.Positioner>
-            </Menu.Root>
-          )}
-
-          {isMobile && (
-            <>
-              <Menu.Item
-                _highlighted={{
-                  bg: "gray.800",
-                }}
-                color="white"
-                display="flex"
-                rounded="md"
-                p="8px"
-                value="filename"
-                flexDir="column"
-                alignItems="flex-start"
-                minW="full"
-                gap="0px"
-              >
-                <Text
-                  maxW="100%"
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                >
-                  {viewDetails.filename}
-                </Text>
-
-                <Text
-                  maxW="100%"
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  color="fg.muted"
-                  fontSize="sm"
-                >
-                  {attachmentFileName}
-                </Text>
-              </Menu.Item>
-
-              <Menu.Item
-                _highlighted={{
-                  bg: "gray.800",
-                }}
-                color="white"
-                display="flex"
-                rounded="md"
-                p="8px"
-                value="size"
-                flexDir="column"
-                alignItems="flex-start"
-                minW="full"
-                gap="0px"
-              >
-                <Text
-                  maxW="100%"
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                >
-                  {viewDetails.size}
-                </Text>
-
-                <Text
-                  maxW="100%"
-                  whiteSpace="nowrap"
-                  overflow="hidden"
-                  textOverflow="ellipsis"
-                  color="fg.muted"
-                  fontSize="sm"
-                >
-                  <LocaleProvider locale={lang}>
-                    <FormatByte value={attachmentSize} />
-                  </LocaleProvider>
-                </Text>
-              </Menu.Item>
-            </>
-          )}
+            <Text
+              maxW="100%"
+              whiteSpace="nowrap"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              color="fg.muted"
+              fontSize="sm"
+            >
+              <LocaleProvider locale={lang}>
+                <FormatByte value={attachmentSize} />
+              </LocaleProvider>
+            </Text>
+          </Menu.Item>
           <Menu.Item
             _highlighted={{
               bg: "gray.800",
@@ -351,29 +250,18 @@ function AttachmentMenu({
   );
 }
 
-const AttachmentFullScreenUI = () => {
-  const selectedVisualAttachments = userChatStore(
-    (state) => state.selectedVisualAttachments,
-  );
-
+const AttachmentFullScreenUI = ({
+  attachments,
+  senderProfile,
+  createdAt,
+}: {
+  attachments: Extract<Attachment, { type: "image" | "video" }>[];
+  senderProfile?: IUser;
+  createdAt: string;
+}) => {
   const triggerId = useId();
   const { t: translate, i18n } = useTranslation(["chat"]);
 
-  const attachments = selectedVisualAttachments?.attachments ?? [];
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const currentAttachment = attachments[currentIndex];
-
-  const attachmentFileName = attachments[0]?.name ?? "";
-  const attachmentSize = attachments[0]?.size ?? 0;
-
-  const senderProfile = selectedVisualAttachments?.senderProfile;
-  const createdAt = selectedVisualAttachments?.createdAt ?? new Date();
-
-  const handleExit = () => {
-    const dialogId = "previewAttachments";
-    createDialog.close(dialogId);
-    userChatStore.setState({ selectedVisualAttachments: null });
-  };
   const {
     forward,
     more,
@@ -401,7 +289,12 @@ const AttachmentFullScreenUI = () => {
     copyAttachmentId: string;
     id: string;
   };
-  const slideContainRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentAttachment = attachments[currentIndex];
+  const attachmentSize = currentAttachment.size;
+  const attachmentFileName = currentAttachment.name;
 
   const handleNextAttachment = () => {
     if (attachments.length === 1) return;
@@ -416,14 +309,12 @@ const AttachmentFullScreenUI = () => {
   };
 
   useSlideAction({
-    containerRef: slideContainRef,
+    containerRef: containerRef,
     slideLeftFunction: handlePrevAttachment,
     slideRightFunction: handleNextAttachment,
   });
 
-  const handleForward = () => {
-    if (currentAttachment) return;
-  };
+  const handleForward = () => {};
   const handleDownload = () => {
     if (!currentAttachment) return;
 
@@ -488,10 +379,15 @@ const AttachmentFullScreenUI = () => {
     }
   };
 
+  const handleExit = () => {
+    const id = "showAttachmentId";
+    createDialog.close(id);
+  };
+
   if (!currentAttachment) return;
 
   return (
-    <Flex ref={slideContainRef} pos="relative" zIndex={5} w="full" minH="full">
+    <Flex ref={containerRef} pos="relative" zIndex={5} w="full" minH="full">
       <Flex
         zIndex={80}
         color="white"
@@ -508,7 +404,9 @@ const AttachmentFullScreenUI = () => {
         {senderProfile && (
           <Flex gap="10px">
             <Avatar.Root>
-              <Avatar.Fallback name={senderProfile.displayName} />
+              <Avatar.Fallback>
+                <BsRobot />
+              </Avatar.Fallback>
               <Avatar.Image src={senderProfile.profile?.profilePic} />
             </Avatar.Root>
 
@@ -623,7 +521,7 @@ const AttachmentFullScreenUI = () => {
       >
         {currentAttachment && (
           <AttachmentPreviewItem
-            openFullScreen={openFullScreen}
+            openFullScreenText={openFullScreen}
             attachment={currentAttachment}
           />
         )}

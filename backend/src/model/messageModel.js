@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 /**
  * Attachment Schema - represents file attachments in messages
@@ -44,7 +44,7 @@ const BaseMessageSchema = new mongoose.Schema({
     default: "sent",
     required: true,
   },
-  replyTo: String,
+
   reactions: {
     type: Object,
     default: {},
@@ -63,8 +63,37 @@ const MessageSchema = new mongoose.Schema(
     text: String,
     attachments: [AttachmentSchema],
     gif: {
-      url: String,
-      name: String,
+      type: {
+        id: {
+          type: String,
+          required: true,
+        },
+        preview: {
+          type: String,
+          required: true,
+        },
+        full: {
+          type: String,
+          required: true,
+        },
+        width: {
+          type: Number,
+        },
+        height: {
+          type: Number,
+        },
+      },
+      required: false,
+    },
+    replyTo: {
+      type: mongoose.Types.ObjectId,
+      ref: "message",
+    },
+    isReplied: {
+      type: Boolean,
+    },
+    isForwarded: {
+      type: Boolean,
     },
   },
   { timestamps: true },

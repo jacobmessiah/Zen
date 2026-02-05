@@ -13,6 +13,7 @@ import {
   useDialog,
 } from "@chakra-ui/react";
 import { useEffect, useState, type ChangeEvent, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CreateDmUI = ({
   children,
@@ -76,6 +77,8 @@ const CreateDmUI = ({
 
   const dialog = useDialog();
 
+  const navigate = useNavigate();
+
   const handleCreateDM = () => {
     if (!selectedConnection) {
       dialog.setOpen(false);
@@ -89,7 +92,7 @@ const CreateDmUI = ({
       );
 
     if (findConversation) {
-      userChatStore.setState({ selectedConversation: findConversation });
+      navigate(`${findConversation._id}`);
       dialog.setOpen(false);
       return;
     }
@@ -106,8 +109,13 @@ const CreateDmUI = ({
       showFor: [selectedConnection.otherUser._id, authUser?._id!],
     };
 
-    userChatStore.setState({
-      selectedConversation: conversationOBJ,
+    navigate(`${conversationOBJ._id}`);
+    userChatStore.setState((state) => {
+      const conversations = [conversationOBJ, ...state.conversations];
+
+      return {
+        conversations,
+      };
     });
 
     dialog.setOpen(false);

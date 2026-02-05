@@ -16,7 +16,7 @@ const AppNavigatorBig = () => {
   const sideBarLinksArray = [
     {
       text: "Chats",
-      url: "chats",
+      url: "chat",
       icon: <FiMessageCircle size={22} />,
     },
     {
@@ -144,7 +144,7 @@ export const AppNavigatorSmall = () => {
   const sideBarLinksArray = [
     {
       text: "Chats",
-      url: "chats",
+      url: "chat",
       icon: <FiMessageCircle size={25} />,
     },
     {

@@ -9,46 +9,39 @@ GifRoute.get("/search/:query/:lang", async (req, res) => {
   try {
     const { query, lang = "en" } = req.params || {};
 
-    if (!query) return res.status(500).json({ message: "NO_PARAMS" });
-    if (typeof query !== "string")
-      return res.status(400).json({ message: "INVALID_PARAM" });
+    if (!query || typeof query !== "string") {
+      return res.status(400).json({ message: "INVALID_QUERY" });
+    }
 
     const searchRes = await axios.get(process.env.GIPHY_SEARCH_ENDPOINT, {
       params: {
         api_key: process.env.GIPHY_API_KEY,
         q: query,
-        limit: 40,
+        limit: 50,
         bundle: "messaging_non_clips",
         lang,
         fields: "id,images",
       },
     });
 
-    const resData = searchRes.data;
-    const gifData = resData.data;
+    const gifData = searchRes.data.data || [];
 
-    if (Array.isArray(gifData) && gifData.length > 0) {
-      const filtered = gifData.map((gif) => ({
-        id: gif.id,
-        preview: gif.images.fixed_height.mp4,
-        full: gif.images.original.mp4,
-        width: gif.images.fixed_height.width,
-        height: gif.images.fixed_height.height,
-      }));
+    const filtered = gifData.map((gif) => ({
+      id: gif.id,
+      preview: gif.images.fixed_width.mp4,
+      full: gif.images.downsized_medium?.url || gif.images.original.mp4,
+      width: parseInt(gif.images.fixed_width.width),
+      height: parseInt(gif.images.fixed_width.height),
+    }));
 
-      return res.status(200).json({ message: "Data Received", Data: filtered });
-    } else {
-      return res.status(500).json({ message: "NO_DATA_RECEIVED", Data: [] });
-    }
+    return res.status(200).json({
+      message: filtered.length > 0 ? "SUCCESS" : "NO_RESULTS",
+      data: filtered, // Empty array if no results
+    });
   } catch (error) {
-    if (isAxiosError(error)) {
-      console.log("Error From Fetching Error Res -->  ", error.response.data);
-    }
-
+    console.error("GIF search error:", error);
     return res.status(500).json({ message: "SERVER_ERROR" });
   }
 });
-
-
 
 export default GifRoute;

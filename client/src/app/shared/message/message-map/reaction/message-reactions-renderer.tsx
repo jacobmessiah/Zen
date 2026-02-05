@@ -1,6 +1,7 @@
 import { Flex } from "@chakra-ui/react";
 
-const MessageReactionsRenderer = () => {
+// P2P
+const MessageReactionsRenderer = ({ sendersProfile, myProfile }) => {
   return <Flex></Flex>;
 };
 

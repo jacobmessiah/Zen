@@ -43,7 +43,8 @@ export interface BaseMessage {
   senderId: string;
   receiverId?: string;
   status: "sending" | "sent" | "delivered" | "read" | "failed";
-  replyTo?: string;
+  isReplied?: boolean;
+  isForwarded?: boolean;
   createdAt: string;
   updatedAt: string;
   reactions?: Record<string, { username: string; userId: string }[]>;
@@ -130,14 +131,21 @@ export interface DefaultMessage extends BaseMessage {
   type: "default";
   text?: string;
   attachments?: Attachment[];
+  replyTo?: IMessage;
+}
+
+export interface GifData {
+  id: string;
+  preview: string;
+  full: string;
+  width: string | number;
+  height: string | number;
 }
 
 export interface GifMessage extends BaseMessage {
   type: "gif";
-  gif: {
-    url: string;
-    name: string;
-  };
+  gif: GifData;
+  replyTo?: IMessage;
 }
 
 export type IMessage = DefaultMessage | GifMessage;

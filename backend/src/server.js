@@ -13,6 +13,7 @@ import messageRoute from "./routes/messageRoute.js";
 import conversationRoute from "./routes/conversationRoute.js";
 import axios from "axios";
 import GifRoute from "./routes/gifRoute.js";
+import favouritesRoute from "./routes/favouriteRoute.js";
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 app.use(
@@ -30,8 +31,9 @@ app.use("/api/auth", userRoutes);
 app.use("/api/connections", connectionRoute);
 app.use("/api/messages", messageRoute);
 app.use("/api/conversations", conversationRoute);
+app.use("/api/favourites", favouritesRoute);
 
-app.get("/cdn/file", async (req, res) => {
+app.get("/api/cdn/file", async (req, res) => {
   const { path, mimeType, download } = req.query || {};
 
   if (!path || !mimeType) {
@@ -102,7 +104,6 @@ app.get("/cdn/file", async (req, res) => {
 app.use("/api/gif", GifRoute);
 
 app.set("trust proxy", true);
-
 ConnectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

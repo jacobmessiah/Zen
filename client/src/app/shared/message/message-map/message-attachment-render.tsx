@@ -9,28 +9,20 @@ import {
   Slider,
   Text,
 } from "@chakra-ui/react";
-import type { Attachment, IUser } from "../../../../types/schema";
+import type { Attachment } from "../../../../types/schema";
 import { generateCDN_URL } from "../../../../utils/generalFunctions";
-import {
-  forwardRef,
-  Suspense,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from "react";
+import { forwardRef, useRef, useState, type ChangeEvent } from "react";
 import { FaFileAudio, FaPause, FaPlay } from "react-icons/fa";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 
 import { useTranslation } from "react-i18next";
 import { AiOutlineLoading } from "react-icons/ai";
 import { getDocumentIcon } from "../message-input-ui";
-import userChatStore from "../../../../store/user-chat-store";
-import { createDialog } from "../../../dialog/create-dialog";
-import AttachmentFullScreenUI from "../../../dialog/ui/attachment-preview/attachment-fullscreen-renderer";
 import { RiFullscreenExitLine, RiFullscreenFill } from "react-icons/ri";
-import { Tooltip } from "../../../../components/ui/tooltip";
 
 import { HiDownload } from "react-icons/hi";
+import MediaLoadErrorUI from "../media-load-error-ui";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export const getSource = (
   filePath: string | undefined,
@@ -76,13 +68,12 @@ const ImageAttachment = ({
   displayAttachmentFullscreen,
 }: {
   attachment: Extract<Attachment, { type: "image" }>;
-  displayAttachmentFullscreen: (
-    att: Extract<Attachment, { type: "image" }>,
-  ) => void;
+  displayAttachmentFullscreen: (fileId: string) => void;
 }) => {
   if (!attachment.filePath) return null;
 
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoadError, setisLoadError] = useState(false);
 
   const src = getSource(
     attachment.filePath,
@@ -92,24 +83,25 @@ const ImageAttachment = ({
 
   return (
     <Flex
-      onClick={() => displayAttachmentFullscreen(attachment)}
+      onClick={() => displayAttachmentFullscreen(attachment.fileId)}
       rounded="5px"
       overflow="hidden"
       className={isLoaded ? "" : "isLoading"}
       pos="relative"
     >
-      <Image
-        onLoad={() => setIsLoaded(true)}
-        style={{ visibility: isLoaded ? "visible" : "hidden" }}
-        src={src}
-        minH="full"
-        minW="full"
-        maxH="full"
-        maxW="full"
-        zIndex={10}
-      />
+      {!isLoadError && (
+        <Image
+          onLoad={() => setIsLoaded(true)}
+          style={{ visibility: isLoaded ? "visible" : "hidden" }}
+          onError={() => setisLoadError(true)}
+          src={src}
+          h="full"
+          w="full"
+          objectFit="cover"
+        />
+      )}
 
-      {!isLoaded && (
+      {!isLoaded && !isLoadError && (
         <Flex
           bg="rgba(26, 26, 26, 0.4)"
           color="white"
@@ -125,6 +117,8 @@ const ImageAttachment = ({
           </Flex>
         </Flex>
       )}
+
+      {isLoadError && <MediaLoadErrorUI />}
     </Flex>
   );
 };
@@ -138,9 +132,7 @@ const VideoAttachment = ({
   attachment: Extract<Attachment, { type: "video" }>;
   openFullScreenText: string;
   isAlone: boolean;
-  displayAttachmentFullscreen: (
-    att: Extract<Attachment, { type: "video" }>,
-  ) => void;
+  displayAttachmentFullscreen: (fileId: string) => void;
 }) => {
   const url = getSource(
     attachment.filePath,
@@ -159,6 +151,7 @@ const VideoAttachment = ({
     buttonFocused: false,
     isClicked: false,
     isLoaded: false,
+    isLoadError: false,
   });
 
   const [showControlsTimer, setShowControlsTimer] = useState<number | null>(
@@ -260,7 +253,7 @@ const VideoAttachment = ({
         }
       }
     } else {
-      displayAttachmentFullscreen(attachment);
+      displayAttachmentFullscreen(attachment.fileId);
     }
   };
 
@@ -268,6 +261,7 @@ const VideoAttachment = ({
     <Flex
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onClick={handleTogglePlay}
       ref={containerRef}
       overflow="hidden"
       rounded="5px"
@@ -282,198 +276,219 @@ const VideoAttachment = ({
       }
       className={videoDetails.isLoaded ? "" : "isLoading"}
     >
-      <video
-        onClick={handleTogglePlay}
-        preload="metadata"
-        style={{
-          visibility: videoDetails.isLoaded ? "visible" : "hidden",
-          width: "100%",
-          height: "100%",
-          border: "none",
-          outline: "none",
-          objectFit: isAlone
-            ? videoDetails.isFullScreen
-              ? "contain"
-              : "cover"
-            : "cover",
-        }}
-        onLoadedData={() => {
-          setVideoDetails((p) => ({ ...p, isLoaded: true }));
-        }}
-        src={url}
-        onLoadedMetadata={(e) => {
-          const duration = e.currentTarget.duration;
-          setVideoDetails((p) => ({ ...p, duration }));
-        }}
-        onTimeUpdate={(e) => {
-          const currentTime = e.currentTarget.currentTime;
-          if (sliderRef.current) {
-            sliderRef.current.value = currentTime.toString();
-          }
-        }}
-        onEnded={() => {
-          setVideoDetails((p) => ({
-            ...p,
-            currentTime: 0,
-            isFinishedPlay: true,
-            isPlaying: false,
-          }));
-          if (sliderRef.current) {
-            sliderRef.current.value = "0";
-          }
-        }}
-        ref={videoRef}
-      />
-
-      {videoDetails.isLoaded && isAlone && videoDetails.isClicked && (
-        <Flex
-          bg="blackAlpha.500"
-          w="full"
-          pos="absolute"
-          transition="0.5s ease"
-          bottom={videoDetails.showControls ? "0px" : "-50px"}
-        >
-          <VideoPlayerButton
+      {videoDetails.isLoadError ? (
+        <MediaLoadErrorUI />
+      ) : (
+        <>
+          <video
             onClick={handleTogglePlay}
-            style={{ fontSize: "18px" }}
-          >
-            {!videoDetails.isPlaying ? <FaPlay /> : <FaPause />}
-          </VideoPlayerButton>
-
-          <input
-            ref={sliderRef}
-            max={videoDetails.duration}
-            defaultValue={videoDetails.currentTime}
-            type="range"
-            style={{ flex: 1 }}
+            preload="metadata"
+            style={{
+              visibility: videoDetails.isLoaded ? "visible" : "hidden",
+              width: "100%",
+              height: "100%",
+              border: "none",
+              outline: "none",
+              objectFit: isAlone
+                ? videoDetails.isFullScreen
+                  ? "contain"
+                  : "cover"
+                : "cover",
+            }}
+            onLoadedData={() => {
+              setVideoDetails((p) => ({
+                ...p,
+                isLoaded: true,
+                isLoadError: false,
+              }));
+            }}
+            src={url}
+            onLoadedMetadata={(e) => {
+              const duration = e.currentTarget.duration;
+              setVideoDetails((p) => ({ ...p, duration }));
+            }}
+            onError={() =>
+              setVideoDetails((p) => ({ ...p, isLoadError: true }))
+            }
+            onTimeUpdate={(e) => {
+              const currentTime = e.currentTarget.currentTime;
+              if (sliderRef.current) {
+                sliderRef.current.value = currentTime.toString();
+              }
+            }}
+            onEnded={() => {
+              setVideoDetails((p) => ({
+                ...p,
+                currentTime: 0,
+                isFinishedPlay: true,
+                isPlaying: false,
+              }));
+              if (sliderRef.current) {
+                sliderRef.current.value = "0";
+              }
+            }}
+            ref={videoRef}
           />
 
-          {videoDetails.showControls && (
-            <VideoPlayerButton
-              onFocus={(e) => {
-                e.stopPropagation();
-                setVideoDetails((p) => ({ ...p, buttonFocused: true }));
-              }}
-              onBlur={() => {
-                setVideoDetails((p) => ({ ...p, buttonFocused: false }));
-              }}
-              onClick={handleToggleMute}
-              style={{ position: "relative" }}
-              data-volume-change
+          {videoDetails.isLoaded && isAlone && videoDetails.isClicked && (
+            <Flex
+              bg="blackAlpha.500"
+              w="full"
+              pos="absolute"
+              transition="0.5s ease"
+              bottom={videoDetails.showControls ? "0px" : "-50px"}
             >
-              {!videoDetails.isMuted ? <HiSpeakerWave /> : <HiSpeakerXMark />}
-
-              <Flex
-                pos="absolute"
-                bottom="65px"
-                opacity={videoDetails.buttonFocused ? 100 : 0}
-                transform="rotate(-90deg)"
-                transformOrigin="center"
-                css={{
-                  "[data-volume-change]:hover &": {
-                    opacity: { lg: "100" },
-                  },
-                }}
-                bg="gray.700"
-                px="2px"
-                rounded="10px"
+              <VideoPlayerButton
+                onClick={handleTogglePlay}
+                style={{ fontSize: "18px" }}
               >
-                <input
-                  onClick={(e) => e.stopPropagation()}
-                  ref={volumeSliderRef}
-                  className="no-focus"
-                  type="range"
-                  style={{
-                    height: "15px",
-                    width: "75px",
-                  }}
-                  defaultValue={100}
-                  onChange={(e) => {
-                    const volume = Number(e.currentTarget.value);
-
-                    setVideoDetails((p) => ({
-                      ...p,
-                      volume,
-                      isMuted: volume === 0 ? true : false,
-                    }));
-
-                    if (videoRef.current) {
-                      videoRef.current.volume = volume / 100;
-
-                      if (volume === 0) {
-                        videoRef.current.muted = true;
-                      } else if (volume > 0) {
-                        videoRef.current.muted = false;
-                      }
-                    }
-                  }}
-                  max={100}
-                />
-              </Flex>
-            </VideoPlayerButton>
-          )}
-
-          {/*Full Screen Toggler */}
-          {videoDetails.isFullScreen ? (
-            <VideoPlayerButton onClick={handleToggleFullscreen}>
-              <RiFullscreenExitLine />
-            </VideoPlayerButton>
-          ) : (
-            <Tooltip
-              positioning={{ placement: "top" }}
-              showArrow
-              contentProps={{
-                padding: "8px",
-                rounded: "lg",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
-                css: {
-                  "--tooltip-bg": "colors.gray.900",
-                  color: "white",
-                },
-              }}
-              content={openFullScreenText}
-            >
-              <VideoPlayerButton onClick={handleToggleFullscreen}>
-                <RiFullscreenFill />
+                {!videoDetails.isPlaying ? <FaPlay /> : <FaPause />}
               </VideoPlayerButton>
-            </Tooltip>
+
+              <input
+                ref={sliderRef}
+                max={videoDetails.duration}
+                defaultValue={videoDetails.currentTime}
+                type="range"
+                style={{ flex: 1 }}
+              />
+
+              {videoDetails.showControls && (
+                <VideoPlayerButton
+                  onFocus={(e) => {
+                    e.stopPropagation();
+                    setVideoDetails((p) => ({ ...p, buttonFocused: true }));
+                  }}
+                  onBlur={() => {
+                    setVideoDetails((p) => ({ ...p, buttonFocused: false }));
+                  }}
+                  onClick={handleToggleMute}
+                  style={{ position: "relative" }}
+                  data-volume-change
+                >
+                  {!videoDetails.isMuted ? (
+                    <HiSpeakerWave />
+                  ) : (
+                    <HiSpeakerXMark />
+                  )}
+
+                  <Flex
+                    pos="absolute"
+                    bottom="65px"
+                    opacity={videoDetails.buttonFocused ? 100 : 0}
+                    transform="rotate(-90deg)"
+                    transformOrigin="center"
+                    css={{
+                      "[data-volume-change]:hover &": {
+                        opacity: { lg: "100" },
+                      },
+                    }}
+                    bg="gray.700"
+                    px="2px"
+                    rounded="10px"
+                  >
+                    <input
+                      onClick={(e) => e.stopPropagation()}
+                      ref={volumeSliderRef}
+                      className="no-focus"
+                      type="range"
+                      style={{
+                        height: "15px",
+                        width: "75px",
+                      }}
+                      defaultValue={100}
+                      onChange={(e) => {
+                        const volume = Number(e.currentTarget.value);
+
+                        setVideoDetails((p) => ({
+                          ...p,
+                          volume,
+                          isMuted: volume === 0 ? true : false,
+                        }));
+
+                        if (videoRef.current) {
+                          videoRef.current.volume = volume / 100;
+
+                          if (volume === 0) {
+                            videoRef.current.muted = true;
+                          } else if (volume > 0) {
+                            videoRef.current.muted = false;
+                          }
+                        }
+                      }}
+                      max={100}
+                    />
+                  </Flex>
+                </VideoPlayerButton>
+              )}
+
+              {/*Full Screen Toggler */}
+              {videoDetails.isFullScreen ? (
+                <VideoPlayerButton onClick={handleToggleFullscreen}>
+                  <RiFullscreenExitLine />
+                </VideoPlayerButton>
+              ) : (
+                <Tooltip
+                  positioning={{ placement: "top" }}
+                  showArrow
+                  contentProps={{
+                    padding: "8px",
+                    rounded: "lg",
+                    border: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    css: {
+                      "--tooltip-bg": "colors.gray.900",
+                      color: "white",
+                    },
+                  }}
+                  content={openFullScreenText}
+                >
+                  <VideoPlayerButton onClick={handleToggleFullscreen}>
+                    <RiFullscreenFill />
+                  </VideoPlayerButton>
+                </Tooltip>
+              )}
+            </Flex>
           )}
-        </Flex>
-      )}
 
-      {videoDetails.isLoaded && !videoDetails.isPlaying && (
-        <VideoPlayerButton
-          onClick={handleTogglePlay}
-          style={{
-            background: "rgba(24, 23, 23, 0.89)",
-            position: "absolute",
-            padding: "10px",
-            borderRadius: "100px",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <FaPlay style={{ width: "20px", height: "20px" }} />
-        </VideoPlayerButton>
-      )}
+          {videoDetails.isLoaded && !videoDetails.isPlaying && (
+            <VideoPlayerButton
+              onClick={handleTogglePlay}
+              style={{
+                background: "rgba(24, 23, 23, 0.89)",
+                position: "absolute",
+                padding: "10px",
+                borderRadius: "100px",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <FaPlay style={{ width: "20px", height: "20px" }} />
+            </VideoPlayerButton>
+          )}
 
-      {!videoDetails.isLoaded && (
-        <Flex
-          bg="rgba(26, 26, 26, 0.4)"
-          color="white"
-          top="10px"
-          right="10px"
-          pos="absolute"
-          boxSize="25px"
-          justifyContent="center"
-          rounded="full"
-        >
-          <Flex animation="spin" alignItems="center" animationDuration="slower">
-            <AiOutlineLoading size={18} />
-          </Flex>
-        </Flex>
+          {!videoDetails.isLoaded && (
+            <Flex
+              bg="rgba(26, 26, 26, 0.4)"
+              color="white"
+              top="10px"
+              right="10px"
+              pos="absolute"
+              boxSize="25px"
+              justifyContent="center"
+              rounded="full"
+            >
+              <Flex
+                animation="spin"
+                alignItems="center"
+                animationDuration="slower"
+              >
+                <AiOutlineLoading size={18} />
+              </Flex>
+            </Flex>
+          )}
+        </>
       )}
     </Flex>
   );
@@ -929,12 +944,10 @@ const DocumentAttachmnet = ({
 
 const MessageAttachmentRenderer = ({
   attachments,
-  createdAt,
-  senderProfile,
+  displayAttachmentFullscreen,
 }: {
   attachments: Attachment[];
-  createdAt: string;
-  senderProfile: IUser | undefined;
+  displayAttachmentFullscreen: (fileId: string) => void;
 }) => {
   // Get attachments that can be rendered and viewed directly
   const visualAttachments = attachments.filter(
@@ -951,42 +964,10 @@ const MessageAttachmentRenderer = ({
   const openFullScreenText = translate("openFullScreenText");
   const downloadText = translate("downloadText");
 
-  const displayAttachmentFullscreen = (
-    att: Extract<Attachment, { type: "video" | "image" }>,
-  ) => {
-    const filtered = visualAttachments.filter((p) => p.fileId !== att.fileId);
-    const newArray = [att, ...filtered];
-    userChatStore.setState({
-      selectedVisualAttachments: {
-        attachments: newArray,
-        senderProfile,
-        createdAt,
-      },
-    });
-
-    const dialogId = "previewAttachments";
-    createDialog.open(dialogId, {
-      dialogSize: "full",
-      showCloseButton: false,
-      showBackDrop: true,
-      contentRounded: "0px",
-      contentHeight: "100dvh",
-      contentWidth: "100dvw",
-      contentBg: "transparent",
-      bodyPadding: "0px",
-      backdropBg: "rgba(0, 0, 0, 0.55)",
-      content: (
-        <Suspense>
-          <AttachmentFullScreenUI />
-        </Suspense>
-      ),
-    });
-  };
-
   return (
-    <Flex maxW={{ lg: "50%" }} textAlign="center">
+    <Flex mb="5px" maxW={{ lg: "60%" }} textAlign="center">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
-        <Box className={`gallery count-${visualAttachments.length}`}>
+        <Box w="full" className={`gallery count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {
             if (att.type === "image") {
               return (

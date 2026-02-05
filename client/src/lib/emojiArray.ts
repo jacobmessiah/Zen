@@ -30,7 +30,7 @@ const emojiArray = [
       { text: "🤷‍♂️", shortCode: ":man_shrugging:", value: "🤷‍♂️" },
       { text: "🤦‍♀️", shortCode: ":woman_facepalming:", value: "🤦‍♀️" },
       { text: "🤞", shortCode: ":crossed_fingers:", value: "🤞" },
-      { text: "💯", shortCode: ":100:", value: "💯" }
+      { text: "💯", shortCode: ":100:", value: "💯" },
     ],
   },
   {
@@ -64,7 +64,7 @@ const emojiArray = [
       { text: "🌱", shortCode: ":seedling:", value: "🌱" },
       { text: "🌲", shortCode: ":evergreen_tree:", value: "🌲" },
       { text: "☀️", shortCode: ":sunny:", value: "☀️" },
-      { text: "🌧️", shortCode: ":cloud_with_rain:", value: "🌧️" }
+      { text: "🌧️", shortCode: ":cloud_with_rain:", value: "🌧️" },
     ],
   },
   {
@@ -103,7 +103,7 @@ const emojiArray = [
       { text: "☕️", shortCode: ":coffee:", value: "☕️" },
       { text: "🍺", shortCode: ":beer:", value: "🍺" },
       { text: "🍷", shortCode: ":wine_glass:", value: "🍷" },
-      { text: "🥤", shortCode: ":cup_with_straw:", value: "🥤" }
+      { text: "🥤", shortCode: ":cup_with_straw:", value: "🥤" },
     ],
   },
   {
@@ -134,7 +134,7 @@ const emojiArray = [
       { text: "🎧", shortCode: ":headphones:", value: "🎧" },
       { text: "🎸", shortCode: ":guitar:", value: "🎸" },
       { text: "🎹", shortCode: ":musical_keyboard:", value: "🎹" },
-      { text: "🎭", shortCode: ":performing_arts:", value: "🎭" }
+      { text: "🎭", shortCode: ":performing_arts:", value: "🎭" },
     ],
   },
   {
@@ -165,7 +165,7 @@ const emojiArray = [
       { text: "🗽", shortCode: ":statue_of_liberty:", value: "🗽" },
       { text: "🗼", shortCode: ":tokyo_tower:", value: "🗼" },
       { text: "🏝️", shortCode: ":island:", value: "🏝️" },
-      { text: "🏖️", shortCode: ":beach_with_umbrella:", value: "🏖️" }
+      { text: "🏖️", shortCode: ":beach_with_umbrella:", value: "🏖️" },
     ],
   },
   {
@@ -195,7 +195,7 @@ const emojiArray = [
       { text: "🎥", shortCode: ":movie_camera:", value: "🎥" },
       { text: "📺", shortCode: ":tv:", value: "📺" },
       { text: "📦", shortCode: ":package:", value: "📦" },
-      { text: "⏰", shortCode: ":alarm_clock:", value: "⏰" }
+      { text: "⏰", shortCode: ":alarm_clock:", value: "⏰" },
     ],
   },
   {
@@ -227,7 +227,7 @@ const emojiArray = [
       { text: "♊️", shortCode: ":gemini:", value: "♊️" },
       { text: "♋️", shortCode: ":cancer:", value: "♋️" },
       { text: "♌️", shortCode: ":leo:", value: "♌️" },
-      { text: "♍️", shortCode: ":virgo:", value: "♍️" }
+      { text: "♍️", shortCode: ":virgo:", value: "♍️" },
     ],
   },
   {
@@ -262,9 +262,24 @@ const emojiArray = [
       { text: "🇮🇩", shortCode: ":flag_id:", value: "🇮🇩" },
       { text: "🇳🇬", shortCode: ":flag_ng:", value: "🇳🇬" },
       { text: "🇳🇴", shortCode: ":flag_no:", value: "🇳🇴" },
-      { text: "🇩🇰", shortCode: ":flag_dk:", value: "🇩🇰" }
+      { text: "🇩🇰", shortCode: ":flag_dk:", value: "🇩🇰" },
     ],
   },
 ];
+
+type EmojiItem = {
+  text: string;
+  shortCode: string;
+  value: string;
+};
+
+type EmojiCategory = {
+  categoryText: string;
+  value: string;
+  emojis: EmojiItem[];
+};
+
+export type { EmojiItem, EmojiCategory };
+
 
 export default emojiArray;

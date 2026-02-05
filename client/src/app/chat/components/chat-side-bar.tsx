@@ -5,6 +5,7 @@ import userChatStore from "@/store/user-chat-store";
 import type { IConversation } from "@/types/schema";
 import CreateDmUI from "./create-dm";
 import ConversationItem from "./conversation-item";
+import { useNavigate } from "react-router-dom";
 
 const ChatSideBar = () => {
   const { t: translate } = useTranslation(["chat"]);
@@ -22,15 +23,16 @@ const ChatSideBar = () => {
     "selectConnectionsDescription",
   );
 
+  const navigate = useNavigate();
+
   const searchConnectionsPlaceHolder = translate(
     "searchConnectionsPlaceHolder",
   );
 
   const handleSelectConversation = (conversation: IConversation) => {
     if (conversation && conversation._id !== selectedConversation?._id) {
-      userChatStore.setState({ selectedConversation: conversation });
+      navigate(`${conversation._id}`);
     }
-    document.title = ` • Zen | @${conversation.otherUser.username}`;
   };
 
   return (
@@ -120,19 +122,21 @@ const ChatSideBar = () => {
         maxH={{ lg: "85%" }}
         minH={{ lg: "85%" }}
       >
-        {conversations.slice().map((convo) => {
-          const isSelected = selectedConversation?._id === convo._id;
-          return (
-            <ConversationItem
-              handleSelectConversation={handleSelectConversation}
-              convoItem={convo}
-              key={
-                convo._id || `temp-${convo.otherUser._id}-${convo.createdAt}`
-              }
-              isSelected={isSelected}
-            />
-          );
-        })}
+        {conversations
+          .filter((p) => !p.isTemp)
+          .map((convo) => {
+            const isSelected = selectedConversation?._id === convo._id;
+            return (
+              <ConversationItem
+                handleSelectConversation={handleSelectConversation}
+                convoItem={convo}
+                key={
+                  convo._id || `temp-${convo.otherUser._id}-${convo.createdAt}`
+                }
+                isSelected={isSelected}
+              />
+            );
+          })}
       </Flex>
     </Flex>
   );

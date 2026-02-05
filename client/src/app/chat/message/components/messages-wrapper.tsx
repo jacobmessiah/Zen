@@ -8,6 +8,7 @@ import userChatStore from "@/store/user-chat-store";
 import userAuthStore from "@/store/user-auth-store";
 import type { MessageActionTranslations } from "@/types";
 import MessageItemContainer from "@/app/shared/message/message-map/message-item-container";
+import type { Attachment } from "@/types/schema";
 
 const MessagesWrapper = () => {
   const selectedConversation = userChatStore(
@@ -30,8 +31,15 @@ const MessagesWrapper = () => {
     deleteMessage: translate("messageActions.deleteMessage"),
     moreText: translate("messageActions.moreText"),
   };
-  const getUploadingFilesText = (count: number) =>
-    translate("UploadingFiles", { number: count });
+  const getUploadingFilesText = (attachments: Attachment[]): string => {
+    if (attachments.length === 1) {
+      return attachments[0].name;
+    } else {
+      translate("UploadingFiles", { number: attachments.length });
+    }
+
+    return "";
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -42,7 +50,8 @@ const MessagesWrapper = () => {
   return (
     <Flex
       flex={1}
-      p="1.5"
+      pt="1.5"
+      pr={{ base: "0px", lg: "8px" }}
       overflowY="auto"
       direction="column"
       // Add smooth scrolling
@@ -59,6 +68,7 @@ const MessagesWrapper = () => {
           borderRadius: "full",
         },
       }}
+      w="full"
     >
       <MessageStartUI
         beginningOfChatText={beginningOfChatText}
@@ -95,7 +105,7 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
-              isMine
+              isMine={isMine}
               senderProfile={senderProfile}
               message={message}
               messageActions={messageActions}

@@ -16,7 +16,7 @@ const userAuthStore = create<userAuthStore>(() => ({
   authUser: null,
   isLoginIn: false,
   isSigningUp: false,
-  isCheckingAuth: false,
+  isCheckingAuth: true,
   isCheckingUsername: false,
   socket: null,
   isPoolingReconnection: false,

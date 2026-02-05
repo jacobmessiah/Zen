@@ -1,5 +1,5 @@
-import emojiArray from "@/lib/emojiArray";
-import { type EmojiCategory } from "@/lib/emojiTypes";
+import emojiArray, { type EmojiCategory } from "@/lib/emojiArray";
+
 import { Flex, Grid, Input, InputGroup, Text } from "@chakra-ui/react";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,7 +33,12 @@ const EmojiCategoryItem = ({
     <Flex direction="column" px="8px" w="full">
       <Text>{categoryText}</Text>
 
-      <Grid w="full" templateColumns="repeat(10, 1fr)" gap="10px">
+      <Grid
+        w="full"
+        templateColumns={{ base: "repeat(7, 1fr)", lg: "repeat(10, 1fr)" }}
+        gap="10px"
+        alignItems="center"
+      >
         {emojiCategory.emojis.map((emoji) => (
           <Flex
             onClick={() => onSelect(emoji.value)}
@@ -109,6 +114,7 @@ const EmojiMappingUI = ({
       maxW="full"
       direction="column"
       maxH="full"
+      userSelect="none"
     >
       {showSearchBar && (
         <Flex w="full" pt="2px" alignItems="center" px="10px">

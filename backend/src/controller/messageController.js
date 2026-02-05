@@ -148,8 +148,15 @@ export const handleSendMessage = async (req, res) => {
   try {
     const user = req.user;
 
-    const { attachments, receiverId, conversationId, text, replyTo, type } =
-      req.body || {};
+    const {
+      attachments,
+      receiverId,
+      conversationId,
+      text,
+      replyTo,
+      type,
+      gif,
+    } = req.body || {};
 
     if (
       !conversationId ||
@@ -175,53 +182,93 @@ export const handleSendMessage = async (req, res) => {
       conversationId,
     };
 
-    if (text && typeof text == "string") {
-      messageOBJ.text = text.trim();
+    if (replyTo && typeof replyTo === "string") {
+      messageOBJ.replyTo = replyTo;
+      messageOBJ["isReplied"] = true;
     }
 
-    if (attachments && Array.isArray(attachments) && attachments.length > 0) {
-      if (attachments && Array.isArray(attachments) && attachments.length > 0) {
-        for (const att of attachments) {
-          if (
-            !att.fileId ||
-            typeof att.fileId !== "string" ||
-            !att.filePath ||
-            typeof att.filePath !== "string" ||
-            !att.mimeType ||
-            typeof att.mimeType !== "string" ||
-            !att.size ||
-            typeof att.size !== "number" ||
-            !att.name ||
-            typeof att.name !== "string"
-          ) {
-            return res
-              .status(400)
-              .json({ message: "INVALID_ATTACHMENT_IN_LIST" });
-          }
-        }
+    if (type === "default") {
+      if (text && typeof text == "string") {
+        messageOBJ.text = text.trim();
+      }
 
-        await Promise.all(
-          attachments.map((att) =>
-            unClaimedUpload.deleteOne({ fileId: att.fileId }),
-          ),
-        );
+      if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+        if (
+          attachments &&
+          Array.isArray(attachments) &&
+          attachments.length > 0
+        ) {
+          for (const att of attachments) {
+            if (
+              !att.fileId ||
+              typeof att.fileId !== "string" ||
+              !att.filePath ||
+              typeof att.filePath !== "string" ||
+              !att.mimeType ||
+              typeof att.mimeType !== "string" ||
+              !att.size ||
+              typeof att.size !== "number" ||
+              !att.name ||
+              typeof att.name !== "string"
+            ) {
+              return res
+                .status(400)
+                .json({ message: "INVALID_ATTACHMENT_IN_LIST" });
+            }
+          }
+
+          await Promise.all(
+            attachments.map((att) =>
+              unClaimedUpload.deleteOne({ fileId: att.fileId }),
+            ),
+          );
+
+          messageOBJ.attachments = attachments;
+        }
 
         messageOBJ.attachments = attachments;
       }
+    }
 
-      messageOBJ.attachments = attachments;
+    if (type === "gif") {
+      const requiredGifFields = ["id", "full", "preview"];
+      const missingFields = requiredGifFields.filter((field) => !gif?.[field]);
+
+      if (!gif || missingFields.length > 0) {
+        return res.status(400).json({
+          message: "INVALID_ARGS_RECEIVED_FOR_GIF",
+          missingFields: missingFields.length > 0 ? missingFields : undefined,
+        });
+      }
+
+      messageOBJ.type = "gif";
+      messageOBJ.gif = {
+        id: gif.id,
+        full: gif.full,
+        preview: gif.preview,
+        width: gif.width || 0,
+        height: gif.height || 0,
+      };
     }
 
     const newMessage = await Message.create({
       ...messageOBJ,
     });
 
+    let messageReturnObject;
+
+    if (replyTo && typeof replyTo === "string") {
+      messageReturnObject = (await newMessage.populate("replyTo")).toObject();
+    } else {
+      messageReturnObject = newMessage.toObject();
+    }
+
     emitPayLoadToUser(receiverId, "EVENT:ADD", {
       type: "RECEIVE_MESSAGE",
-      message: newMessage.toObject(),
+      message: messageReturnObject,
     });
 
-    return res.status(200).json(newMessage.toObject());
+    return res.status(200).json(messageReturnObject);
   } catch (error) {
     console.log(
       "Error on #handleSendMessage #messageController.js Error --->",
@@ -250,8 +297,9 @@ export const handleGetAllMessages = async (req, res) => {
     // }
 
     const messages = await Message.find({ conversationId })
-      .sort({ createdAt: 1 }) // Oldest first
-      .limit(100);
+      .sort({ createdAt: 1 }) 
+      .limit(100)
+      .populate("replyTo");
 
     return res.status(200).json(messages);
   } catch (error) {

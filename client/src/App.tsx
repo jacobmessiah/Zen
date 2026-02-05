@@ -19,6 +19,10 @@ import {
   handleEventRemove,
 } from "./utils/socket-listener/socket-handler";
 import { handleSyncAdd, handleSyncRemove } from "./utils/sync";
+import MessageContainer, {
+  NoConversationSelectedUI,
+} from "./app/chat/message/message-container";
+import RouteNotFound from "./app/components/ui/not-found";
 
 const LoadingAppUI = lazy(() => import("./app/loading-app-container"));
 
@@ -36,13 +40,12 @@ const App = () => {
   }, [handleCheckAuth]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !authUser) return;
 
     socket.on("EVENT:ADD", handleEventAdd);
     socket.on("EVENT:REMOVE", handleEventRemove);
     socket.on("SYNC:REMOVE", handleSyncRemove);
     socket.on("SYNC:ADD", handleSyncAdd);
-
 
     return () => {
       if (socket) {
@@ -72,38 +75,35 @@ const App = () => {
       <Toaster richColors position="top-center" />
       <Routes>
         {/* Public home page */}
-        <Route
-          path="/"
-          element={
-            authUser ? <Navigate to="/app/chats" /> : <HomePageContainer />
-          }
-        />
+        <Route path="/" element={<HomePageContainer />} />
 
         {/* App routes - protected */}
         <Route
           path="/app"
           element={authUser ? <AppContainer /> : <Navigate to="/auth" />}
         >
-          <Route index element={<Navigate to="/app/chats" />} />
           <Route path="moments" element={<MomentsContainer />} />
           <Route path="connections" element={<ConnectionsContainer />} />
           <Route path="spaces" element={<SpacesContainer />} />
-          <Route path="chats" element={<ChatsContainer />} />
+          <Route path="chat" element={<ChatsContainer />}>
+            <Route index element={<NoConversationSelectedUI />} />
+            <Route path=":id" element={<MessageContainer />} />
+          </Route>
         </Route>
 
         {/* Auth routes */}
         <Route
           path="/auth"
           element={
-            authUser ? <Navigate replace to="/app/chats" /> : <AuthContainer />
+            authUser ? <Navigate replace to="/app" /> : <AuthContainer />
           }
         >
           <Route index element={<LoginContainer />} />
           <Route path="signup" element={<SignUpContainer />} />
         </Route>
 
-        {/* 404 */}
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* 404 For now  */}
+        <Route path="*" element={<RouteNotFound />} />
       </Routes>
     </div>
   );

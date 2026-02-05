@@ -5,11 +5,14 @@ import { useTranslation } from "react-i18next";
 import { FaSmile } from "react-icons/fa";
 import EmojiMapping from "./emojis-mapping";
 import GifsUI from "./gif-ui";
+import type { GifData } from "@/types";
 
 const EmojiGifPicker = ({
   onEmojiSelect,
+  onGifSelect,
 }: {
   onEmojiSelect: (emoji: string) => void;
+  onGifSelect: ({ gifData }: { gifData: GifData }) => void;
 }) => {
   const [selectedTab, setSelectedTab] = useState<"emoji" | "gif">("emoji");
 
@@ -110,7 +113,7 @@ const EmojiGifPicker = ({
               {selectedTab === "emoji" && (
                 <EmojiMapping onEmojiSelect={onEmojiSelect} />
               )}
-              {selectedTab === "gif" && <GifsUI />}
+              {selectedTab === "gif" && <GifsUI onGifSelect={onGifSelect} />}
             </Box>
           </Popover.Content>
         </Popover.Positioner>

@@ -5,7 +5,7 @@ export const generateCDN_URL = (
 ): string => {
   const baseEndPoint = import.meta.env.VITE_BACKEND_URL;
 
-  const url = `${baseEndPoint}/cdn/file?path=${encodeURIComponent(
+  const url = `${baseEndPoint}/api/cdn/file?path=${encodeURIComponent(
     filePath
   )}&mimeType=${encodeURIComponent(mimeType)}${download ? "&download=true" : ""}`;
 

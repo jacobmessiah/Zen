@@ -4,11 +4,13 @@ import MessageTopRibbon from "./components/top-message-ribbon";
 import { useTranslation } from "react-i18next";
 import MessagesWrapper from "./components/messages-wrapper";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AuthLogo from "@/components/ui/logo-export";
 import type { IConversation } from "@/types/schema";
 import { getMessages } from "@/utils/chatFunctions";
 import MessageInputUI from "@/app/shared/message/message-input-ui";
+import { useNavigate, useParams } from "react-router-dom";
+import userChatStore from "@/store/user-chat-store";
 
 export const NoConversationSelectedUI = () => {
   return (
@@ -37,25 +39,55 @@ export const NoConversationSelectedUI = () => {
   );
 };
 
-const MessageContainer = ({
-  selectedConversation,
-}: {
-  selectedConversation: IConversation;
-}) => {
+const MessageContainer = () => {
   const { t: translate } = useTranslation(["chat"]);
+  const { id } = useParams();
+  const [selectedConversation, setSelectedConversation] =
+    useState<IConversation>();
+
+  const conversations = userChatStore((state) => state.conversations);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!id) return;
+
+    const getConversation = conversations.find((p) => p._id === id);
+
+    if (getConversation) {
+      setSelectedConversation(getConversation);
+      userChatStore.setState({ selectedConversation: getConversation });
+      if (!getConversation.isTemp) {
+        getMessages(getConversation._id);
+        document.title = ` • Zen | @${getConversation.otherUser.username}`;
+      }
+    } else {
+      navigate("/app/messaging", { replace: true });
+    }
+  }, [id, navigate]);
+
+  if (!selectedConversation) {
+    return <NoConversationSelectedUI />;
+  }
+
   const messageInputPlaceholder = translate("messageInputPlaceholder", {
     username: selectedConversation.otherUser.username,
   });
 
-  useEffect(() => {
-    if (selectedConversation && !selectedConversation.isTemp) {
-      getMessages(selectedConversation._id);
-    }
-  }, [selectedConversation]);
+  const handleUnSelectConversation = () => {
+    navigate("..");
+    userChatStore.setState({
+      selectedConversation: null,
+      displayedMessages: [],
+    });
+  };
 
   return (
     <Flex direction="column" maxW="full" minW="full" minH="full" maxH="full">
-      <MessageTopRibbon otherUser={selectedConversation?.otherUser} />
+      <MessageTopRibbon
+        handleUnSelectConversation={handleUnSelectConversation}
+        otherUser={selectedConversation?.otherUser}
+      />
       <MessagesWrapper />
       <MessageInputUI inputPlaceHolder={messageInputPlaceholder} />
     </Flex>

@@ -32,7 +32,7 @@ export const gifCategories = [
     name: "anime",
     value: "anime",
     preview:
-      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4djdwbGtlaXc3YzZrOWZscGJrbmQ3dG1oc250czk4dDF2Zm44c3l5ZCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/yxMCro4nQO0hlZTALa/200.mp4",
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4NTIxZHdod2VpZTJiejVnM2tqYnh2dHpoajd2eWtoYmRkMXBscDlocCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/pVWuLuV1JESZJdebkI/200w.mp4",
   },
   {
     name: "jjk",
