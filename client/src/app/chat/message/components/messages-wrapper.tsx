@@ -1,13 +1,14 @@
 import { Flex } from "@chakra-ui/react";
-import userChatStore from "../../../../store/user-chat-store";
 import MessageStartUI from "./message-start-ui";
 import { useTranslation } from "react-i18next";
-import userAuthStore from "../../../../store/user-auth-store";
 import MessageSeparator from "./message-separator";
 import { Fragment } from "react/jsx-runtime";
 import { useEffect, useRef } from "react";
-import MessageItemContainer from "../../../shared/message/message-map/message-item-container";
-import type { MessageActionTranslations } from "../../../../types";
+import userChatStore from "@/store/user-chat-store";
+import userAuthStore from "@/store/user-auth-store";
+import type { MessageActionTranslations } from "@/types";
+import MessageItemContainer from "@/app/shared/message/message-map/message-item-container";
+import type { Attachment } from "@/types/schema";
 
 const MessagesWrapper = () => {
   const selectedConversation = userChatStore(
@@ -19,7 +20,7 @@ const MessagesWrapper = () => {
   const { t: translate } = useTranslation(["chat"]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const beginingOfChatText = translate("beginingOfChatText");
+  const beginningOfChatText = translate("beginningOfChatText");
   const messageActions: MessageActionTranslations = {
     addReaction: translate("messageActions.addReaction"),
     editMessage: translate("messageActions.editMessage"),
@@ -30,8 +31,15 @@ const MessagesWrapper = () => {
     deleteMessage: translate("messageActions.deleteMessage"),
     moreText: translate("messageActions.moreText"),
   };
-  const getUploadingFilesText = (count: number) =>
-    translate("UploadingFiles", { number: count });
+  const getUploadingFilesText = (attachments: Attachment[]): string => {
+    if (attachments.length === 1) {
+      return attachments[0].name;
+    } else {
+      translate("UploadingFiles", { number: attachments.length });
+    }
+
+    return "";
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -42,7 +50,8 @@ const MessagesWrapper = () => {
   return (
     <Flex
       flex={1}
-      p="1.5"
+      pt="1.5"
+      pr={{ base: "0px", lg: "8px" }}
       overflowY="auto"
       direction="column"
       // Add smooth scrolling
@@ -59,9 +68,10 @@ const MessagesWrapper = () => {
           borderRadius: "full",
         },
       }}
+      w="full"
     >
       <MessageStartUI
-        beginingOfChatText={beginingOfChatText}
+        beginningOfChatText={beginningOfChatText}
         otherUser={selectedConversation?.otherUser}
       />
 
@@ -72,7 +82,7 @@ const MessagesWrapper = () => {
           i > 0
             ? new Date(displayedMessages[i - 1].createdAt).setHours(0, 0, 0, 0)
             : null;
-        const showSeperator = i === 0 || currentDay !== prevDay;
+        const showSeparator = i === 0 || currentDay !== prevDay;
 
         const prevMessage = i > 0 ? displayedMessages[i - 1] : null;
 
@@ -90,12 +100,12 @@ const MessagesWrapper = () => {
 
         return (
           <Fragment key={message._id}>
-            {showSeperator && (
+            {showSeparator && (
               <MessageSeparator createdAt={message.createdAt} />
             )}
 
             <MessageItemContainer
-              isMine
+              isMine={isMine}
               senderProfile={senderProfile}
               message={message}
               messageActions={messageActions}
@@ -106,7 +116,7 @@ const MessagesWrapper = () => {
         );
       })}
 
-      <Flex ref={scrollRef} minH="20px" p="1px" w="full" />
+      <Flex ref={scrollRef} minH="5px" p="1px" w="full" />
     </Flex>
   );
 };

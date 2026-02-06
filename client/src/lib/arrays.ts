@@ -29,157 +29,147 @@ export const supportedLanguages = [
 
 export const gifCategories = [
   {
-    text: "Trending Gifs",
-    queryKey: "trending gifs",
-    gifPreview:
-      "https://media.tenor.com/54_pC5uEiDkAAAAi/gog-the-alien-gog-dog.gif",
+    name: "anime",
+    value: "anime",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4NTIxZHdod2VpZTJiejVnM2tqYnh2dHpoajd2eWtoYmRkMXBscDlocCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/pVWuLuV1JESZJdebkI/200w.mp4",
   },
   {
-    text: "Whatever",
-    queryKey: "whatever",
-    gifPreview:
-      "https://media1.tenor.com/m/SBvdPxrXe5AAAAAd/jim-carrey-dumb-and-dumber.gif",
+    name: "jjk",
+    value: "jjk",
+    preview:
+      "https://media4.giphy.com/media/v1.Y2lkPWJkYmExZjM4aDJqaXRvaHA4bGM4MGp5djdqYXJtY2l4NWpmazF3ZGQxcnVscG4xayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ltXRHWVSNDKNP63uNF/200.mp4",
   },
   {
-    text: "Naruto",
-    queryKey: "naruto",
-    gifPreview:
-      "https://media.tenor.com/yQTzA3S-UxYAAAAM/naruto-naruto-dance.gif",
+    name: "plus ultra",
+    value: "plusultra",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4M2x0ZnZvazdjdXR5aWRyendweWtwN3V2am9ycnNtbnF6bngzdWo1ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/LzBtpXlB7VYLlrMB12/200.mp4",
   },
   {
-    text: "Demon Slayer",
-    queryKey: "demon slayer",
-    gifPreview:
-      "https://media1.tenor.com/m/2MoFKAJk_l0AAAAC/tanjiro-demon-slayer.gif",
+    name: "happy",
+    value: "happy",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4c3RmaGt6OW5iNW56NXlxOHJ6d2Jvdng4ajZ3YXJycmJyMW1heWNmaCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/fUQ4rhUZJYiQsas6WD/200.mp4",
   },
   {
-    text: "Hungry",
-    queryKey: "hungry",
-    gifPreview: "http://media.tenor.com/ShDlvYkSEjcAAAA1/cat-funny.webp",
+    name: "whatever",
+    value: "whatever",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4bHEzbWl5MWVhampiNDZjaDJxYXc0cThyeGU3em92N2RmNnh5dWlnMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3fYHfzJX9T4Yy7sAVa/200.mp4",
   },
   {
-    text: "Dance",
-    queryKey: "dance",
-    gifPreview: "https://media.tenor.com/vX-qFMkapQQAAAAm/cat-dancing.webp",
+    name: "hungry",
+    value: "hungry",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4OTd5YXdocTlvMjJzNW16eTIwYmMzbDJldm9yeHBmNXA2YXhvODY5dyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/vdbrUjzrUEGly/200.mp4",
   },
   {
-    text: "Annoyed",
-    queryKey: "annoyed",
-    gifPreview: "https://media.tenor.com/QSh_yh7q8bwAAAAM/grumpy-pout.gif",
+    name: "dance",
+    value: "dance",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4MWFpejRuajBmcWlsZnI3YzcyM2hzeGV3MGRwNzEzOTM4eHB5MzIwdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/ujTVMASREzuRbH6zy5/200.mp4",
   },
   {
-    text: "OMG",
-    queryKey: "omg",
-    gifPreview:
-      "https://media.tenor.com/SuVGs-GL7RoAAAAm/shocked-shocked-cat.webp",
+    name: "omg",
+    value: "omg",
+    preview:
+      "https://media4.giphy.com/media/v1.Y2lkPWJkYmExZjM4NHo3bHdjOHBoaXdoNjhlY3JkZHZjYmtmazk0NGdtMXEwMnh0YmN5diZlcD12MV9naWZzX3NlYXJjaCZjdD1n/JgWZYoIgjzsIQO8joZ/200.mp4",
   },
   {
-    text: "Crazy",
-    queryKey: "crazy",
-    gifPreview: "https://media.tenor.com/G33bklx-iDMAAAAM/willem-dafoe.gif",
+    name: "crazy",
+    value: "crazy",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4Ymdvb3M5anNqZGhyaDBubmhob2o1YTI1aXdtbHMwMWZ6MzU5MWhqdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/BbJdwrOsM7nTa/200.mp4",
   },
   {
-    text: "Shrug",
-    queryKey: "shrug",
-    gifPreview:
-      "https://media.tenor.com/LBqQvj9LkEcAAAAM/leonardo-dicaprio-shrug.gif",
+    name: "shrug",
+    value: "shrug",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4ZnNhN2VjbDV1cXY0MTF5eDFzYWJhcHJuYzFwbWZrYWI1MnNhbHhsbSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/jPAdK8Nfzzwt2/200.mp4",
   },
   {
-    text: "Smile",
-    queryKey: "smile",
-    gifPreview: "https://media.tenor.com/6xwjsmMIAIoAAAAM/happy-happy-dog.gif",
+    name: "smile",
+    value: "smile",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4OW5qbGsxdXExaHpiYTk4aHQ5aTNpanR1c3Y1NmI0YjZ6cDV3MmZhNyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/B0vFTrb0ZGDf2/200.mp4",
   },
   {
-    text: "Awkward",
-    queryKey: "awkward",
-    gifPreview:
-      "https://media.tenor.com/6Ug_C4RjC4kAAAAM/%D9%84%D9%8A%D9%8A%D9%88%D9%88.gif",
+    name: "awkward",
+    value: "awkward",
+    preview:
+      "https://media3.giphy.com/media/v1.Y2lkPWJkYmExZjM4N3g1ejVnNzI4eHptMTYwbW8xNjExdDljbDhueDZ5YjU0OHZsMWV3dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/13n7XeyIXEIrbG/200.mp4",
   },
   {
-    text: "Eww",
-    queryKey: "eww",
-    gifPreview:
-      "https://media.tenor.com/tQsEuOLGy5YAAAAM/tim-gunn-eww-gross.gif",
+    name: "angry",
+    value: "angry",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4MW5xbThxaDRkN3RlbG5xd21sMzFjdm1xZGp4a2l4dGU3anhzYnNmdCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/TGi1zmIHpDRsrxtoPq/200.mp4",
   },
   {
-    text: "Angry",
-    queryKey: "angry",
-    gifPreview: "https://media.tenor.com/jexT0EwvhtAAAAAM/scoobert-mad-cat.gif",
+    name: "wink",
+    value: "wink",
+    preview:
+      "https://media0.giphy.com/media/v1.Y2lkPWJkYmExZjM4dnU3Zmt6anlkejk0MWg1bWZrY2UyZGpoeThqMnRnanJsOXY2ajd6OSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/wrBURfbZmqqXu/200.mp4",
   },
   {
-    text: "Surprised",
-    queryKey: "surprised",
-    gifPreview:
-      "https://media.tenor.com/H2wd1wcZ63AAAAAM/black-guy-black-shocked.gif",
+    name: "miss you",
+    value: "miss you",
+    preview:
+      "https://media3.giphy.com/media/v1.Y2lkPWJkYmExZjM4NW9ncDNha2plb2JkdnY4c3Q3ajB4c28xZjNicHBydnBqN3I5YzJlayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/lNimfezUn8Yh2/200.mp4",
   },
   {
-    text: "Why",
-    queryKey: "why",
-    gifPreview: "https://media.tenor.com/Sbxtw9zRbEAAAAAM/whine-give.gif",
+    name: "thank you",
+    value: "thank you",
+    preview:
+      "https://media3.giphy.com/media/v1.Y2lkPWJkYmExZjM4ZTZsNmt0a29qY3FkcnUxdmN1Mjl4eXdsankwYmY1enN0YnFlNmw2byZlcD12MV9naWZzX3NlYXJjaCZjdD1n/f1JaQyF57OgpO/200.mp4",
   },
   {
-    text: "Thumbs Up",
-    queryKey: "thumbs up",
-    gifPreview:
-      "https://media.tenor.com/TiTMT8ytep4AAAAM/good-job-thumbs-up.gif",
+    name: "ok",
+    value: "ok",
+    preview:
+      "https://media3.giphy.com/media/v1.Y2lkPWJkYmExZjM4aGN0cm4xcHdxZmdjYW9lbXg4c2cydjY2YnNzd3l4NGNscHZoN2RxYSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/tIeCLkB8geYtW/200.mp4",
   },
   {
-    text: "Wow",
-    queryKey: "wow",
-    gifPreview:
-      "https://media.tenor.com/DZABNgDBlt4AAAAM/owen-wilson-wow-marley-and-me.gif",
+    name: "hugs",
+    value: "hugs",
+    preview:
+      "https://media0.giphy.com/media/v1.Y2lkPWJkYmExZjM4YmhmYWpnY2R3ZHQ4bzczM2NibzBneW5jenZ2YnM3d29sN2s3dnQ1dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/EvYHHSntaIl5m/200.mp4",
   },
   {
-    text: "Ouch",
-    queryKey: "ouch",
-    gifPreview: "https://media.tenor.com/9s-CraGCfnQAAAAM/ui-ouch.gif",
+    name: "hello",
+    value: "hello",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4cnM2OXJ3ODZoOGMzNno5YTRhamV3Z2plYjJoMmJ1Njh6MGZldzJ6dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT9IgG50Fb7Mi0prBC/200.mp4",
   },
   {
-    text: "Oops",
-    queryKey: "oops",
-    gifPreview: "https://media.tenor.com/L-bt6ZWG_rEAAAAM/shrek.gif",
+    name: "sleepy",
+    value: "sleepy",
+    preview:
+      "https://media1.giphy.com/media/v1.Y2lkPWJkYmExZjM4a2E0aDAxY2NlYmE4enY4czhjNzZ6MncxZm04eHo0d2x0cjhuYTQ1YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/bEs40jYsdQjmM/200.mp4",
   },
   {
-    text: "You're Welcome",
-    queryKey: "you're welcome",
-    gifPreview: "https://media.tenor.com/CXZLJK_6sa0AAAAM/you%27re-welcome.gif",
+    name: "love",
+    value: "love",
+    preview:
+      "https://media4.giphy.com/media/v1.Y2lkPWJkYmExZjM4c2w1ZmZ4YTE1Y29hemI1MWE4aDFkeDN5ZDIyZjYxaXBzMnRsc3p6MyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/PF6e8Xq8dVnVX1BGLS/200.mp4",
   },
   {
-    text: "Lazy",
-    queryKey: "lazy",
-    gifPreview: "https://media.tenor.com/5ZILTaKhD18AAAA1/sleepy-sleeping.webp",
+    name: "chill out",
+    value: "chill out",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4N2licXp0a2UycjV0YTE5M3B1emlnY2xyZXFsMXJsZHJmMjJ6ejJsbSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Ct2fBe0rc69nq/200.mp4",
   },
   {
-    text: "Stressed",
-    queryKey: "stressed",
-    gifPreview:
-      "https://media.tenor.com/ZFKqrC4DrRIAAAAM/gordon-ramsay-meme-upset.gif",
+    name: "nervous",
+    value: "nervous",
+    preview:
+      "https://media2.giphy.com/media/v1.Y2lkPWJkYmExZjM4eTNiMDN2YWtvenQ5aHp2NWlmYWxhaG1vcnEyanZqc2VhbTB1Z3FiYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/G4Ihli2UThrBS/200.mp4",
   },
   {
-    text: "Embarrassed",
-    queryKey: "embarrassed",
-    gifPreview:
-      "https://media.tenor.com/8sXonqM-hrMAAAAM/just-kill-me-hide-me.gif",
-  },
-  {
-    text: "Awesome",
-    queryKey: "awesome",
-    gifPreview: "https://media.tenor.com/qbd37oenwB0AAAAM/grilla-yes.gif",
-  },
-  {
-    text: "JK",
-    queryKey: "jk",
-    gifPreview: "https://media.tenor.com/1ZIeTq5SrqQAAAAM/jungkook-kiss.gif",
-  },
-  {
-    text: "Clapping",
-    queryKey: "clapping",
-    gifPreview: "https://media.tenor.com/Tut-NCefoD0AAAAM/clapping-hands.gif",
-  },
-
-  {
-    text: "Bye",
-    queryKey: "bye",
-    gifPreview: "https://media1.tenor.com/m/1EaGqSpMblYAAAAC/bye-okay.gif",
+    name: "high five",
+    value: "highfive",
+    preview:
+      "https://media4.giphy.com/media/v1.Y2lkPWJkYmExZjM4ejl1OTg0dGcwMTVjdTRkcmxwb3kwbnNra2EybjUyN2NjdGl1MGI0OCZlcD12MV9naWZzX3NlYXJjaCZjdD1n/M8dw7l8jhQvSAVpawW/200.mp4",
   },
 ];

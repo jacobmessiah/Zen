@@ -19,6 +19,10 @@ import {
   handleEventRemove,
 } from "./utils/socket-listener/socket-handler";
 import { handleSyncAdd, handleSyncRemove } from "./utils/sync";
+import MessageContainer, {
+  NoConversationSelectedUI,
+} from "./app/chat/message/message-container";
+import RouteNotFound from "./app/components/ui/not-found";
 
 const LoadingAppUI = lazy(() => import("./app/loading-app-container"));
 
@@ -36,7 +40,7 @@ const App = () => {
   }, [handleCheckAuth]);
 
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !authUser) return;
 
     socket.on("EVENT:ADD", handleEventAdd);
     socket.on("EVENT:REMOVE", handleEventRemove);
@@ -54,8 +58,8 @@ const App = () => {
 
   console.log(
     "%cCAUGHT YOU!%c\n\n Why snitching just follow me on Linkedin --> https://www.linkedin.com/in/jacob-messiah/",
-    "color: red; font-size: 52px; font-weight: bold;",
-    "font-size: 18px;",
+    "color: red; font-size: 35px; font-weight: bold;",
+    "font-size: 12px;",
   );
 
   if (isCheckingAuth || isPoolingReconnection) {
@@ -70,26 +74,24 @@ const App = () => {
     <div>
       <Toaster richColors position="top-center" />
       <Routes>
-        {/*HomePage Route */}
-
+        {/* Public home page */}
         <Route path="/" element={<HomePageContainer />} />
 
-        {/*HomePage Route */}
-
-        {/*App Route */}
+        {/* App routes - protected */}
         <Route
           path="/app"
           element={authUser ? <AppContainer /> : <Navigate to="/auth" />}
         >
-          <Route index element={<Navigate to="/app/chats" />} />
           <Route path="moments" element={<MomentsContainer />} />
           <Route path="connections" element={<ConnectionsContainer />} />
           <Route path="spaces" element={<SpacesContainer />} />
-          <Route path="chats" element={<ChatsContainer />} />
+          <Route path="chat" element={<ChatsContainer />}>
+            <Route index element={<NoConversationSelectedUI />} />
+            <Route path=":id" element={<MessageContainer />} />
+          </Route>
         </Route>
-        {/*App Route */}
 
-        {/*Auth Routes */}
+        {/* Auth routes */}
         <Route
           path="/auth"
           element={
@@ -99,9 +101,9 @@ const App = () => {
           <Route index element={<LoginContainer />} />
           <Route path="signup" element={<SignUpContainer />} />
         </Route>
-        {/*Auth Rout  es */}
 
-        {/*Alert Add Catch not found route here */}
+        {/* 404 For now  */}
+        <Route path="*" element={<RouteNotFound />} />
       </Routes>
     </div>
   );

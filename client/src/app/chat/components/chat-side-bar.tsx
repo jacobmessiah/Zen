@@ -1,10 +1,11 @@
 import { Flex, Heading, IconButton, Input, InputGroup } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
 import { useTranslation } from "react-i18next";
+import userChatStore from "@/store/user-chat-store";
+import type { IConversation } from "@/types/schema";
 import CreateDmUI from "./create-dm";
-import userChatStore from "../../../store/user-chat-store";
 import ConversationItem from "./conversation-item";
-import type { IConversation } from "../../../types/schema";
+import { useNavigate } from "react-router-dom";
 
 const ChatSideBar = () => {
   const { t: translate } = useTranslation(["chat"]);
@@ -22,13 +23,15 @@ const ChatSideBar = () => {
     "selectConnectionsDescription",
   );
 
+  const navigate = useNavigate();
+
   const searchConnectionsPlaceHolder = translate(
     "searchConnectionsPlaceHolder",
   );
 
   const handleSelectConversation = (conversation: IConversation) => {
     if (conversation && conversation._id !== selectedConversation?._id) {
-      userChatStore.setState({ selectedConversation: conversation });
+      navigate(`${conversation._id}`);
     }
   };
 
@@ -71,7 +74,12 @@ const ChatSideBar = () => {
             selectConnectionsDescription={selectConnectionsDescription}
             newChatText={newChatText}
           >
-            <IconButton focusRing="none" rounded="full" variant="ghost" size="xs">
+            <IconButton
+              focusRing="none"
+              rounded="full"
+              variant="ghost"
+              size="xs"
+            >
               <LuPlus />
             </IconButton>
           </CreateDmUI>
@@ -114,19 +122,21 @@ const ChatSideBar = () => {
         maxH={{ lg: "85%" }}
         minH={{ lg: "85%" }}
       >
-        {conversations.slice().map((convo) => {
-          const isSelected = selectedConversation?._id === convo._id;
-          return (
-            <ConversationItem
-              handleSelectConversation={handleSelectConversation}
-              convoItem={convo}
-              key={
-                convo._id || `temp-${convo.otherUser._id}-${convo.createdAt}`
-              }
-              isSelected={isSelected}
-            />
-          );
-        })}
+        {conversations
+          .filter((p) => !p.isTemp)
+          .map((convo) => {
+            const isSelected = selectedConversation?._id === convo._id;
+            return (
+              <ConversationItem
+                handleSelectConversation={handleSelectConversation}
+                convoItem={convo}
+                key={
+                  convo._id || `temp-${convo.otherUser._id}-${convo.createdAt}`
+                }
+                isSelected={isSelected}
+              />
+            );
+          })}
       </Flex>
     </Flex>
   );

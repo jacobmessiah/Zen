@@ -1,11 +1,11 @@
 import { Box, Flex, Float, Text } from "@chakra-ui/react";
-import userPresenseStore from "../../store/user-presense-store";
 import { MdDoNotDisturbOn } from "react-icons/md";
 import { IoMoonSharp } from "react-icons/io5";
 import { FaCircle } from "react-icons/fa";
 import { FiCircle } from "react-icons/fi";
 import { BeatLoader } from "react-spinners";
 import { useTranslation } from "react-i18next";
+import userPresenseStore from "@/store/user-presense-store";
 
 export const OnlineIndicator = ({ userId }: { userId: string }) => {
   const presence = userPresenseStore((state) => state.onlinePresenses[userId]);
@@ -233,7 +233,8 @@ export const P2PChatIndicator = ({
       maxW="full"
       rounded="md"
       gap="10px"
-      background="transparent"
+      minH="20px"
+      bg="transparent"
     >
       {isTyping && (
         <Flex

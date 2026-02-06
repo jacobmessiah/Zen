@@ -1,10 +1,11 @@
+import { useColorModeValue } from "@/components/ui/color-mode";
+import userAuthStore from "@/store/user-auth-store";
+import { createNewConnectionPing } from "@/utils/connectionsFunctions";
 import { Button, Field, Flex, Input, InputGroup, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useColorModeValue } from "../../../components/ui/color-mode";
 import { BeatLoader } from "react-spinners";
-import { createNewConnectionPing } from "../../../utils/connectionsFunctions";
-import userAuthStore from "../../../store/user-auth-store";
+
 
 const NewConnectionUI = () => {
   const { t: translate } = useTranslation(["connection"]);

@@ -6,21 +6,20 @@ import {
   Progress,
   Text,
 } from "@chakra-ui/react";
-import { FaLinkedin } from "react-icons/fa";
-import { FaInstagram } from "react-icons/fa6";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { useColorModeValue } from "../components/ui/color-mode";
 import { LuExternalLink } from "react-icons/lu";
 
 const LoadingAppUI = () => {
   const Links = [
     {
-      icon: <FaInstagram />,
-      text: "ImperialKing",
-      url: "https://www.instagram.com/jacob_messiah/",
+      icon: <FaGithub />,
+      text: "Jacob Messiah",
+      url: "https://github.com/jacobmessiah",
     },
     {
       icon: <FaLinkedin />,
-      text: "ImperialKing",
+      text: "Jacob Messiah",
       url: "https://www.linkedin.com/in/jacob-messiah/",
     },
   ];

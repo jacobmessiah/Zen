@@ -1,14 +1,17 @@
 import type { AxiosError } from "axios";
 import userAuthStore from "../store/user-auth-store";
-import userPresenseStore, { type OnlinePresenses } from "../store/user-presense-store";
+import userPresenseStore, {
+  type OnlinePresenses,
+} from "../store/user-presense-store";
 import type {
+  GifData,
   loginDetails,
   signupDetails,
   signupResponse,
   usernameCheckResponse,
 } from "../types";
 import { axiosInstance } from ".";
-import i8nextConfig from "../../i18next";
+import i8nextConfig from "../../i18nextConfig";
 import { io } from "socket.io-client";
 import userConnectionStore from "../store/user-connections-store";
 import type {
@@ -27,6 +30,7 @@ type preloadType = {
   receivedConnectionPings: connectionPingType[];
   conversations: IConversation[];
   onlinePresenses: OnlinePresenses;
+  favouriteGifs: GifData[];
 };
 
 export const handlePreload = async () => {
@@ -41,9 +45,14 @@ export const handlePreload = async () => {
       receivedConnectionPings: resData.receivedConnectionPings,
     });
 
-    userPresenseStore.setState({ onlinePresenses: resData?.onlinePresenses || {} });
+    userPresenseStore.setState({
+      onlinePresenses: resData?.onlinePresenses || {},
+    });
 
-    userChatStore.setState({ conversations: resData.conversations });
+    userChatStore.setState({
+      conversations: resData.conversations,
+      favouriteGifs: resData.favouriteGifs,
+    });
   } catch (error) {}
 };
 

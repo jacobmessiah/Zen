@@ -1,7 +1,7 @@
-import { Avatar, 
-  Flex, Text } from "@chakra-ui/react";
-import type { IConversation } from "../../../types/schema";
-import { ConversationActivityIndicator } from "../../shared/activity-indicator";
+import { ConversationActivityIndicator } from "@/app/shared/activity-indicator";
+import type { IConversation } from "@/types/schema";
+import { Avatar, Flex, Text } from "@chakra-ui/react";
+import { BsRobot } from "react-icons/bs";
 
 const ConversationItem = ({
   convoItem,
@@ -29,7 +29,9 @@ const ConversationItem = ({
     >
       <Flex gap="10px" alignItems="center">
         <Avatar.Root size="md" colorPalette="bg" variant="subtle">
-          <Avatar.Fallback />
+          <Avatar.Fallback>
+            <BsRobot />
+          </Avatar.Fallback>
           <ConversationActivityIndicator userId={otherUser._id} />
         </Avatar.Root>
 

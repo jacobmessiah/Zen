@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { IConversation, IMessage } from "../types/schema";
+import type { GifData, IConversation, IMessage } from "../types/schema";
 
 type userChatStoreTypes = {
   conversations: IConversation[];
@@ -12,6 +12,8 @@ type userChatStoreTypes = {
   hasMoreTop: Record<string, boolean>;
   hasMoreBottom: Record<string, boolean>;
   isViewingOld: Record<string, boolean>;
+  favouriteGifs: GifData[];
+  p2pInitiatedReply: Record<string, string>;
 };
 const userChatStore = create<userChatStoreTypes>(() => ({
   conversations: [],
@@ -24,6 +26,8 @@ const userChatStore = create<userChatStoreTypes>(() => ({
   hasMoreTop: {},
   isViewingOld: {},
   hasMoreBottom: {},
+  favouriteGifs: [],
+  p2pInitiatedReply: {},
 }));
 
 export default userChatStore;

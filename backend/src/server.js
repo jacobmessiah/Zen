@@ -12,6 +12,11 @@ import connectionRoute from "./routes/connectionRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import conversationRoute from "./routes/conversationRoute.js";
 import axios from "axios";
+import GifRoute from "./routes/gifRoute.js";
+import favouritesRoute from "./routes/favouriteRoute.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import { createReadStream, existsSync } from "fs";
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
 app.use(
@@ -29,8 +34,9 @@ app.use("/api/auth", userRoutes);
 app.use("/api/connections", connectionRoute);
 app.use("/api/messages", messageRoute);
 app.use("/api/conversations", conversationRoute);
+app.use("/api/favourites", favouritesRoute);
 
-app.get("/cdn/file", async (req, res) => {
+app.get("/api/cdn/file", async (req, res) => {
   const { path, mimeType, download } = req.query || {};
 
   if (!path || !mimeType) {
@@ -98,8 +104,54 @@ app.get("/cdn/file", async (req, res) => {
   }
 });
 
-app.set("trust proxy", true);
+app.use("/api/gif", GifRoute);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.get("/api/emoji/:emojiHex", (req, res) => {
+  const { emojiHex } = req.params;
+
+  // NOTE:
+  // Using the emoji hex directly for now to keep things fast and simple.
+  // Yes, curious devs could peek in the network tab and reuse this endpoint 😏
+  // Dude just make yours. well they don't know YET.
+  // but emojis are public assets and this is a read-only, static use case.
+  //
+  // In production at scale, the plan is:
+  // - Pre-map emoji hex codes to random, non-guessable IDs
+  // - Expose only the random ID to the client
+  // - Resolve ID → hex server-side before fetching the file
+  //
+  // That way bandwidth abuse is minimized without over-engineering v1.
+  // Clean, fast, intentional.
+
+  let filePath = path.join(
+    __dirname,
+    "assets",
+    "svg",
+    `${emojiHex.toLowerCase()}.svg`,
+  );
+
+  if (!existsSync(filePath) && emojiHex.includes("-fe0f")) {
+    const baseHex = emojiHex.replace("-fe0f", "");
+    filePath = path.join(
+      __dirname,
+      "assets",
+      "svg",
+      `${baseHex.toLowerCase()}.svg`,
+    );
+  }
+
+  if (!existsSync(filePath)) {
+    return res.status(404).json({ message: "EMOJI_NOT_FOUND" });
+  }
+
+  res.setHeader("Content-Type", "image/svg+xml");
+  createReadStream(filePath).pipe(res);
+});
+
+app.set("trust proxy", true);
 ConnectDB().then(() => {
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

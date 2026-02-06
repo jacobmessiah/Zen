@@ -1,9 +1,8 @@
 import { Router } from "express";
 import {
   handleGetAllMessages,
-  handleSendDocumentTypeMessage,
-  handleSendMediaTypeMessage,
   handleSendMessage,
+  handleUploadAttachment,
 } from "../controller/messageController.js";
 import multer from "multer";
 import ProtectRoute from "../middleware/protectUser.js";
@@ -22,6 +21,13 @@ const fileFilter = (req, file, cb) => {
     "application/vnd.ms-powerpoint",
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     "text/plain",
+    "audio/wav",
+    "audio/ogg",
+    "audio/webm",
+    "audio/flac",
+    "audio/aac",
+    "audio/mp4",
+    "audio/mpeg",
     "image/jpeg",
     "image/png",
     "image/webp",
@@ -37,26 +43,24 @@ const fileFilter = (req, file, cb) => {
   else cb(new Error("Unsupported file type"), false);
 };
 
+const MAX_ATTACHMENT = 10;
+
 const limits = {
-  fileSize: 10 * 1024 * 1024, // 10 MB max per file
+  fileSize: 11 * 1024 * 1024,
 };
 
 const upload = multer({ storage, fileFilter, limits });
 
 messageRoute.post(
-  "/send/media",
+  "/upload/attachments",
+  upload.fields([
+    {
+      name: "attachment",
+      maxCount: MAX_ATTACHMENT,
+    },
+  ]),
   ProtectRoute,
-  upload.array("attachments", 30),
-  handleSendMediaTypeMessage,
-);
-
-messageRoute.post("/send/text", ProtectRoute, handleSendMessage);
-
-messageRoute.post(
-  "/send/document",
-  ProtectRoute,
-  upload.single("document"),
-  handleSendDocumentTypeMessage,
+  handleUploadAttachment,
 );
 
 messageRoute.get(
@@ -64,5 +68,7 @@ messageRoute.get(
   ProtectRoute,
   handleGetAllMessages,
 );
+
+messageRoute.post("/send", ProtectRoute, handleSendMessage);
 
 export default messageRoute;

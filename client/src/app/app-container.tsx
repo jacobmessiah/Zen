@@ -1,15 +1,12 @@
 import { Flex, Image } from "@chakra-ui/react";
-import { useColorModeValue } from "../components/ui/color-mode";
-import { Outlet } from "react-router-dom";
-import AppNavigatorBig, {
-  AppNavigatorSmall,
-} from "./components/ui/app-navigator";
 
-import userDialogStore from "../store/user-dialog-store";
-import DialogContainer from "./dialog/dialog-container";
+import { Outlet } from "react-router-dom";
+
 import { useIdleTimer } from "react-idle-timer/legacy";
-import userAuthStore from "../store/user-auth-store";
-import userChatStore from "../store/user-chat-store";
+import { useColorModeValue } from "@/components/ui/color-mode";
+import userAuthStore from "@/store/user-auth-store";
+import AppNavigatorBig, { AppNavigatorSmall } from "./components/ui/app-navigator";
+import { createDialog } from "./dialog/create-dialog";
 
 const AppTopRibbon = () => {
   const source = useColorModeValue("/black.svg", "/white.svg");
@@ -35,16 +32,7 @@ const AppContainer = () => {
   const shelfColor = useColorModeValue("#fbfbfcff", "gray.900");
   const contentBg = useColorModeValue("white", "gray.950");
 
-  const showDialogOf = userDialogStore((state) => state.showDialogOf);
   const socket = userAuthStore((state) => state.socket);
-
-  const conversations = userChatStore((state) => state.conversations);
-  const storedMessages = userChatStore((s) => s.storedMessages);
-
-  console.log({
-    storedMessages,
-    conversations,
-  });
 
   const handleOnIdle = () => {
     if (socket) {
@@ -107,10 +95,9 @@ const AppContainer = () => {
 
         {/*Navigation Bottom Bar for mobile Screens*/}
 
+        <createDialog.Viewport />
         <AppNavigatorSmall />
       </Flex>
-
-      <DialogContainer showDialogOf={showDialogOf} />
     </Flex>
   );
 };

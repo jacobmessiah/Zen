@@ -12,10 +12,11 @@ import {
   handleCheckUsername,
   handleSignup,
 } from "../../../utils/authFunction";
-import userAuthStore from "../../../store/user-auth-store";
+
 import { useTranslation } from "react-i18next";
 import AuthLogo from "../../../components/ui/logo-export";
 import debounce from "lodash.debounce";
+import userAuthStore from "../../../store/user-auth-store";
 
 type FieldError = {
   value: boolean;

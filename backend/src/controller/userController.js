@@ -6,6 +6,7 @@ import Connection from "../model/connectionModel.js";
 import Conversation from "../model/conversationModel.js";
 import Session from "../model/sessionModel.js";
 import { getPresenseOfPairs } from "../lib/io.js";
+import FavouriteReactions from "../model/favouriteReactionModel.js";
 
 const MAX_SESSIONS = 12;
 
@@ -333,6 +334,10 @@ export const handlePreload = async (req, res) => {
 
     const getPresenseOfPairsRes = getPresenseOfPairs(otherPairIds);
 
+    const favouriteReactions = await FavouriteReactions.findOne({
+      ownerId: user._id,
+    });
+
     const returnObject = {
       connections: readyToUseConnections,
       sentConnectionPings: sentConnectionPings,
@@ -340,6 +345,7 @@ export const handlePreload = async (req, res) => {
       conversations: readyToUseConversations,
       authUser: user,
       onlinePresenses: getPresenseOfPairsRes,
+      favouriteGifs: favouriteReactions?.gifs || [],
     };
 
     return res.status(200).json(returnObject);

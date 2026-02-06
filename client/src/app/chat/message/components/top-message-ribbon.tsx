@@ -2,9 +2,15 @@ import { Avatar, Flex, IconButton, Text } from "@chakra-ui/react";
 import type { IUser } from "../../../../types/schema";
 import { FiChevronLeft, FiVideo } from "react-icons/fi";
 import { IoCallOutline } from "react-icons/io5";
-import userChatStore from "../../../../store/user-chat-store";
+import { BsRobot } from "react-icons/bs";
 
-const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
+const MessageTopRibbon = ({
+  otherUser,
+  handleUnSelectConversation,
+}: {
+  otherUser: IUser;
+  handleUnSelectConversation: () => void;
+}) => {
   if (!otherUser) return null;
 
   return (
@@ -14,11 +20,12 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
       maxW="full"
       justifyContent="center"
       h="70px"
+      px="15px"
     >
       <Flex
         p="10px"
         h="50px"
-        w="95%"
+        w="100%"
         rounded="full"
         border="1px solid"
         borderColor="fg.inverted"
@@ -29,12 +36,7 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
       >
         <Flex gap="2" alignItems="center">
           <IconButton
-            onClick={() =>
-              userChatStore.setState({
-                displayedMessages: [],
-                selectedConversation: null,
-              })
-            }
+            onClick={handleUnSelectConversation}
             rounded="full"
             boxShadow="inner"
             size="xs"
@@ -44,7 +46,9 @@ const MessageTopRibbon = ({ otherUser }: { otherUser: IUser }) => {
           </IconButton>
 
           <Avatar.Root size="sm">
-            <Avatar.Fallback name={otherUser?.displayName} />
+            <Avatar.Fallback name={otherUser?.displayName}>
+              <BsRobot />
+            </Avatar.Fallback>
             <Avatar.Image src={otherUser?.profile?.profilePic} />
           </Avatar.Root>
 

@@ -1,12 +1,13 @@
 import { Flex } from "@chakra-ui/react";
+import userChatStore from "@/store/user-chat-store";
 import ChatSideBar from "./components/chat-side-bar";
-import MessageContainer, {
-  NoConversationSelectedUI,
-} from "./message/message-container";
-import userChatStore from "../../store/user-chat-store";
+
+import { Outlet } from "react-router-dom";
 
 const ChatsContainer = () => {
-  const { selectedConversation } = userChatStore();
+  const selectedConversation = userChatStore(
+    (state) => state.selectedConversation,
+  );
 
   return (
     <Flex w="full" h="full" roundedTopLeft="15px">
@@ -24,17 +25,12 @@ const ChatsContainer = () => {
         h={{ base: "100dvh", md: "auto", lg: "auto" }}
         w={{ base: "100vw", md: "55%", lg: "70%" }}
         bg={{
-          // base: { _light: "white", _dark: "gray.950" },
           base: "bg",
           md: "inherit",
           lg: "inherit",
         }}
       >
-        {selectedConversation ? (
-          <MessageContainer selectedConversation={selectedConversation} />
-        ) : (
-          <NoConversationSelectedUI />
-        )}
+        <Outlet />
       </Flex>
     </Flex>
   );
