@@ -18,7 +18,7 @@ import {
   Text,
   type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useId, useState } from "react";
 import { BiSolidPencil } from "react-icons/bi";
 import { BsRobot, BsThreeDots } from "react-icons/bs";
 import { FaSmile } from "react-icons/fa";
@@ -30,7 +30,9 @@ import ShowFullTimeStampTooltip from "../show-full-createdAt-tooltip";
 import MessageTextRenderer from "./message-text-renderer";
 import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
-import MessageItemEmojiReact from "../../emoji-and-reactions/message-item-emoji-react";
+import { Tooltip } from "@/components/ui/tooltip";
+import MessageGifRender from "./message-gif-render";
+import GifFullScreenPreviewUI from "@/app/dialog/ui/gif-fullscreen-preview";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -49,6 +51,10 @@ const scrollCSS = {
 const AttachmentFullScreenUI = lazy(
   () =>
     import("@/app/dialog/ui/attachment-preview/attachment-fullscreen-renderer"),
+);
+
+const ForwardMessageUI = lazy(
+  () => import("@/app/dialog/ui/message/forward-message-ui"),
 );
 
 const MessageActionMenuItems = ({
@@ -197,8 +203,14 @@ const MessageActionMenuItems = ({
 
 const MessageActionToolbar = ({
   handleInitiateReply,
+  messageActions,
+  showMessageActionToolbar,
+  handleForwardMessage,
 }: {
   handleInitiateReply: () => void;
+  messageActions: MessageActionTranslations;
+  showMessageActionToolbar: boolean;
+  handleForwardMessage: () => void;
 }) => {
   const quickReactArray = [
     { text: "👍", value: "👍" },
@@ -206,9 +218,26 @@ const MessageActionToolbar = ({
     { text: "😂", value: "😂" },
   ];
 
+  const { addReaction, replyMessage, forwardMessage, moreText } =
+    messageActions;
+
+  const tooltipProps = {
+    showArrow: true,
+    positioning: { placement: "top" } as const,
+    contentProps: {
+      padding: "8px",
+      color: "fg",
+      rounded: "md",
+      css: { "--tooltip-bg": "colors.bg" },
+    },
+  };
+
+  const triggerId = useId();
+
   return (
-    <Float offsetX="200px">
+    <Float offsetX={{ base: "120px", lg: "150px" }}>
       <Flex
+        opacity={showMessageActionToolbar ? "100%" : "0%"}
         gap="2px"
         border="1px solid"
         borderColor="bg.emphasized"
@@ -231,6 +260,7 @@ const MessageActionToolbar = ({
             p="3px"
             rounded="sm"
             className="group"
+            userSelect="none"
           >
             <Image
               _groupHover={{
@@ -240,15 +270,16 @@ const MessageActionToolbar = ({
               src={getEmojiUrl(emoji.value)}
               height="20px"
               w="20px"
+              userSelect="none"
             />
           </Flex>
         ))}
 
-        <Separator orientation="vertical" h="5" />
+        <Separator ml="2px" mr="2px" orientation="vertical" h="5" />
 
         {/*Reaction */}
 
-        <MessageItemEmojiReact>
+        <Tooltip content={addReaction} {...tooltipProps}>
           <Flex
             alignItems="center"
             justifyContent="center"
@@ -272,84 +303,105 @@ const MessageActionToolbar = ({
               }}
             />
           </Flex>
-        </MessageItemEmojiReact>
+        </Tooltip>
 
         {/*Reply */}
-        <Flex
-          onClick={handleInitiateReply}
-          alignItems="center"
-          justifyContent="center"
-          w="30px"
-          h="30px"
-          p="3px"
-          bg="transparent"
-          _hover={{ bg: "bg.muted" }}
-          transition="0.2s ease"
-          rounded="sm"
-          className="group"
-          cursor="pointer"
-        >
+        <Tooltip {...tooltipProps} content={replyMessage}>
           <Flex
-            as={HiReply}
-            fontSize="20px"
-            color="fg.muted"
-            transition="transform 0.1s ease"
-            _groupHover={{
-              transform: "scale(1.1)",
-            }}
-          />
-        </Flex>
+            onClick={handleInitiateReply}
+            alignItems="center"
+            justifyContent="center"
+            w="30px"
+            h="30px"
+            p="3px"
+            bg="transparent"
+            _hover={{ bg: "bg.muted" }}
+            transition="0.2s ease"
+            rounded="md"
+            className="group"
+            cursor="pointer"
+          >
+            <Flex
+              as={HiReply}
+              fontSize="20px"
+              color="fg.muted"
+              transition="transform 0.1s ease"
+              _groupHover={{
+                transform: "scale(1.1)",
+              }}
+            />
+          </Flex>
+        </Tooltip>
 
         {/*Forward */}
-        <Flex
-          alignItems="center"
-          justifyContent="center"
-          w="30px"
-          h="30px"
-          p="3px"
-          bg="transparent"
-          _hover={{ bg: "bg.muted" }}
-          transition="0.2s ease"
-          rounded="sm"
-          className="group"
-          cursor="pointer"
-          transform="scaleX(-1)"
-        >
+        <Tooltip content={forwardMessage} {...tooltipProps}>
           <Flex
-            as={HiReply}
-            fontSize="20px"
-            color="fg.muted"
-            transition="transform 0.1s ease"
-            _groupHover={{
-              transform: "scale(1.1)",
-            }}
-          />
-        </Flex>
+            onClick={handleForwardMessage}
+            alignItems="center"
+            justifyContent="center"
+            w="30px"
+            h="30px"
+            p="3px"
+            bg="transparent"
+            _hover={{ bg: "bg.muted" }}
+            transition="0.2s ease"
+            rounded="sm"
+            className="group"
+            cursor="pointer"
+            transform="scaleX(-1)"
+          >
+            <Flex
+              as={HiReply}
+              fontSize="20px"
+              color="fg.muted"
+              transition="transform 0.1s ease"
+              _groupHover={{
+                transform: "scale(1.1)",
+              }}
+            />
+          </Flex>
+        </Tooltip>
 
         {/*More */}
-        <Flex
-          alignItems="center"
-          justifyContent="center"
-          w="30px"
-          h="30px"
-          p="3px"
-          bg="transparent"
-          _hover={{ bg: "bg.muted" }}
-          transition="0.2s ease"
-          rounded="md"
-          className="group"
-          cursor="pointer"
-        >
-          <Flex
-            as={BsThreeDots}
-            fontSize="20px"
-            color="fg.muted"
-            transition="transform 0.1s ease"
-            _groupHover={{
-              transform: "scale(1.1)",
-            }}
+
+        <Menu.Root ids={{ trigger: triggerId }}>
+          <Tooltip
+            ids={{ trigger: triggerId }}
+            {...tooltipProps}
+            content={moreText}
+          >
+            <Menu.Trigger asChild>
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                w="30px"
+                h="30px"
+                p="3px"
+                bg="transparent"
+                _hover={{ bg: "bg.muted" }}
+                transition="0.2s ease"
+                rounded="md"
+                className="group"
+                cursor="pointer"
+              >
+                <Flex
+                  as={BsThreeDots}
+                  fontSize="20px"
+                  color="fg.muted"
+                  transition="transform 0.1s ease"
+                  _groupHover={{
+                    transform: "scale(1.1)",
+                  }}
+                />
+              </Flex>
+            </Menu.Trigger>
+          </Tooltip>
+          <MessageActionMenuItems
+            hasText
+            isMine
+            messageActions={messageActions}
           />
-        </Flex>
+        </Menu.Root>
       </Flex>
     </Float>
   );
@@ -427,6 +479,25 @@ const MessageItemContainer = ({
     }
   };
 
+  const handleShowForwardUI = () => {
+    const forwardToId = "forwardToUI";
+
+    createDialog.open(forwardToId, {
+      showCloseButton: false,
+      bodyPadding: "0px",
+      contentRounded: "md",
+      showBackDrop: true,
+      contentWidth: "100%",
+      contentHeight: { base: "100%", lg: "500px", md: "500px" },
+
+      content: (
+        <Suspense>
+          <ForwardMessageUI message={message} />
+        </Suspense>
+      ),
+    });
+  };
+
   const handleInitiateReply = () => {
     if (message.status === "sending") return;
 
@@ -443,6 +514,36 @@ const MessageItemContainer = ({
       case "replyMessage":
         handleInitiateReply();
         break;
+
+      case "forwardMessage":
+        handleShowForwardUI();
+        break;
+    }
+  };
+
+  const disPlayGifFullScreen = () => {
+    if (message.type === "gif") {
+      const id = "showGifFullScreenId";
+      createDialog.open(id, {
+        contentWidth: "100%",
+        contentRounded: "0px",
+        dialogSize: "full",
+        showCloseButton: false,
+        showBackDrop: true,
+        contentHeight: "100%",
+        bodyPadding: "0px",
+
+        contentBg: "transparent",
+        content: (
+          <Suspense>
+            <GifFullScreenPreviewUI
+              createdAt={message.createdAt}
+              gifData={message.gif}
+              senderProfile={senderProfile}
+            />
+          </Suspense>
+        ),
+      });
     }
   };
 
@@ -502,7 +603,7 @@ const MessageItemContainer = ({
           </Avatar.Root>
         )}
 
-        {showSimpleStyle && (
+        {showSimpleStyle && showMessageActionToolbar && (
           <Text userSelect="none" cursor="pointer" fontSize="xs">
             {formatDateSimpleStyle(message.createdAt)}{" "}
           </Text>
@@ -541,7 +642,7 @@ const MessageItemContainer = ({
           </Flex>
         )}
 
-        <Menu.Root onSelect={handleMenuValueSelect}>
+        <Menu.Root  onSelect={handleMenuValueSelect}>
           <Menu.ContextTrigger minW="full" asChild>
             <Flex direction="column" w="full">
               {message.type === "default" && !isUploading && message.text && (
@@ -563,6 +664,13 @@ const MessageItemContainer = ({
                     displayAttachmentFullscreen={displayAttachmentFullscreen}
                   />
                 )}
+
+              {message.type === "gif" && (
+                <MessageGifRender
+                  gifData={message.gif}
+                  disPlayGifFullScreen={disPlayGifFullScreen}
+                />
+              )}
             </Flex>
           </Menu.ContextTrigger>
 
@@ -574,9 +682,12 @@ const MessageItemContainer = ({
         </Menu.Root>
       </Flex>
 
-      {showMessageActionToolbar && (
-        <MessageActionToolbar handleInitiateReply={handleInitiateReply} />
-      )}
+      <MessageActionToolbar
+        handleForwardMessage={handleShowForwardUI}
+        showMessageActionToolbar={showMessageActionToolbar}
+        messageActions={messageActions}
+        handleInitiateReply={handleInitiateReply}
+      />
     </Flex>
   );
 };

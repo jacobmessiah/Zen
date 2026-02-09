@@ -527,8 +527,6 @@ input[type="range"]::-moz-range-thumb {
   height: 180px;
 }
 
-
-
 .messageItem {
   border-left: 2px solid;
   border-color: transparent;
@@ -562,4 +560,17 @@ input[type="range"]::-moz-range-thumb {
 
 .message-blink {
   animation: highlightFade 4s ease-out forwards;
+}
+
+
+
+
+.emojiContainer {
+  display: inline-block;
+}
+
+.emoji {
+  -o-object-fit: contain;
+  object-fit: contain;
+  vertical-align: bottom;
 }

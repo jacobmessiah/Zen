@@ -58,13 +58,13 @@ const MessagesWrapper = () => {
       css={{
         scrollBehavior: "smooth",
         "&::-webkit-scrollbar": {
-          width: "4px",
+          width: "6px",
         },
         "&::-webkit-scrollbar-track": {
           background: "transparent",
         },
         "&::-webkit-scrollbar-thumb": {
-          background: "bg.muted",
+          background: "fg.muted",
           borderRadius: "full",
         },
       }}

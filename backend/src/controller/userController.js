@@ -265,6 +265,12 @@ export const checkUser = async (req, res) => {
   try {
     const user = req.user;
 
+    const session = req.session;
+
+    const newUpdated = await Session.findByIdAndUpdate(session._id, {
+      lastUsedAt: new Date(),
+    });
+
     return res.status(200).json(user);
   } catch (error) {
     console.log("Error on #check #userController.js", error.message);

@@ -78,9 +78,9 @@ const MessageGifRender = ({
     <Flex
       tabIndex={0}
       userSelect="none"
-      maxW={{ base: "95%", lg: "400px" }}
-      w="100%"
-      maxH="300px"
+      minW="250px" // Your Min Width
+      maxW="350px" // Your Max Width
+      h="350px" // Fixed Height (Min & Max)
       direction="column"
       pos="relative"
       overflow="hidden"
@@ -89,11 +89,11 @@ const MessageGifRender = ({
     >
       {!isError ? (
         <>
-          {/* Move pointer events to a wrapper around the video only */}
           <Flex
             pos="relative"
-            h="95%"
+            flex="1" // Fills the 350px height minus the text height
             w="100%"
+            minH={0} // Prevents video from pushing past the 350px boundary
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerLeave}
@@ -106,9 +106,9 @@ const MessageGifRender = ({
               playsInline
               src={preview}
               style={{
-                height: "100%",
                 width: "100%",
-                objectFit: "cover",
+                height: "100%",
+                objectFit: "cover", // Ensures the GIF fills the area without stretching
                 borderRadius: "5px",
                 pointerEvents: "none",
               }}
@@ -143,7 +143,7 @@ const MessageGifRender = ({
             </Tooltip>
           </Flex>
 
-          <Text color="fg.muted" fontSize="xs">
+          <Text color="fg.muted" fontSize="xs" py="2px" flexShrink={0}>
             GIF
           </Text>
         </>

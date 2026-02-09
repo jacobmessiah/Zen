@@ -3,6 +3,7 @@ import i18next from "../../i18nextConfig";
 
 import type {
   Attachment,
+  ConnectionType,
   GifData,
   IConversation,
   IMessage,
@@ -638,4 +639,17 @@ export const getEmojiUrl = (emoji: string) => {
   };
 
   return `${import.meta.env.VITE_BACKEND_URL}/api/emoji/${emojiHex()}`;
+};
+
+export const handleForwardMessages = ({
+  messageToForward,
+  type,
+  connections,
+}: {
+  messageToForward: IMessage;
+  connections: ConnectionType[];
+  type: "gif" | "default";
+}) => {
+  connections;
+  messageToForward;
 };

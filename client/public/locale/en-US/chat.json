@@ -193,5 +193,14 @@
     "messageDeletedText": "Original message was deleted"
   },
   "addGifToFavourites": "Add to Favourites",
-  "removeGifFromFavouriteText": "Remove from Favourites"
+  "removeGifFromFavouriteText": "Remove from Favourites",
+  "ForwardMessageUI": {
+    "headerText": "Forward To",
+    "descriptionText": "Select where you want to share this message",
+    "searchText": "Search",
+    "fileText": "File",
+    "mediaText": "Media",
+    "sendText": "Send",
+    "cancelText": "Cancel"
+  }
 }

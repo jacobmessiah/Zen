@@ -363,17 +363,19 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
   const handleSendMessage = () => {
     if (inputValue.trim().length < 1 && attachments.length < 1) return;
 
+    const input = inputValue;
+    const atts = attachments;
+    setInputValue("");
+    setAttachments([]);
+
     sendMessage(
-      inputValue,
-      attachments,
+      input,
+      atts,
       authUser?._id,
       selectedConversation?.otherUser._id,
       selectedConversation?._id,
       selectedConversation?.connectionId,
     );
-
-    setInputValue("");
-    setAttachments([]);
   };
 
   const { t: translate } = useTranslation(["chat"]);
@@ -803,7 +805,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
           <Flex flex={1}>
             <textarea
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.repeat) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }

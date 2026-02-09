@@ -5,7 +5,9 @@ import { Outlet } from "react-router-dom";
 import { useIdleTimer } from "react-idle-timer/legacy";
 import { useColorModeValue } from "@/components/ui/color-mode";
 import userAuthStore from "@/store/user-auth-store";
-import AppNavigatorBig, { AppNavigatorSmall } from "./components/ui/app-navigator";
+import AppNavigatorBig, {
+  AppNavigatorSmall,
+} from "./components/ui/app-navigator";
 import { createDialog } from "./dialog/create-dialog";
 
 const AppTopRibbon = () => {
