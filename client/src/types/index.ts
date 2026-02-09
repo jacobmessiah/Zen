@@ -1,4 +1,4 @@
-import type { connectionPingType, ConnectionType, IUser } from "./schema";
+import type { connectionPingType, IUser } from "./schema";
 
 export type loginDetails = {
   handle: string;
@@ -52,11 +52,9 @@ export type SocketPresenseEvent = {
   userId: string;
 };
 
-
 export type GifCategory = {
-  name: string,
-  
-}
+  name: string;
+};
 
 export interface GifData {
   id: string;

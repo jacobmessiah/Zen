@@ -650,6 +650,7 @@ export const handleForwardMessages = ({
   connections: ConnectionType[];
   type: "gif" | "default";
 }) => {
+  type;
   connections;
   messageToForward;
 };
