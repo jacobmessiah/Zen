@@ -50,11 +50,13 @@ const MessagesWrapper = () => {
   const getUploadingFilesText = (attachments: Attachment[]): string => {
     if (attachments.length === 1) {
       return attachments[0].name;
-    } else {
+    }
+
+    else if (attachments.length > 1) {
       translate("UploadingFiles", { number: attachments.length });
     }
 
-    return "";
+    return "uploading";
   };
 
   useEffect(() => {
@@ -122,9 +124,9 @@ const MessagesWrapper = () => {
 
       const arrangedArray = findAttachmentClicked
         ? [
-            findAttachmentClicked,
-            ...visualAttachments.filter((p) => p.fileId !== fileId),
-          ]
+          findAttachmentClicked,
+          ...visualAttachments.filter((p) => p.fileId !== fileId),
+        ]
         : visualAttachments;
 
       const id = "showAttachmentId";
@@ -181,7 +183,7 @@ const MessagesWrapper = () => {
       showBackDrop: true,
       contentRounded: { base: "0px", md: "sm", lg: "sm" },
       contentWidth: "100%",
-     
+
 
       content: (
         <Suspense>
@@ -232,8 +234,8 @@ const MessagesWrapper = () => {
 
         const showSimpleStyle = prevMessage
           ? new Date(prevMessage.createdAt).getMinutes() ===
-              new Date(message.createdAt).getMinutes() &&
-            prevMessage.senderId === message.senderId
+          new Date(message.createdAt).getMinutes() &&
+          prevMessage.senderId === message.senderId
           : false;
 
         const isMine = message.senderId === authUser?._id;

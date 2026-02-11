@@ -9,6 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import MessageItemPreview from "./message-item-preview";
+import { createDialog } from "../../create-dialog";
 
 const DeleteMessageUI = ({
   message,
@@ -30,11 +31,14 @@ const DeleteMessageUI = ({
       borderRadius: "full",
     },
   };
-  const handleClose = () => {};
+  const handleClose = () => {
+    const id = "DeleteMesageUI";
+    createDialog.close(id)
+  };
 
-  const handleDeleteMessage = () => {};
+  const handleDeleteMessage = () => { };
 
-  const { t: translate } = useTranslation(["chat"]);
+  const { t: translate, i18n } = useTranslation(["chat"]);
 
   const { headerText, descriptionText, deleteText, cancelText } = translate(
     "DeleteMessageUI",
@@ -51,9 +55,9 @@ const DeleteMessageUI = ({
       pb="10px"
       w="full"
       direction="column"
-      minH="25vh" 
-      maxH={{ base: "100%", lg: "75dvh", md: "75dvh" }} 
-      
+      h={{ base: "100dvh", md: "auto", lg: "auto" }}
+      maxH={{ base: "100dvh", md: "75dvh", lg: "75dvh" }}
+      overflow="hidden"
     >
       {/* Top section - fixed height */}
       <Flex direction="column" flex="0 0 auto">
@@ -77,17 +81,19 @@ const DeleteMessageUI = ({
 
       {/*Message Display Mappings UI */}
       <Flex
+        my="10px"
         css={scrollCSS}
-        overflow="auto"
+        overflowY="auto"
+        overflowX="hidden"  // Add this to prevent horizontal scroll
         direction="column"
         gap="5px"
         px="10px"
         alignItems="center"
         py="8px"
-        flex="1 1 0"
+        flex="1 1 auto"
         minH="0"
       >
-        <MessageItemPreview senderProfile={senderProfile} message={message} />
+        <MessageItemPreview language={i18n.language} senderProfile={senderProfile} message={message} />
       </Flex>
       {/*Message Display Mappings UI */}
 

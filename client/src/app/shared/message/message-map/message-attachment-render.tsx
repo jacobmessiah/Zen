@@ -968,7 +968,7 @@ const MessageAttachmentRenderer = ({
   const downloadText = translate("downloadText");
 
   return (
-    <Flex mb="5px" maxW={{ lg: "60%" }} textAlign="center">
+    <Flex mb="5px" maxW={{ lg: "60%", base: "95%" }} direction="column" gap="5px" textAlign="center">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
         <Box w="full" className={`gallery count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {
