@@ -19,7 +19,7 @@ interface DialogProps {
   bodyPadding?: string;
   showCloseButton?: boolean;
   closeButtonText?: string;
-  contentRounded?: string;
+  contentRounded?: string | { base: string; lg: string; md: string };
   dialogSize?: size | { base?: size; lg?: size; md?: size };
   contentBg?: string;
   backdropBg?: string;

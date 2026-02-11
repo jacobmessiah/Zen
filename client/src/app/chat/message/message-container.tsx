@@ -62,7 +62,7 @@ const MessageContainer = () => {
         document.title = ` • Zen | @${getConversation.otherUser.username}`;
       }
     } else {
-      navigate("/app/messaging", { replace: true });
+      navigate("/app/chat", { replace: true });
     }
   }, [id, navigate]);
 

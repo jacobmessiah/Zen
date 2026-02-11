@@ -414,6 +414,7 @@ const MessageItemContainer = ({
   messageActions,
   isMine,
   getUploadingFilesText,
+  forwardText,
 }: {
   senderProfile: IUser | undefined;
   message: IMessage;
@@ -421,6 +422,7 @@ const MessageItemContainer = ({
   messageActions: MessageActionTranslations;
   getUploadingFilesText: (attachments: Attachment[]) => string;
   isMine: boolean;
+  forwardText: string;
 }) => {
   const hasText =
     message.type === "default" && !!message.text && message.text.length > 0;
@@ -485,10 +487,10 @@ const MessageItemContainer = ({
     createDialog.open(forwardToId, {
       showCloseButton: false,
       bodyPadding: "0px",
-      contentRounded: "md",
       showBackDrop: true,
+      contentRounded: { base: "0px", md: "sm", lg: "sm" },
       contentWidth: "100%",
-      contentHeight: { base: "100%", lg: "500px", md: "500px" },
+      contentHeight: { base: "100%", lg: "75dvh", md: "75dvh" },
 
       content: (
         <Suspense>
@@ -642,9 +644,28 @@ const MessageItemContainer = ({
           </Flex>
         )}
 
-        <Menu.Root  onSelect={handleMenuValueSelect}>
+        <Menu.Root onSelect={handleMenuValueSelect}>
           <Menu.ContextTrigger minW="full" asChild>
-            <Flex direction="column" w="full">
+            <Flex
+              className={message.isForwarded ? "forwardMsg" : ""}
+              direction="column"
+              pt={showSimpleStyle && !message.isReplied ? "5px" : ""}
+              w="full"
+            >
+              {message.isForwarded && (
+                <Flex
+                  userSelect="none"
+                  fontWeight="500"
+                  color="fg.muted"
+                  fontSize="sm"
+                  fontStyle="italic"
+                  alignItems="center"
+                  gap="5px"
+                >
+                  <HiReply style={{ transform: "scaleX(-1)" }} size={18} />
+                  <Text>{forwardText}</Text>
+                </Flex>
+              )}
               {message.type === "default" && !isUploading && message.text && (
                 <MessageTextRenderer text={message.text} />
               )}

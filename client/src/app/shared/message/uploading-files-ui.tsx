@@ -6,8 +6,8 @@ const UploadingFilesUI = ({ text }: { text: string }) => {
     <Flex
       minH="55px"
       maxH="55px"
-      minW="320px"
-      maxW="320px"
+      minW={{ base: "260px", lg: "320px", md: "320px" }}
+      maxW={{ base: "260px", lg: "320px", md: "320px" }}
       border="1px solid"
       borderColor="bg.emphasized"
       rounded="md"

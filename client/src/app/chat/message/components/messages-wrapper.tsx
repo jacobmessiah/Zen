@@ -21,16 +21,12 @@ const MessagesWrapper = () => {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const beginningOfChatText = translate("beginningOfChatText");
-  const messageActions: MessageActionTranslations = {
-    addReaction: translate("messageActions.addReaction"),
-    editMessage: translate("messageActions.editMessage"),
-    replyMessage: translate("messageActions.replyMessage"),
-    forwardMessage: translate("messageActions.forwardMessage"),
-    speakText: translate("messageActions.speakMessage"),
-    copyText: translate("messageActions.copyText"),
-    deleteMessage: translate("messageActions.deleteMessage"),
-    moreText: translate("messageActions.moreText"),
-  };
+  const messageActions = translate(
+    "messageActions",
+  ) as unknown as MessageActionTranslations;
+
+  const forwardText = translate("forwardText");
+
   const getUploadingFilesText = (attachments: Attachment[]): string => {
     if (attachments.length === 1) {
       return attachments[0].name;
@@ -105,6 +101,7 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
+              forwardText={forwardText}
               isMine={isMine}
               senderProfile={senderProfile}
               message={message}

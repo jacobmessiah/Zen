@@ -196,11 +196,14 @@
   "removeGifFromFavouriteText": "Remove from Favourites",
   "ForwardMessageUI": {
     "headerText": "Forward To",
-    "descriptionText": "Select where you want to share this message",
+    "descriptionT": "Select where you want to share this message",
     "searchText": "Search",
     "fileText": "File",
     "mediaText": "Media",
     "sendText": "Send",
-    "cancelText": "Cancel"
-  }
+    "cancelText": "Cancel",
+    "maxSelectedT": "Maximum 5 places at once",
+    "notFoundText": "We searched far and wide. Unfortunately, no results were found."
+  },
+  "forwardText": "Forwarded"
 }
