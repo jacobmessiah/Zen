@@ -176,6 +176,14 @@ export const handleSendMessage = async (req, res) => {
       return res.status(400).json({ message: "INVALID_MESSAGE_TYPE" });
     }
 
+    const isTextEmpty = !text || text.trim().length === 0;
+    const isAttachmentsEmpty =
+      !attachments || (Array.isArray(attachments) && attachments.length === 0);
+
+    if (isTextEmpty && isAttachmentsEmpty) {
+      return res.status(400).json({ message: "NO_CONTENT" });
+    }
+
     const messageOBJ = {
       senderId: user._id,
       receiverId,
@@ -297,7 +305,7 @@ export const handleGetAllMessages = async (req, res) => {
     // }
 
     const messages = await Message.find({ conversationId })
-      .sort({ createdAt: 1 }) 
+      .sort({ createdAt: 1 })
       .limit(100)
       .populate("replyTo");
 
@@ -307,6 +315,139 @@ export const handleGetAllMessages = async (req, res) => {
       "Error on #handleGetAllMessage  #messageCotroller.js error -->",
       error,
     );
+    return res.status(500).json({ message: "SERVER_ERROR" });
+  }
+};
+
+export const handleForwardMessage = async (req, res) => {
+  try {
+    const { conversationIds, messageContent } = req.body || {};
+
+    const user = req.user;
+
+    const { type, text, attachments, gif } = messageContent || {};
+
+    if (!type || !["default", "gif"].includes(type)) {
+      return res.status(400).json({ message: "INVALID_MESSAGE_TYPE" });
+    }
+
+    if (type === "default") {
+      const hasText =
+        text && typeof text === "string" && text.trim().length > 0;
+      const hasAttachments =
+        attachments && Array.isArray(attachments) && attachments.length > 0;
+
+      if (!hasText && !hasAttachments) {
+        return res
+          .status(400)
+          .json({ message: "DEFAULT_MESSAGE_REQUIRES_TEXT_OR_ATTACHMENTS" });
+      }
+
+      if (hasAttachments) {
+        for (const attachment of attachments) {
+          if (!attachment.filePath || typeof attachment.filePath !== "string") {
+            return res
+              .status(400)
+              .json({ message: "INVALID_ATTACHMENT_FILEPATH" });
+          }
+          if (!attachment.name || typeof attachment.name !== "string") {
+            return res.status(400).json({ message: "INVALID_ATTACHMENT_NAME" });
+          }
+          if (
+            !attachment.size ||
+            typeof attachment.size !== "number" ||
+            attachment.size <= 0
+          ) {
+            return res.status(400).json({ message: "INVALID_ATTACHMENT_SIZE" });
+          }
+          if (!attachment.fileId || typeof attachment.fileId !== "string") {
+            return res
+              .status(400)
+              .json({ message: "INVALID_ATTACHMENT_FILEID" });
+          }
+        }
+      }
+    }
+
+    if (type === "gif") {
+      if (!gifData || typeof gif !== "object") {
+        return res
+          .status(400)
+          .json({ message: "GIF_MESSAGE_REQUIRES_GIF_DATA" });
+      }
+
+      if (!gif.full || typeof gif.full !== "string") {
+        return res.status(400).json({ message: "INVALID_GIF_FULL" });
+      }
+      if (!gif.preview || typeof gif.preview !== "string") {
+        return res.status(400).json({ message: "INVALID_GIF_PREVIEW" });
+      }
+    }
+
+    if (
+      !conversationIds ||
+      !Array.isArray(conversationIds) ||
+      conversationIds.length < 1
+    ) {
+      return res.status(400).json({ message: "NO_DESTINATION" });
+    }
+
+    const conversations = await Conversation.find({
+      _id: { $in: conversationIds },
+    });
+
+    if (
+      !conversations ||
+      !Array.isArray(conversations) ||
+      conversations.length < 1
+    ) {
+      return res.status(400).json({ message: "NO_DESTINATION" });
+    }
+
+    const baseMessageObj = {
+      isForwarded: true,
+    };
+
+    if (text) {
+      baseMessageObj.text = text;
+    }
+
+    if (attachments) {
+      baseMessageObj.attachments = attachments;
+    }
+
+    if (gif) {
+      baseMessageObj.gif = gif;
+    }
+
+    const messageData = conversations.map((convo) => {
+      const receiverId = convo.participants.find(
+        (p) => p.toString() !== user._id.toString(),
+      );
+
+      return {
+        ...baseMessageObj,
+        senderId: user._id,
+        receiverId,
+        type,
+        conversationId: convo._id,
+      };
+    });
+
+    // Create all messages in one DB call
+    const newMessages = await Message.insertMany(messageData);
+
+    const returnData = newMessages.map((msg) => ({
+      conversationId: msg.conversationId,
+    }));
+
+    return res.status(200).json({ message: "success", data: returnData });
+  } catch (error) {
+    console.log(
+      "Error on handleForwardMessage error ---> ",
+      error?.message || error,
+    );
+
     return res.status(500).json({ message: "SERVER_ERROR" });
   }
 };

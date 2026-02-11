@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  handleForwardMessage,
   handleGetAllMessages,
   handleSendMessage,
   handleUploadAttachment,
@@ -70,5 +71,6 @@ messageRoute.get(
 );
 
 messageRoute.post("/send", ProtectRoute, handleSendMessage);
+messageRoute.post("/forward", ProtectRoute, handleForwardMessage);
 
 export default messageRoute;

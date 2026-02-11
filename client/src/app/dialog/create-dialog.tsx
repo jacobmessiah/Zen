@@ -6,6 +6,8 @@ import {
   Portal,
 } from "@chakra-ui/react";
 
+type size = "lg" | "md" | "sm" | "xl" | "xs" | "cover" | "full";
+
 interface DialogProps {
   title?: string;
   description?: string;
@@ -13,12 +15,12 @@ interface DialogProps {
   placement?: "center" | "top" | "bottom";
   showBackDrop?: boolean;
   contentWidth?: string;
-  contentHeight?: string;
+  contentHeight?: string | { base?: string; lg?: string; md?: string };
   bodyPadding?: string;
   showCloseButton?: boolean;
   closeButtonText?: string;
-  contentRounded?: string;
-  dialogSize?: "lg" | "md" | "sm" | "xl" | "xs" | "cover" | "full" | undefined;
+  contentRounded?: string | { base: string; lg: string; md: string };
+  dialogSize?: size | { base?: size; lg?: size; md?: size };
   contentBg?: string;
   backdropBg?: string;
 }
@@ -37,10 +39,11 @@ export const createDialog = createOverlay<DialogProps>((props) => {
     closeButtonText,
     contentRounded = "lg",
     contentBg = "",
-    dialogSize = "md",
+    dialogSize = "sm",
     backdropBg = "",
     ...rest
   } = props;
+
   return (
     <Dialog.Root
       size={dialogSize}

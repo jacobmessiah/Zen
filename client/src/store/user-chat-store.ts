@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { GifData, IConversation, IMessage } from "../types/schema";
+import { axiosInstance } from "@/utils";
 
 type userChatStoreTypes = {
   conversations: IConversation[];
@@ -14,8 +15,34 @@ type userChatStoreTypes = {
   isViewingOld: Record<string, boolean>;
   favouriteGifs: GifData[];
   p2pInitiatedReply: Record<string, string>;
+  addConversation: (conversation: IConversation) => void;
+  addPendingMessage: ({
+    conversationId,
+    message,
+  }: {
+    conversationId: string;
+    message: IMessage;
+  }) => void;
+
+  updateMessageState: ({
+    status,
+    conversationId,
+    tempId,
+  }: {
+    status: "sending" | "sent" | "delivered" | "read" | "failed";
+    conversationId: string;
+    tempId: string;
+  }) => void;
+
+  forwardMessage: ({
+    conversationIds,
+    messageContent,
+  }: {
+    messageContent: IMessage;
+    conversationIds: string[];
+  }) => void;
 };
-const userChatStore = create<userChatStoreTypes>(() => ({
+const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
   selectedConversation: null,
   isSearchingTenor: false,
@@ -28,6 +55,92 @@ const userChatStore = create<userChatStoreTypes>(() => ({
   hasMoreBottom: {},
   favouriteGifs: [],
   p2pInitiatedReply: {},
+
+  addConversation: (conversation) => {
+    set({
+      conversations: [
+        ...get().conversations.filter((p) => p._id !== conversation._id),
+        conversation,
+      ],
+    });
+  },
+  addPendingMessage: ({ message, conversationId }) => {
+    const hasMoreBottom = get().hasMoreBottom[conversationId];
+
+    if (!hasMoreBottom) {
+      const messages = get().storedMessages[conversationId] || [];
+
+      const allMessages = [...messages, message];
+
+      set((s) => {
+        return {
+          storedMessages: {
+            ...s.storedMessages,
+            [conversationId]: allMessages,
+          },
+        };
+      });
+    }
+  },
+  updateMessageState: ({ status, conversationId, tempId }) => {
+    const messages = get().storedMessages[conversationId] || [];
+
+    const updatedMessages =
+      messages.length > 0
+        ? messages.map((msg) => {
+            if (msg._id === tempId) {
+              return {
+                ...msg,
+                status,
+              };
+            } else {
+              return msg;
+            }
+          })
+        : [];
+
+    set((s) => {
+      return {
+        storedMessages: {
+          ...s.storedMessages,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
+  },
+
+  forwardMessage: async ({ conversationIds, messageContent }) => {
+    const updateMessageState = get().updateMessageState;
+    try {
+      const res = await axiosInstance.post<{
+        message: string;
+        data: { conversationId: string }[];
+      }>("/messages/forward", {
+        messageContent,
+        conversationIds: conversationIds,
+      });
+
+      const resData = res.data;
+
+      resData.data.forEach((r) => {
+        const { conversationId } = r;
+        updateMessageState({
+          conversationId: conversationId,
+          tempId: messageContent._id,
+          status: "sent",
+        });
+      });
+    } catch (error) {
+      conversationIds.forEach((id) => {
+        updateMessageState({
+          status: "failed",
+          tempId: messageContent._id,
+          conversationId: id,
+        });
+      });
+      console.log("Failed to Forward Message");
+    }
+  },
 }));
 
 export default userChatStore;

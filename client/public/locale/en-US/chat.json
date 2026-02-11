@@ -193,5 +193,17 @@
     "messageDeletedText": "Original message was deleted"
   },
   "addGifToFavourites": "Add to Favourites",
-  "removeGifFromFavouriteText": "Remove from Favourites"
+  "removeGifFromFavouriteText": "Remove from Favourites",
+  "ForwardMessageUI": {
+    "headerText": "Forward To",
+    "descriptionT": "Select where you want to share this message",
+    "searchText": "Search",
+    "fileText": "File",
+    "mediaText": "Media",
+    "sendText": "Send",
+    "cancelText": "Cancel",
+    "maxSelectedT": "Maximum 5 places at once",
+    "notFoundText": "We searched far and wide. Unfortunately, no results were found."
+  },
+  "forwardText": "Forwarded"
 }

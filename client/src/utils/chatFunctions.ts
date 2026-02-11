@@ -299,7 +299,7 @@ const updateMessageOnSendFailed = ({
   });
 };
 
-export const sendMessage = async (
+export const sendMessage = (
   inputValue: string,
   attachments: Attachment[],
   senderId: string | undefined,
@@ -364,104 +364,111 @@ export const sendMessage = async (
     addMessageOnSend({ newMessage, conversationId });
     /*---------------------------------------------------------------- */
 
-    // Create or get conversation and update state if there's no conversation or conversation is a temp
-    if (!conversation || conversation.isTemp) {
-      try {
-        const res = await axiosInstance.post("/conversations/create", {
-          connectionId,
-        });
+    (async () => {
+      // Create or get conversation and update state if there's no conversation or conversation is a temp
+      if (!conversation || conversation.isTemp) {
+        try {
+          const res = await axiosInstance.post("/conversations/create", {
+            connectionId,
+          });
 
-        if (!res.data) {
-          toast.error(translate("ConversationCreateFailed"));
+          if (!res.data) {
+            toast.error(translate("ConversationCreateFailed"));
+            return;
+          }
+
+          conversation = res.data;
+
+          const resData: IConversation = res.data;
+
+          updateMessageOnConvoCreate({
+            conversationId,
+            conversationData: resData,
+            newMessage,
+          });
+        } catch (error) {
+          const axiosError = error as AxiosError<{ message: string }>;
+          updateMessageOnSendFailed({ tempId: tempId, conversationId });
+
+          const errMessage = axiosError.response?.data.message
+            ? axiosError.response.data.message
+            : "NO_INTERNET";
+          const toastText = translate(errMessage);
+
+          toast.error(toastText);
           return;
         }
+      }
+      /*---------------------------------------------------------------- */
 
-        conversation = res.data;
-
-        const resData: IConversation = res.data;
-
-        updateMessageOnConvoCreate({
-          conversationId,
-          conversationData: resData,
-          newMessage,
-        });
-      } catch (error) {
-        const axiosError = error as AxiosError<{ message: string }>;
-        updateMessageOnSendFailed({ tempId: tempId, conversationId });
-
-        const errMessage = axiosError.response?.data.message
-          ? axiosError.response.data.message
-          : "NO_INTERNET";
-        const toastText = translate(errMessage);
-
-        toast.error(toastText);
+      if (!conversation || typeof conversation !== "object") {
+        /// Add a ui so user gets Error Messages ontop of the messageinput
         return;
       }
-    }
-    /*---------------------------------------------------------------- */
 
-    if (!conversation || typeof conversation !== "object") {
-      /// Add a ui so user gets Error Messages ontop of the messageinput
-      return;
-    }
+      /*---------------------------------------------------------------- */
+      //  Upload Attachments before saving final message.
+      if (attachments.length > 0) {
+        const formData = new FormData();
 
-    /*---------------------------------------------------------------- */
-    //  Upload Attachments before saving final message.
-    if (attachments.length > 0) {
-      const formData = new FormData();
-
-      for (const attachment of attachments) {
-        if (attachment.file) {
-          formData.append("attachment", attachment.file);
-        }
-      }
-
-      try {
-        const response = await axiosInstance.post(
-          "/messages/upload/attachments",
-          formData,
-        );
-
-        const resData: Attachment[] = response.data;
-        newMessage["attachments"] = resData;
         for (const attachment of attachments) {
-          URL.revokeObjectURL(attachment.previewUrl);
+          if (attachment.file) {
+            formData.append("attachment", attachment.file);
+          }
         }
+
+        try {
+          const response = await axiosInstance.post(
+            "/messages/upload/attachments",
+            formData,
+          );
+
+          const resData: Attachment[] = response.data;
+          newMessage["attachments"] = resData;
+          for (const attachment of attachments) {
+            URL.revokeObjectURL(attachment.previewUrl);
+          }
+        } catch (error) {
+          const text = translate("attachmentUploadFailed");
+          toast.error(text);
+          updateMessageOnSendFailed({
+            tempId,
+            conversationId: conversation._id,
+          });
+          return;
+        }
+      }
+      /*---------------------------------------------------------------- */
+
+      /*---------------------------------------------------------------- */
+      // Message Creation
+      try {
+        const updatedMessage: IMessage = {
+          ...newMessage,
+          conversationId: conversation._id,
+        };
+
+        const messageObject: any = {
+          ...newMessage,
+        };
+
+        if (updatedMessage.replyTo) {
+          messageObject["replyTo"] = previousInitiatedReply;
+        }
+
+        const res = await axiosInstance.post("/messages/send", {
+          ...messageObject,
+        });
+
+        const resData: IMessage = res.data;
+        updateMessage(resData, conversation._id, true, tempId);
       } catch (error) {
-        const text = translate("attachmentUploadFailed");
-        toast.error(text);
         updateMessageOnSendFailed({ tempId, conversationId: conversation._id });
-        return;
       }
-    }
-    /*---------------------------------------------------------------- */
+      /*---------------------------------------------------------------- */
+    })(); 
 
-    /*---------------------------------------------------------------- */
-    // Message Creation
-    try {
-      const updatedMessage: IMessage = {
-        ...newMessage,
-        conversationId: conversation._id,
-      };
 
-      const messageObject: any = {
-        ...newMessage,
-      };
-
-      if (updatedMessage.replyTo) {
-        messageObject["replyTo"] = previousInitiatedReply;
-      }
-
-      const res = await axiosInstance.post("/messages/send", {
-        ...messageObject,
-      });
-
-      const resData: IMessage = res.data;
-      updateMessage(resData, conversation._id, true, tempId);
-    } catch (error) {
-      updateMessageOnSendFailed({ tempId, conversationId: conversation._id });
-    }
-    /*---------------------------------------------------------------- */
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string; tempId: string }>;
     console.log(
@@ -639,3 +646,4 @@ export const getEmojiUrl = (emoji: string) => {
 
   return `${import.meta.env.VITE_BACKEND_URL}/api/emoji/${emojiHex()}`;
 };
+

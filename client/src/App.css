@@ -527,8 +527,6 @@ input[type="range"]::-moz-range-thumb {
   height: 180px;
 }
 
-
-
 .messageItem {
   border-left: 2px solid;
   border-color: transparent;
@@ -562,4 +560,32 @@ input[type="range"]::-moz-range-thumb {
 
 .message-blink {
   animation: highlightFade 4s ease-out forwards;
+}
+
+.emojiContainer {
+  display: inline-block;
+}
+
+.emoji {
+  -o-object-fit: contain;
+  object-fit: contain;
+  vertical-align: bottom;
+}
+
+.forwardMsg {
+  padding-left: 10px;
+  position: relative;
+}
+
+.forwardMsg::before {
+  content: "";
+  height: 95%;
+  width: 4px;
+  background-color: var(--chakra-colors-fg);
+  opacity: 0.2;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 10px;
 }

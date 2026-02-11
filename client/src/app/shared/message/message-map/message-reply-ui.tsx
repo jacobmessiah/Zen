@@ -74,8 +74,8 @@ const P2PMessageReplyUI = ({
 
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.classList.remove("message-blink")
-      el.classList.add("message-blink")
+      el.classList.remove("message-blink");
+      el.classList.add("message-blink");
     }
   };
   return (

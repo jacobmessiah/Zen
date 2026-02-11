@@ -360,20 +360,37 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     }
   };
 
-  const handleSendMessage = () => {
-    if (inputValue.trim().length < 1 && attachments.length < 1) return;
+  const isSendingRef = useRef<boolean>(false);
 
-    sendMessage(
-      inputValue,
-      attachments,
+  const handleSendMessage = () => {
+    if (isSendingRef.current) return;
+
+    const input = inputValue.trim(); // Capture and trim once
+    const atts = attachments;
+
+    // 1. Strict check before clearing anything
+    if (input.length < 1 && atts.length < 1) return;
+
+    isSendingRef.current = true;
+
+    // 2. Clear UI state
+    setInputValue("");
+    if (textAreaRef.current) {
+      textAreaRef.current.value = "";
+    }
+    setAttachments([]);
+
+    // 3. Pass the captured variables, NOT the state
+    void sendMessage(
+      input,
+      atts,
       authUser?._id,
       selectedConversation?.otherUser._id,
       selectedConversation?._id,
       selectedConversation?.connectionId,
     );
 
-    setInputValue("");
-    setAttachments([]);
+    setTimeout(() => (isSendingRef.current = false), 500); // Increased slightly for safety
   };
 
   const { t: translate } = useTranslation(["chat"]);
@@ -803,7 +820,7 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
           <Flex flex={1}>
             <textarea
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.repeat) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSendMessage();
                 }
@@ -822,7 +839,6 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
                 wordBreak: "break-word",
               }}
               className="no-focus"
-              value={inputValue}
               onChange={handleOnchange}
               placeholder={inputPlaceHolder}
             />
