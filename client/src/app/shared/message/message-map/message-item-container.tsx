@@ -1,11 +1,9 @@
-import { createDialog } from "@/app/dialog/create-dialog";
 import type { MessageActionTranslations } from "@/types";
 import type { Attachment, IMessage, IUser } from "@/types/schema";
 import {
   formatDateSimpleStyle,
   formatMessageTimestamp,
   getEmojiUrl,
-  initiateReplyTo,
 } from "@/utils/chatFunctions";
 import {
   Avatar,
@@ -18,7 +16,7 @@ import {
   Text,
   type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import { lazy, Suspense, useId, useState } from "react";
+import { useId, useState } from "react";
 import { BiSolidPencil } from "react-icons/bi";
 import { BsRobot, BsThreeDots } from "react-icons/bs";
 import { FaSmile } from "react-icons/fa";
@@ -32,7 +30,6 @@ import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
 import { Tooltip } from "@/components/ui/tooltip";
 import MessageGifRender from "./message-gif-render";
-import GifFullScreenPreviewUI from "@/app/dialog/ui/gif-fullscreen-preview";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -47,15 +44,6 @@ const scrollCSS = {
     borderRadius: "full",
   },
 };
-
-const AttachmentFullScreenUI = lazy(
-  () =>
-    import("@/app/dialog/ui/attachment-preview/attachment-fullscreen-renderer"),
-);
-
-const ForwardMessageUI = lazy(
-  () => import("@/app/dialog/ui/message/forward-message-ui"),
-);
 
 const MessageActionMenuItems = ({
   messageActions,
@@ -167,6 +155,8 @@ const MessageActionMenuItems = ({
                 <Text color="fg">{copyText}</Text> <IoCopy size={18} />
               </Menu.Item>
 
+              {/*Speak Text */}
+
               <Menu.Item
                 p="10px"
                 color="fg.muted"
@@ -206,11 +196,13 @@ const MessageActionToolbar = ({
   messageActions,
   showMessageActionToolbar,
   handleForwardMessage,
+  onMenuSelectFunction,
 }: {
   handleInitiateReply: () => void;
   messageActions: MessageActionTranslations;
   showMessageActionToolbar: boolean;
   handleForwardMessage: () => void;
+  onMenuSelectFunction: (event: MenuSelectionDetails) => void;
 }) => {
   const quickReactArray = [
     { text: "👍", value: "👍" },
@@ -364,7 +356,7 @@ const MessageActionToolbar = ({
 
         {/*More */}
 
-        <Menu.Root ids={{ trigger: triggerId }}>
+        <Menu.Root onSelect={onMenuSelectFunction} ids={{ trigger: triggerId }}>
           <Tooltip
             ids={{ trigger: triggerId }}
             {...tooltipProps}
@@ -415,6 +407,10 @@ const MessageItemContainer = ({
   isMine,
   getUploadingFilesText,
   forwardText,
+  disPlayGifFullScreen,
+  handleInitiateReply,
+  openAttFullScreen,
+  handleShowForwardUI,
 }: {
   senderProfile: IUser | undefined;
   message: IMessage;
@@ -423,6 +419,18 @@ const MessageItemContainer = ({
   getUploadingFilesText: (attachments: Attachment[]) => string;
   isMine: boolean;
   forwardText: string;
+  disPlayGifFullScreen: (message: IMessage, senderProfile: IUser) => void;
+  handleInitiateReply: (message: IMessage) => void;
+  openAttFullScreen: ({
+    fileId,
+    message,
+    senderProfile,
+  }: {
+    fileId: string;
+    message: IMessage;
+    senderProfile: IUser;
+  }) => void;
+  handleShowForwardUI: (message: IMessage) => void;
 }) => {
   const hasText =
     message.type === "default" && !!message.text && message.text.length > 0;
@@ -435,118 +443,38 @@ const MessageItemContainer = ({
     message.status === "sending" &&
     (message.attachments?.length ?? 0) > 0;
 
-  const displayAttachmentFullscreen = (fileId: string) => {
-    if (
-      message.type === "default" &&
-      message.attachments &&
-      message.attachments.length > 0
-    ) {
-      const visualAttachments = message.attachments.filter(
-        (p) => p.type === "video" || p.type === "image",
-      );
+  const handleShowForwardUIHelperFunc = () => {
+    handleShowForwardUI(message);
+  };
 
-      const findAttachmentClicked = visualAttachments.find(
-        (p) => p.fileId === fileId,
-      );
+  const handleInitiateReplyHelper = () => {
+    handleInitiateReply(message);
+  };
 
-      const arrangedArray = findAttachmentClicked
-        ? [
-            findAttachmentClicked,
-            ...visualAttachments.filter((p) => p.fileId !== fileId),
-          ]
-        : visualAttachments;
-
-      const id = "showAttachmentId";
-
-      createDialog.open(id, {
-        contentWidth: "100%",
-        contentRounded: "0px",
-        dialogSize: "full",
-        showCloseButton: false,
-        showBackDrop: true,
-        contentHeight: "100%",
-        bodyPadding: "0px",
-
-        contentBg: "transparent",
-        content: (
-          <Suspense>
-            <AttachmentFullScreenUI
-              attachments={arrangedArray}
-              createdAt={message.createdAt}
-              senderProfile={senderProfile}
-            />
-          </Suspense>
-        ),
-      });
+  const openAttFullscreenHelperFunc = (fileId: string) => {
+    if (senderProfile) {
+      openAttFullScreen({ fileId, message, senderProfile });
     }
-  };
-
-  const handleShowForwardUI = () => {
-    const forwardToId = "forwardToUI";
-
-    createDialog.open(forwardToId, {
-      showCloseButton: false,
-      bodyPadding: "0px",
-      showBackDrop: true,
-      contentRounded: { base: "0px", md: "sm", lg: "sm" },
-      contentWidth: "100%",
-      contentHeight: { base: "100%", lg: "75dvh", md: "75dvh" },
-
-      content: (
-        <Suspense>
-          <ForwardMessageUI message={message} />
-        </Suspense>
-      ),
-    });
-  };
-
-  const handleInitiateReply = () => {
-    if (message.status === "sending") return;
-
-    initiateReplyTo({
-      conversationId: message.conversationId,
-      messageId: message._id,
-    });
   };
 
   const handleMenuValueSelect = (event: MenuSelectionDetails) => {
     const value = event.value;
 
+    console.log(value);
+
     switch (value) {
       case "replyMessage":
-        handleInitiateReply();
+        handleInitiateReplyHelper();
         break;
 
       case "forwardMessage":
-        handleShowForwardUI();
+        handleShowForwardUIHelperFunc();
         break;
     }
   };
 
-  const disPlayGifFullScreen = () => {
-    if (message.type === "gif") {
-      const id = "showGifFullScreenId";
-      createDialog.open(id, {
-        contentWidth: "100%",
-        contentRounded: "0px",
-        dialogSize: "full",
-        showCloseButton: false,
-        showBackDrop: true,
-        contentHeight: "100%",
-        bodyPadding: "0px",
-
-        contentBg: "transparent",
-        content: (
-          <Suspense>
-            <GifFullScreenPreviewUI
-              createdAt={message.createdAt}
-              gifData={message.gif}
-              senderProfile={senderProfile}
-            />
-          </Suspense>
-        ),
-      });
-    }
+  const handleDisplayGifFullScreen = () => {
+    disPlayGifFullScreen(message, senderProfile as IUser);
   };
 
   return (
@@ -682,14 +610,14 @@ const MessageItemContainer = ({
                 message.attachments.length > 0 && (
                   <MessageAttachmentRenderer
                     attachments={message.attachments}
-                    displayAttachmentFullscreen={displayAttachmentFullscreen}
+                    displayAttachmentFullscreen={openAttFullscreenHelperFunc}
                   />
                 )}
 
               {message.type === "gif" && (
                 <MessageGifRender
                   gifData={message.gif}
-                  disPlayGifFullScreen={disPlayGifFullScreen}
+                  disPlayGifFullScreen={handleDisplayGifFullScreen}
                 />
               )}
             </Flex>
@@ -704,10 +632,11 @@ const MessageItemContainer = ({
       </Flex>
 
       <MessageActionToolbar
-        handleForwardMessage={handleShowForwardUI}
+        onMenuSelectFunction={handleMenuValueSelect}
+        handleForwardMessage={handleShowForwardUIHelperFunc}
         showMessageActionToolbar={showMessageActionToolbar}
         messageActions={messageActions}
-        handleInitiateReply={handleInitiateReply}
+        handleInitiateReply={handleInitiateReplyHelper}
       />
     </Flex>
   );

@@ -3,12 +3,28 @@ import MessageStartUI from "./message-start-ui";
 import { useTranslation } from "react-i18next";
 import MessageSeparator from "./message-separator";
 import { Fragment } from "react/jsx-runtime";
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
 import userChatStore from "@/store/user-chat-store";
 import userAuthStore from "@/store/user-auth-store";
 import type { MessageActionTranslations } from "@/types";
 import MessageItemContainer from "@/app/shared/message/message-map/message-item-container";
-import type { Attachment } from "@/types/schema";
+import type { Attachment, IMessage, IUser } from "@/types/schema";
+import { createDialog } from "@/app/dialog/create-dialog";
+
+import { initiateReplyTo } from "@/utils/chatFunctions";
+
+const AttachmentFullScreenUI = lazy(
+  () =>
+    import("@/app/dialog/ui/attachment-preview/attachment-fullscreen-renderer"),
+);
+
+const ForwardMessageUI = lazy(
+  () => import("@/app/dialog/ui/message/forward-message-ui"),
+);
+
+const GifFullScreenPreviewUI = lazy(
+  () => import("@/app/dialog/ui/gif-fullscreen-preview"),
+);
 
 const MessagesWrapper = () => {
   const selectedConversation = userChatStore(
@@ -42,6 +58,114 @@ const MessagesWrapper = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [displayedMessages]);
+
+  const disPlayGifFullScreen = (message: IMessage, senderProfile: IUser) => {
+    if (message.type === "gif") {
+      const id = "showGifFullScreenId";
+      createDialog.open(id, {
+        contentWidth: "100%",
+        contentRounded: "0px",
+        dialogSize: "full",
+        showCloseButton: false,
+        showBackDrop: true,
+        contentHeight: "100%",
+        bodyPadding: "0px",
+
+        contentBg: "transparent",
+        content: (
+          <Suspense>
+            <GifFullScreenPreviewUI
+              createdAt={message.createdAt}
+              gifData={message.gif}
+              senderProfile={senderProfile}
+            />
+          </Suspense>
+        ),
+      });
+    }
+  };
+
+  const handleInitiateReply = (message: IMessage) => {
+    if (message.status === "sending") return;
+
+    initiateReplyTo({
+      conversationId: message.conversationId,
+      messageId: message._id,
+    });
+  };
+
+  const openAttFullScreen = ({
+    fileId,
+    message,
+    senderProfile,
+  }: {
+    fileId: string;
+    message: IMessage;
+    senderProfile: IUser;
+  }) => {
+    if (
+      message.type === "default" &&
+      message.attachments &&
+      message.attachments.length > 0
+    ) {
+      const visualAttachments = message.attachments.filter(
+        (p) => p.type === "video" || p.type === "image",
+      );
+
+      const findAttachmentClicked = visualAttachments.find(
+        (p) => p.fileId === fileId,
+      );
+
+      const arrangedArray = findAttachmentClicked
+        ? [
+            findAttachmentClicked,
+            ...visualAttachments.filter((p) => p.fileId !== fileId),
+          ]
+        : visualAttachments;
+
+      const id = "showAttachmentId";
+
+      createDialog.open(id, {
+        contentWidth: "100%",
+        contentRounded: "0px",
+        dialogSize: "full",
+        showCloseButton: false,
+        showBackDrop: true,
+        contentHeight: "100%",
+        bodyPadding: "0px",
+
+        contentBg: "transparent",
+        content: (
+          <Suspense>
+            <AttachmentFullScreenUI
+              attachments={arrangedArray}
+              createdAt={message.createdAt}
+              senderProfile={senderProfile}
+            />
+          </Suspense>
+        ),
+      });
+    }
+  };
+
+  const handleShowForwardUI = (message: IMessage) => {
+    const forwardToId = "forwardToUI";
+
+    createDialog.open(forwardToId, {
+      showCloseButton: false,
+      bodyPadding: "0px",
+      showBackDrop: true,
+      contentRounded: { base: "0px", md: "sm", lg: "sm" },
+      contentWidth: "100%",
+      contentHeight: { base: "100%", lg: "75dvh", md: "75dvh" },
+
+      content: (
+        <Suspense>
+          <ForwardMessageUI message={message} />
+        </Suspense>
+      ),
+    });
+  };
 
   return (
     <Flex
@@ -101,6 +225,10 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
+              handleShowForwardUI={handleShowForwardUI}
+              openAttFullScreen={openAttFullScreen}
+              handleInitiateReply={handleInitiateReply}
+              disPlayGifFullScreen={disPlayGifFullScreen}
               forwardText={forwardText}
               isMine={isMine}
               senderProfile={senderProfile}

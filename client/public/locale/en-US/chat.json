@@ -35,7 +35,7 @@
     "editMessage": "Edit Message",
     "replyMessage": "Reply ",
     "forwardMessage": "Forward ",
-    "speakMessage": "Speak Text",
+    "speakText": "Speak Text",
     "copyText": "Copy Text",
     "deleteMessage": "Delete Message",
     "moreText": "More"
