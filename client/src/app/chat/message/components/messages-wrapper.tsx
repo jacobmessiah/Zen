@@ -26,6 +26,10 @@ const GifFullScreenPreviewUI = lazy(
   () => import("@/app/dialog/ui/gif-fullscreen-preview"),
 );
 
+const DeleteMessageUI = lazy(
+  () => import("@/app/dialog/ui/message/delete-message-ui"),
+);
+
 const MessagesWrapper = () => {
   const selectedConversation = userChatStore(
     (state) => state.selectedConversation,
@@ -167,6 +171,26 @@ const MessagesWrapper = () => {
     });
   };
 
+  const handleShowDeleteUI = (message: IMessage) => {
+    if (message.status === "sending" || !authUser) return;
+
+    const id = "DeleteMesageUI";
+    createDialog.open(id, {
+      showCloseButton: false,
+      bodyPadding: "0px",
+      showBackDrop: true,
+      contentRounded: { base: "0px", md: "sm", lg: "sm" },
+      contentWidth: "100%",
+     
+
+      content: (
+        <Suspense>
+          <DeleteMessageUI senderProfile={authUser} message={message} />
+        </Suspense>
+      ),
+    });
+  };
+
   return (
     <Flex
       flex={1}
@@ -225,6 +249,7 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
+              handleShowDeleteUI={handleShowDeleteUI}
               handleShowForwardUI={handleShowForwardUI}
               openAttFullScreen={openAttFullScreen}
               handleInitiateReply={handleInitiateReply}

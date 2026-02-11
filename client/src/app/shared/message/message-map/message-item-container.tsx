@@ -411,6 +411,7 @@ const MessageItemContainer = ({
   handleInitiateReply,
   openAttFullScreen,
   handleShowForwardUI,
+  handleShowDeleteUI,
 }: {
   senderProfile: IUser | undefined;
   message: IMessage;
@@ -431,6 +432,7 @@ const MessageItemContainer = ({
     senderProfile: IUser;
   }) => void;
   handleShowForwardUI: (message: IMessage) => void;
+  handleShowDeleteUI: (message: IMessage) => void;
 }) => {
   const hasText =
     message.type === "default" && !!message.text && message.text.length > 0;
@@ -460,8 +462,6 @@ const MessageItemContainer = ({
   const handleMenuValueSelect = (event: MenuSelectionDetails) => {
     const value = event.value;
 
-    console.log(value);
-
     switch (value) {
       case "replyMessage":
         handleInitiateReplyHelper();
@@ -470,6 +470,8 @@ const MessageItemContainer = ({
       case "forwardMessage":
         handleShowForwardUIHelperFunc();
         break;
+      case "deleteMessage":
+        handleShowDeleteUI(message);
     }
   };
 
@@ -528,7 +530,7 @@ const MessageItemContainer = ({
         {!showSimpleStyle && (
           <Avatar.Root>
             <Avatar.Fallback>
-              <BsRobot />
+              <BsRobot size={20} />
             </Avatar.Fallback>
           </Avatar.Root>
         )}
