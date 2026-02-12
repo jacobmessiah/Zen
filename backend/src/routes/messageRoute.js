@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  handleDeleteMessage,
   handleForwardMessage,
   handleGetAllMessages,
   handleSendMessage,
@@ -72,5 +73,7 @@ messageRoute.get(
 
 messageRoute.post("/send", ProtectRoute, handleSendMessage);
 messageRoute.post("/forward", ProtectRoute, handleForwardMessage);
+
+messageRoute.delete("/delete", ProtectRoute, handleDeleteMessage);
 
 export default messageRoute;

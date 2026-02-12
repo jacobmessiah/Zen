@@ -686,7 +686,7 @@ input[type="range"]::-moz-range-thumb {
 }
 .gifGallery {
   column-count: 2;
-  column-gap: 4px;
+  column-gap: 5px;
   flex: 1;
 }
 
@@ -694,6 +694,15 @@ input[type="range"]::-moz-range-thumb {
   break-inside: avoid;
   border-radius: 10px;
   margin-bottom: 4px;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.gifGallery > * video {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: cover;
 }
 
 .gif-skeleton {

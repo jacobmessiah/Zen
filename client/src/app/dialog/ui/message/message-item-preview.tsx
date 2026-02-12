@@ -2,7 +2,7 @@ import MediaLoadErrorUI from "@/app/shared/message/media-load-error-ui";
 import { getDocumentIcon } from "@/app/shared/message/message-input-ui";
 import { getSource } from "@/app/shared/message/message-map/message-attachment-render";
 import ShowFullTimeStampTooltip from "@/app/shared/message/show-full-createdAt-tooltip";
-import type { Attachment, IMessage, IUser } from "@/types/schema";
+import type { Attachment, GifData, IMessage, IUser } from "@/types/schema";
 import { formatMessageTimestamp, getEmojiUrl } from "@/utils/chatFunctions";
 import { Avatar, Box, Flex, FormatByte, Image, LocaleProvider, Text } from "@chakra-ui/react";
 import { useState } from "react";
@@ -82,8 +82,7 @@ const AudioAttachment = ({
       borderColor="bg.emphasized"
       px="10px"
       justifyContent="center"
-      minW="300px"
-      maxW="300px"
+      w="98%"
       rounded="md"
       direction="column"
       userSelect="none"
@@ -140,7 +139,7 @@ const AudioAttachment = ({
           <FaPlay />
         </Flex>
 
-        <Flex gap="3px" color="fg.muted" alignItems="center" fontSize="sm">
+        <Flex flex={1} gap="3px" color="fg.muted" alignItems="center" fontSize={{ base: "xs", lg: "sm", md: "sm" }}>
           <Text>-:-- / -:--</Text>
         </Flex>
 
@@ -311,7 +310,7 @@ const ImageAttachment = ({
   );
 };
 
-const DocumentAttachmnet = ({
+const DocumentAttachment = ({
   attachment,
   lang,
 }: {
@@ -327,8 +326,7 @@ const DocumentAttachmnet = ({
       borderColor="bg.emphasized"
       px="10px"
       justifyContent="center"
-      minW="300px"
-      maxW="300px"
+      w="98%"
       rounded="md"
       userSelect="none"
       gap="10px"
@@ -366,6 +364,8 @@ const DocumentAttachmnet = ({
   );
 };
 
+
+
 const MessageAttachmentsRender = ({ attachments, language }: { attachments: Attachment[], language: string }) => {
 
   const visualAttachments = attachments.filter(
@@ -379,7 +379,7 @@ const MessageAttachmentsRender = ({ attachments, language }: { attachments: Atta
   );
 
   return (
-    <Flex w="95%" >
+    <Flex w="98%" direction="column" gap="4px" pointerEvents="none">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
         <Box w="full" className={`galleryDeleteUI count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {
@@ -417,7 +417,7 @@ const MessageAttachmentsRender = ({ attachments, language }: { attachments: Atta
       {Array.isArray(documentAttachments) && documentAttachments.length > 0 && (
         <Flex direction="column">
           {documentAttachments.map((att) => (
-            <DocumentAttachmnet
+            <DocumentAttachment
               key={att.fileId}
               lang={language}
               attachment={att}
@@ -428,6 +428,62 @@ const MessageAttachmentsRender = ({ attachments, language }: { attachments: Atta
     </Flex>
   )
 }
+
+const MessageGifRender = ({
+  gifData,
+}: {
+  gifData: GifData;
+}) => {
+  const { preview } = gifData;
+
+  const [isError, setIsError] = useState(false);
+
+  return (
+    <Flex
+      userSelect="none"
+      minW="250px"
+      maxW={{ base: "250px", lg: "320px", md: "300px" }}
+      direction="column"
+      pos="relative"
+      overflow="hidden"
+    >
+      {!isError ? (
+        <>
+          <Box
+            h={{ base: "140px", lg: "180px", md: "160px" }}
+            w="100%"
+            pos="relative"
+            overflow="hidden"
+            borderRadius="md"
+            flexShrink={0}
+          >
+            <video
+              onError={() => setIsError(true)}
+              autoPlay
+              loop
+              muted
+              playsInline
+              src={preview}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "5px",
+                pointerEvents: "none",
+              }}
+            />
+          </Box>
+
+          <Text color="fg.muted" fontSize="xs" py="2px" flexShrink={0}>
+            GIF
+          </Text>
+        </>
+      ) : (
+        <MediaLoadErrorUI />
+      )}
+    </Flex>
+  );
+};
 
 
 const MessageItemPreview = ({
@@ -441,7 +497,7 @@ const MessageItemPreview = ({
 }) => {
   return (
     <Flex boxShadow="sm" px="5px" py="10px" rounded="sm" w="full">
-      <Flex justifyContent="center" minW="65px" maxW="65px" >
+      <Flex justifyContent="center" minW={{ base: "50px", lg: "65px" }} maxW={{ base: "50px", lg: "65px" }} >
         <Avatar.Root>
           <Avatar.Fallback>
             <BsRobot size={20} />
@@ -449,7 +505,7 @@ const MessageItemPreview = ({
         </Avatar.Root>
       </Flex>
 
-      <Flex direction="column">
+      <Flex w="full" direction="column">
         <Flex gap="5px" alignItems="center">
           <Text cursor="pointer" color="fg.muted" fontWeight="600">
             {senderProfile?.displayName || "Deleted User"}
@@ -471,6 +527,7 @@ const MessageItemPreview = ({
           {message.type === "default" && message.text && message.text.length > 0 && <MessageTextRenderer text={message.text} />}
           {message.type === "default" && message.attachments && message.attachments.length > 0 && <MessageAttachmentsRender language={
             language} attachments={message.attachments} />}
+          {message.type === "gif" && message.gif && <MessageGifRender gifData={message.gif} />}
         </Flex>
       </Flex>
     </Flex>

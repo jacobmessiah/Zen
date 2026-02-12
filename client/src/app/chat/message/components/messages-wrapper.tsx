@@ -12,6 +12,7 @@ import type { Attachment, IMessage, IUser } from "@/types/schema";
 import { createDialog } from "@/app/dialog/create-dialog";
 
 import { initiateReplyTo } from "@/utils/chatFunctions";
+import useConversationMessages from "@/hooks/use-conversation-messages";
 
 const AttachmentFullScreenUI = lazy(
   () =>
@@ -34,7 +35,7 @@ const MessagesWrapper = () => {
   const selectedConversation = userChatStore(
     (state) => state.selectedConversation,
   );
-  const displayedMessages = userChatStore((state) => state.displayedMessages);
+  const displayMessages = useConversationMessages(selectedConversation?._id)
   const authUser = userAuthStore((state) => state.authUser);
 
   const { t: translate } = useTranslation(["chat"]);
@@ -63,7 +64,7 @@ const MessagesWrapper = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [displayedMessages]);
+  }, [displayMessages]);
 
   const disPlayGifFullScreen = (message: IMessage, senderProfile: IUser) => {
     if (message.type === "gif") {
@@ -222,15 +223,15 @@ const MessagesWrapper = () => {
       />
 
       {/* Provide translated message action labels once to avoid repeated lookups. */}
-      {displayedMessages.slice().map((message, i) => {
+      {displayMessages.slice().map((message, i) => {
         const currentDay = new Date(message.createdAt).setHours(0, 0, 0, 0);
         const prevDay =
           i > 0
-            ? new Date(displayedMessages[i - 1].createdAt).setHours(0, 0, 0, 0)
+            ? new Date(displayMessages[i - 1].createdAt).setHours(0, 0, 0, 0)
             : null;
         const showSeparator = i === 0 || currentDay !== prevDay;
 
-        const prevMessage = i > 0 ? displayedMessages[i - 1] : null;
+        const prevMessage = i > 0 ? displayMessages[i - 1] : null;
 
         const showSimpleStyle = prevMessage
           ? new Date(prevMessage.createdAt).getMinutes() ===

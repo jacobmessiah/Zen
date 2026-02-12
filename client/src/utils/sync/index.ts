@@ -7,20 +7,25 @@ import {
   REMOVE_SENT_PING_WITH_SYNC,
 } from "./connectionSync";
 
+type SYNC_ARGUMENTS = {
+  type:
+    | "REMOVE_SENT_PING"
+    | "ADD_SENT_PING"
+    | "REMOVE_RECEIVED_PING"
+    | "ADD_CONNECTION"
+    | "REMOVE_CONNECTION";
+  documentId?: string;
+  connectionPing?: connectionPingType;
+  connectionData?: ConnectionType;
+};
+
 const SYNC_TYPES = {
   REMOVE_SENT_PING: "REMOVE_SENT_PING",
   ADD_SENT_PING: "ADD_SENT_PING",
   REMOVE_RECEIVED_PING: "REMOVE_RECEIVED_PING",
   ADD_CONNECTION: "ADD_CONNECTION",
   REMOVE_CONNECTION: "REMOVE_CONNECTION",
-};
-
-type SYNC_ARGUMENTS = {
-  type: string;
-  documentId?: string;
-  connectionPing?: connectionPingType;
-  connectionData?: ConnectionType;
-};
+} as const;
 
 export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
   switch (arg.type) {
@@ -33,6 +38,7 @@ export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
       break;
     case SYNC_TYPES.REMOVE_CONNECTION:
       HANDLE_REMOVE_CONNECTION(arg.documentId);
+      break;
   }
 };
 
@@ -40,7 +46,7 @@ export const handleSyncAdd = (arg: SYNC_ARGUMENTS) => {
   switch (arg.type) {
     case SYNC_TYPES.ADD_SENT_PING:
       if (arg.connectionPing) {
-        ADD_SENT_PING_WITH_SYNC(arg?.connectionPing);
+        ADD_SENT_PING_WITH_SYNC(arg.connectionPing);
       }
       break;
 

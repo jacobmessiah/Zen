@@ -1,5 +1,5 @@
 import { Flex, IconButton, Input, InputGroup, Text } from "@chakra-ui/react";
-import { useCallback, useState, type ChangeEvent } from "react";
+import { useCallback, useState, useRef, useEffect, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import debounce from "lodash.debounce";
@@ -8,20 +8,35 @@ import { type GifData } from "@/types";
 import { gifCategories } from "@/lib/arrays";
 import { GrLinkPrevious } from "react-icons/gr";
 import { RiEmotionSadLine } from "react-icons/ri";
+import React from "react";
 
-const GifCategoryItem = ({
-  name,
-  value,
-  preview,
-  onCategoryClick,
-}: {
+const GifCategoryItem = React.memo(React.forwardRef<HTMLDivElement, {
   name: string;
   value: string;
   preview: string;
   onCategoryClick: ({ value, name }: { value: string; name: string }) => void;
-}) => {
+  isVisible: boolean;
+}>(({
+  name,
+  value,
+  preview,
+  onCategoryClick,
+  isVisible,
+}, ref) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isVisible) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isVisible]);
+
   return (
-    <Flex rounded="4px" overflow="hidden" pos="relative" w="full" h="105px">
+    <Flex ref={ref} rounded="4px" overflow="hidden" pos="relative" w="full" h="105px">
       <Flex
         onClick={() => onCategoryClick({ value, name })}
         userSelect="none"
@@ -41,53 +56,92 @@ const GifCategoryItem = ({
       >
         <Text>{name}</Text>
       </Flex>
-      <video
-        src={preview}
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-        }}
-      />
+      {isVisible ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          src={preview}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            backgroundColor: "var(--chakra-colors-bg-subtle)",
+          }}
+        />
+      )}
     </Flex>
   );
-};
+}));
 
-const GifItem = ({
-  gifData,
-  onGifSelect,
-}: {
+const GifItem = React.memo(React.forwardRef<HTMLDivElement, {
   gifData: GifData;
   onGifSelect: ({ gifData }: { gifData: GifData }) => void;
-}) => {
+  isVisible: boolean;
+}>(({
+  gifData,
+  onGifSelect,
+  isVisible,
+}, ref) => {
   const { height, preview } = gifData;
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isVisible) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isVisible]);
 
   return (
     <Flex
+      ref={ref}
       onClick={() => onGifSelect({ gifData: gifData })}
       boxShadow="xs"
       w="full"
       h={height}
       className="isLoading"
     >
-      <video
-        autoPlay
-        loop
-        src={preview}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          borderRadius: "5px",
-        }}
-      />
+      {isVisible ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          src={preview}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "5px",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            borderRadius: "5px",
+            backgroundColor: "var(--chakra-colors-bg-subtle)",
+          }}
+        />
+      )}
     </Flex>
   );
-};
+}));
 
 const scrollYCss = {
   scrollBehavior: "smooth",
@@ -124,6 +178,10 @@ const GifsUI = ({
   const [LoadedGifs, setLoadedGifs] = useState<GifData[]>([]);
   const [gifError, setGifError] = useState(false);
   const [isLoadingGifs, setIsLoadingGifs] = useState(false);
+  const [visibleVideoIds, setVisibleVideoIds] = useState<Set<string>>(new Set());
+  
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const elementRefs = useRef<Map<string, HTMLElement>>(new Map());
 
   const debounceSearch = useCallback(
     debounce(async (query: string) => {
@@ -149,6 +207,65 @@ const GifsUI = ({
     }, 800),
     [],
   );
+
+  // Intersection Observer setup
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        setVisibleVideoIds((prev) => {
+          const newSet = new Set(prev);
+          entries.forEach((entry) => {
+            const id = entry.target.getAttribute('data-video-id');
+            if (id) {
+              if (entry.isIntersecting) {
+                newSet.add(id);
+              } else {
+                newSet.delete(id);
+              }
+            }
+          });
+          return newSet;
+        });
+      },
+      {
+        rootMargin: '50px', // Start loading 50px before element comes into view
+        threshold: 0.1,
+      }
+    );
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Observe elements when they mount/unmount
+  useEffect(() => {
+    if (observerRef.current) {
+      elementRefs.current.forEach((element) => {
+        observerRef.current?.observe(element);
+      });
+    }
+
+    return () => {
+      if (observerRef.current) {
+        elementRefs.current.forEach((element) => {
+          observerRef.current?.unobserve(element);
+        });
+      }
+    };
+  }, [LoadedGifs, searchQuery]);
+
+  const setElementRef = (id: string) => (element: HTMLElement | null) => {
+    if (element) {
+      element.setAttribute('data-video-id', id);
+      elementRefs.current.set(id, element);
+      observerRef.current?.observe(element);
+    } else {
+      elementRefs.current.delete(id);
+    }
+  };
 
   const handleCategoryClick = async ({
     value,
@@ -251,6 +368,8 @@ const GifsUI = ({
                   name={name}
                   value={value}
                   preview={gifCategory.preview}
+                  isVisible={visibleVideoIds.has(value)}
+                  ref={setElementRef(value)}
                 />
               );
             })}
@@ -268,6 +387,8 @@ const GifsUI = ({
                     onGifSelect={onGifSelect}
                     key={gifItem.id}
                     gifData={gifItem}
+                    isVisible={visibleVideoIds.has(gifItem.id)}
+                    ref={setElementRef(gifItem.id)}
                   />
                 );
               })}
@@ -276,43 +397,36 @@ const GifsUI = ({
 
         {!isLoadingGifs &&
           searchQuery &&
-          searchQuery.length > 0 &&
           LoadedGifs.length === 0 && (
-            <Flex
-              flex={1}
-              justifyContent="center"
-              alignItems="center"
-              direction="column"
-              color="fg.muted"
-            >
-              <RiEmotionSadLine
-                strokeWidth={0}
-                style={{ width: "100px", height: "100px" }}
-              />
-
-              <Text>{noGifFound}</Text>
-            </Flex>
-          )}
-
-        {!isLoadingGifs &&
-          searchQuery &&
-          searchQuery.length > 0 &&
-          LoadedGifs.length === 0 &&
-          gifError && (
-            <Flex
-              flex={1}
-              justifyContent="center"
-              alignItems="center"
-              direction="column"
-              color="fg.muted"
-            >
-              <RiEmotionSadLine
-                strokeWidth={0}
-                style={{ width: "100px", height: "100px" }}
-              />
-
-              <Text>{gifSearchError}</Text>
-            </Flex>
+            gifError ? (
+              <Flex
+                flex={1}
+                justifyContent="center"
+                alignItems="center"
+                direction="column"
+                color="fg.muted"
+              >
+                <RiEmotionSadLine
+                  strokeWidth={0}
+                  style={{ width: "100px", height: "100px" }}
+                />
+                <Text>{gifSearchError}</Text>
+              </Flex>
+            ) : (
+              <Flex
+                flex={1}
+                justifyContent="center"
+                alignItems="center"
+                direction="column"
+                color="fg.muted"
+              >
+                <RiEmotionSadLine
+                  strokeWidth={0}
+                  style={{ width: "100px", height: "100px" }}
+                />
+                <Text>{noGifFound}</Text>
+              </Flex>
+            )
           )}
 
         {searchQuery && LoadedGifs.length === 0 && isLoadingGifs && (

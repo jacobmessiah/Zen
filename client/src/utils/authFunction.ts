@@ -53,7 +53,9 @@ export const handlePreload = async () => {
       conversations: resData.conversations,
       favouriteGifs: resData.favouriteGifs,
     });
-  } catch (error) {}
+  } catch {
+    console.log("Preload Failed");
+  }
 };
 
 export const ConnectSocket = (userId: string) => {

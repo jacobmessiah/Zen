@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import MessageItemPreview from "./message-item-preview";
 import { createDialog } from "../../create-dialog";
+import userChatStore from "@/store/user-chat-store";
 
 const DeleteMessageUI = ({
   message,
@@ -36,7 +37,14 @@ const DeleteMessageUI = ({
     createDialog.close(id)
   };
 
-  const handleDeleteMessage = () => { };
+  const deleteMessage = userChatStore.getState().deleteMessage
+
+  const handleDeleteMessage = () => {
+    void deleteMessage({ convoId: message.conversationId, messageId: message._id })
+
+    handleClose()
+
+  };
 
   const { t: translate, i18n } = useTranslation(["chat"]);
 

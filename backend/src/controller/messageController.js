@@ -451,3 +451,97 @@ export const handleForwardMessage = async (req, res) => {
     return res.status(500).json({ message: "SERVER_ERROR" });
   }
 };
+
+export const handleDeleteMessage = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const { convoId, messageId } = req?.query || {};
+
+    if (!convoId || !messageId)
+      return res.status(400).json({ message: "NO_TARGET" });
+
+    if (typeof convoId !== "string" || typeof messageId !== "string") {
+      return res.status(400).json({ message: "INVALID_PAYLOAD" });
+    }
+
+    const findConvo = await Conversation.findOne({ _id: convoId });
+
+    if (!findConvo) return res.status(400).json({ message: "NO_DESTINATION" });
+
+    const findUserInConvo = findConvo.participants.find((p) =>
+      p.equals(user._id),
+    );
+
+    const otherUserId = findConvo.participants.find((p) => !p.equals(user._id));
+
+    if (!findUserInConvo) {
+      return res.status(400).json({ message: "NO_OWNERSHIP" });
+    }
+
+    const findMessage = await Message.findOne({ _id: messageId });
+
+    if (!findMessage) {
+      return res.status(400).json({ message: "NO_TARGET" });
+    }
+
+    if (findMessage.attachments && findMessage.attachments.length > 0) {
+      const messagesWithSameAttachments = await Message.find({
+        _id: { $ne: messageId }, // Exclude the message we're deleting
+        $or: [
+          {
+            "attachments.fileId": {
+              $in: findMessage.attachments.map((a) => a.fileId),
+            },
+          },
+          {
+            "attachments.filePath": {
+              $in: findMessage.attachments.map((a) => a.filePath),
+            },
+          },
+        ],
+      });
+
+      // Check if attachments are used elsewhere
+      const hasSharedAttachments = messagesWithSameAttachments.length > 0;
+
+      if (!hasSharedAttachments) {
+        const fileIds = [];
+        findMessage.attachments.forEach((t) => {
+          fileIds.push(t.fileId);
+        });
+
+        try {
+          const deleteRes = await imageKitInstance.bulkDeleteFiles(fileIds);
+          console.log({
+            message: "Bulk Deleted files",
+            ids: fileIds,
+            successfullyDeletedFileIds: deleteRes.successfullyDeletedFileIds,
+          });
+        } catch (error) {
+          console.log(
+            "Failed to Delete Files Error --> ",
+            error.message || error,
+          );
+        }
+      }
+    }
+
+    await findMessage.deleteOne();
+
+    if (otherUserId) {
+      emitPayLoadToUser(otherUserId, "EVENT:REMOVE", {
+        type: "DELETE_MESSAGE",
+        conversationId: findConvo._id,
+        messageId: findMessage._id,
+      });
+    }
+
+    return res.status(204).end();
+  } catch (error) {
+    console.log(
+      "Error on handleDeleteMessage Errror message -->",
+      error?.message || error,
+    );
+  }
+};

@@ -29,12 +29,11 @@ const EmojiGifPicker = ({
   };
 
   return (
-    <Popover.Root 
-
+    <Popover.Root
+      unmountOnExit
       ids={{ trigger: id }}
       positioning={{ offset: { crossAxis: 0, mainAxis: 20 } }}
-      lazyMount
-      unmountOnExit
+
       size="xs"
       modal
     >
