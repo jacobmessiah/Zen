@@ -18,7 +18,7 @@ import {
   handleEventAdd,
   handleEventRemove,
 } from "./utils/socket-listener/socket-handler";
-import { handleSyncAdd, handleSyncRemove } from "./utils/sync";
+import { handleSyncAdd, handleSyncRemove } from "./utils/sync/sync";
 import MessageContainer, {
   NoConversationSelectedUI,
 } from "./app/chat/message/message-container";
@@ -48,13 +48,15 @@ const App = () => {
     socket.on("SYNC:ADD", handleSyncAdd);
 
     return () => {
-      if (socket) {
-        socket.off("SYNC:REMOVE", handleSyncRemove);
-        socket.off("EVENT:ADD", handleEventAdd);
-        socket.off("SYNC:ADD", handleSyncAdd);
-      }
+      if (!socket) return;
+
+      socket.off("EVENT:ADD", handleEventAdd);
+      socket.off("EVENT:REMOVE", handleEventRemove);
+      socket.off("SYNC:REMOVE", handleSyncRemove);
+      socket.off("SYNC:ADD", handleSyncAdd);
     };
-  }, [socket]);
+  }, [socket, authUser]);
+
 
   console.log(
     "%cCAUGHT YOU!%c\n\n Why snitching just follow me on Linkedin --> https://www.linkedin.com/in/jacob-messiah/",

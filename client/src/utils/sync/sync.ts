@@ -1,3 +1,4 @@
+import userChatStore from "@/store/user-chat-store";
 import type { connectionPingType, ConnectionType } from "../../types/schema";
 import { HANDLE_REMOVE_CONNECTION } from "../socket-listener/connection-event";
 import {
@@ -7,20 +8,30 @@ import {
   REMOVE_SENT_PING_WITH_SYNC,
 } from "./connectionSync";
 
+type SYNC_ARGUMENTS = {
+  type:
+    | "REMOVE_SENT_PING"
+    | "ADD_SENT_PING"
+    | "REMOVE_RECEIVED_PING"
+    | "ADD_CONNECTION"
+    | "REMOVE_CONNECTION"
+    | "DELETE_MESSAGE";
+  documentId?: string;
+  connectionPing?: connectionPingType;
+  connectionData?: ConnectionType;
+  messageId: string;
+  conversationId: string;
+};
+
 const SYNC_TYPES = {
   REMOVE_SENT_PING: "REMOVE_SENT_PING",
   ADD_SENT_PING: "ADD_SENT_PING",
   REMOVE_RECEIVED_PING: "REMOVE_RECEIVED_PING",
   ADD_CONNECTION: "ADD_CONNECTION",
   REMOVE_CONNECTION: "REMOVE_CONNECTION",
-};
+} as const;
 
-type SYNC_ARGUMENTS = {
-  type: string;
-  documentId?: string;
-  connectionPing?: connectionPingType;
-  connectionData?: ConnectionType;
-};
+const deleteMessage = userChatStore.getState().deleteMessage;
 
 export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
   switch (arg.type) {
@@ -33,6 +44,10 @@ export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
       break;
     case SYNC_TYPES.REMOVE_CONNECTION:
       HANDLE_REMOVE_CONNECTION(arg.documentId);
+      break;
+
+    case "DELETE_MESSAGE":
+      deleteMessage({ messageId: arg.messageId, convoId: arg.conversationId });
   }
 };
 
@@ -40,7 +55,7 @@ export const handleSyncAdd = (arg: SYNC_ARGUMENTS) => {
   switch (arg.type) {
     case SYNC_TYPES.ADD_SENT_PING:
       if (arg.connectionPing) {
-        ADD_SENT_PING_WITH_SYNC(arg?.connectionPing);
+        ADD_SENT_PING_WITH_SYNC(arg.connectionPing);
       }
       break;
 

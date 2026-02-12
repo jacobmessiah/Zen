@@ -1,3 +1,4 @@
+import userChatStore from "@/store/user-chat-store";
 import type {
   connectionPingType,
   ConnectionType,
@@ -33,9 +34,11 @@ type ADD_EVENT_CASES_TYPES = {
 //Lesson.  Do not Join Types like this in the sense that specific response or events get there own types
 
 type REMOVE_EVENT_CASES_TYPES = {
-  type: "REMOVE_CONNECTION" | "REMOVE_USER_PRESENCE";
+  type: "REMOVE_CONNECTION" | "REMOVE_USER_PRESENCE" | "DELETE_MESSAGE";
   documentId: string;
   userId: string;
+  conversationId: string;
+  messageId: string;
 };
 
 export const handleEventAdd = (args: ADD_EVENT_CASES_TYPES) => {
@@ -62,6 +65,8 @@ export const handleEventAdd = (args: ADD_EVENT_CASES_TYPES) => {
   }
 };
 
+const deleteMessage = userChatStore.getState().deleteMessage;
+
 export const handleEventRemove = (args: REMOVE_EVENT_CASES_TYPES) => {
   switch (args.type) {
     case "REMOVE_CONNECTION":
@@ -71,5 +76,12 @@ export const handleEventRemove = (args: REMOVE_EVENT_CASES_TYPES) => {
     case "REMOVE_USER_PRESENCE":
       HANDLE_REMOVE_USER_PRESENSE(args.userId);
       break;
+
+    case "DELETE_MESSAGE":
+      deleteMessage({
+        convoId: args.conversationId,
+        messageId: args.messageId,
+        ignoreDBDelete: true,
+      });
   }
 };

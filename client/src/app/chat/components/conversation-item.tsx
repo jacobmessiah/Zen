@@ -30,7 +30,7 @@ const ConversationItem = ({
       <Flex gap="10px" alignItems="center">
         <Avatar.Root size="md" colorPalette="bg" variant="subtle">
           <Avatar.Fallback>
-            <BsRobot />
+            <BsRobot size={20} />
           </Avatar.Fallback>
           <ConversationActivityIndicator userId={otherUser._id} />
         </Avatar.Root>

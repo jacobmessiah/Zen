@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  handleDeleteMessage,
   handleForwardMessage,
   handleGetAllMessages,
   handleSendMessage,
@@ -47,7 +48,7 @@ const fileFilter = (req, file, cb) => {
 const MAX_ATTACHMENT = 10;
 
 const limits = {
-  fileSize: 11 * 1024 * 1024,
+  fileSize: 15 * 1024 * 1024,
 };
 
 const upload = multer({ storage, fileFilter, limits });
@@ -72,5 +73,7 @@ messageRoute.get(
 
 messageRoute.post("/send", ProtectRoute, handleSendMessage);
 messageRoute.post("/forward", ProtectRoute, handleForwardMessage);
+
+messageRoute.delete("/delete", ProtectRoute, handleDeleteMessage);
 
 export default messageRoute;

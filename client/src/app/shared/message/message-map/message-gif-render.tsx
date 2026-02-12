@@ -1,5 +1,5 @@
 import type { GifData } from "@/types";
-import { Flex, IconButton, Text } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Text } from "@chakra-ui/react";
 import React, { memo, useRef, useState } from "react";
 import MediaLoadErrorUI from "../media-load-error-ui";
 import { FaRegStar, FaStar } from "react-icons/fa";
@@ -78,9 +78,8 @@ const MessageGifRender = ({
     <Flex
       tabIndex={0}
       userSelect="none"
-      minW="250px" // Your Min Width
-      maxW={{ base: "290px", lg: "350px", md: "300px" }} // Your Max Width
-      maxH="350px" // Fixed Height (Min & Max)
+      minW="250px"
+      maxW={{ base: "250px", lg: "320px", md: "300px" }}
       direction="column"
       pos="relative"
       overflow="hidden"
@@ -89,11 +88,14 @@ const MessageGifRender = ({
     >
       {!isError ? (
         <>
-          <Flex
-            pos="relative"
-            flex="1" // Fills the 350px height minus the text height
+          <Box
+
+
             w="100%"
-            minH={0} // Prevents video from pushing past the 350px boundary
+            pos="relative"
+            overflow="hidden"
+            borderRadius="md"
+            flexShrink={0}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerLeave}
@@ -107,8 +109,7 @@ const MessageGifRender = ({
               src={preview}
               style={{
                 width: "100%",
-                height: "100%",
-                objectFit: "cover", // Ensures the GIF fills the area without stretching
+                objectFit: "cover",
                 borderRadius: "5px",
                 pointerEvents: "none",
               }}
@@ -141,7 +142,7 @@ const MessageGifRender = ({
                 )}
               </IconButton>
             </Tooltip>
-          </Flex>
+          </Box>
 
           <Text color="fg.muted" fontSize="xs" py="2px" flexShrink={0}>
             GIF

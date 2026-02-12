@@ -41,6 +41,16 @@ type userChatStoreTypes = {
     messageContent: IMessage;
     conversationIds: string[];
   }) => void;
+
+  deleteMessage: ({
+    convoId,
+    messageId,
+    ignoreDBDelete,
+  }: {
+    convoId: string;
+    messageId: string;
+    ignoreDBDelete?: boolean;
+  }) => void;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
@@ -139,6 +149,44 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
         });
       });
       console.log("Failed to Forward Message");
+    }
+  },
+
+  deleteMessage: async ({ convoId, messageId, ignoreDBDelete }) => {
+    const allMessages = get().storedMessages[convoId] || [];
+
+    const updatedMessages =
+      allMessages.length > 0
+        ? allMessages
+            .filter((msg) => msg._id !== messageId) // Remove the message itself
+            .map((msg) => {
+              // Remove replyTo if it references the deleted message
+              if (msg.replyTo?._id === messageId) {
+                const { replyTo, ...messageWithoutReply } = msg;
+                return messageWithoutReply as IMessage;
+              }
+              return msg;
+            })
+        : [];
+    set((S) => {
+      return {
+        storedMessages: {
+          ...S.storedMessages,
+          [convoId]: updatedMessages,
+        },
+      };
+    });
+
+    if (ignoreDBDelete) return;
+    try {
+      await axiosInstance.delete(`/messages/delete`, {
+        params: {
+          convoId,
+          messageId,
+        },
+      });
+    } catch {
+      console.log("Failed To Delete Message");
     }
   },
 }));

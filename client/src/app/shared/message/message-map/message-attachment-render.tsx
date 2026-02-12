@@ -598,6 +598,7 @@ const AudioAttachment = ({
     isMuted: false,
     volume: 100,
     buttonFocused: false,
+    shouldRenderAudio: false,
   });
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -674,6 +675,12 @@ const AudioAttachment = ({
     }
   };
 
+  const handleMouseEnter = () => {
+    if (!audioDetails.shouldRenderAudio) {
+      setAudioDetails((p) => ({ ...p, shouldRenderAudio: true }));
+    }
+  };
+
   return (
     <Flex
       h="100px"
@@ -688,25 +695,28 @@ const AudioAttachment = ({
       userSelect="none"
       pos="relative"
       className="group"
+      onMouseEnter={handleMouseEnter}
     >
-      <audio
-        onTimeUpdate={(e) => {
-          const currentTime = e.currentTarget.currentTime;
-          setAudioDetails((p) => ({ ...p, currentTime }));
-          if (sliderRef.current) {
-            sliderRef.current.value = currentTime.toString();
-          }
-        }}
-        onLoadedMetadata={(e) => {
-          const duration = e.currentTarget.duration;
-          setAudioDetails((p) => ({ ...p, duration: duration }));
-        }}
-        onEnded={() => {
-          setAudioDetails((p) => ({ ...p, isPlaying: false, currentTime: 0 }));
-        }}
-        ref={audioRef}
-        src={url}
-      />
+      {audioDetails.shouldRenderAudio && (
+        <audio
+          onTimeUpdate={(e) => {
+            const currentTime = e.currentTarget.currentTime;
+            setAudioDetails((p) => ({ ...p, currentTime }));
+            if (sliderRef.current) {
+              sliderRef.current.value = currentTime.toString();
+            }
+          }}
+          onLoadedMetadata={(e) => {
+            const duration = e.currentTarget.duration;
+            setAudioDetails((p) => ({ ...p, duration: duration }));
+          }}
+          onEnded={() => {
+            setAudioDetails((p) => ({ ...p, isPlaying: false, currentTime: 0 }));
+          }}
+          ref={audioRef}
+          src={url}
+        />
+      )}
       <Flex alignItems="center" gap="10px">
         <FaFileAudio size={30} />
         <Flex
@@ -762,8 +772,8 @@ const AudioAttachment = ({
         </Flex>
 
         <Flex gap="3px" color="fg.muted" alignItems="center" fontSize="sm">
-          <Text>{formatTime(audioDetails.currentTime)}</Text>/
-          <Text>{formatTime(audioDetails.duration)}</Text>
+          <Text>{audioDetails.shouldRenderAudio ? formatTime(audioDetails.currentTime) : "-:--"}</Text>/
+          <Text>{audioDetails.shouldRenderAudio ? formatTime(audioDetails.duration) : "-:--"}</Text>
         </Flex>
 
         <input
@@ -968,7 +978,7 @@ const MessageAttachmentRenderer = ({
   const downloadText = translate("downloadText");
 
   return (
-    <Flex mb="5px" maxW={{ lg: "60%" }} textAlign="center">
+    <Flex mb="5px" maxW={{ lg: "60%", base: "95%" }} direction="column" gap="5px" textAlign="center">
       {Array.isArray(visualAttachments) && visualAttachments.length > 0 && (
         <Box w="full" className={`gallery count-${visualAttachments.length}`}>
           {visualAttachments.map((att) => {
