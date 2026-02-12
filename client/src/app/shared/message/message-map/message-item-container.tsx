@@ -20,7 +20,7 @@ import { useId, useState } from "react";
 import { BiSolidPencil } from "react-icons/bi";
 import { BsRobot, BsThreeDots } from "react-icons/bs";
 import { FaSmile } from "react-icons/fa";
-import { HiReply, HiSpeakerphone } from "react-icons/hi";
+import { HiReply, } from "react-icons/hi";
 import { IoCopy } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { P2PMessageReplyUI } from "./message-reply-ui";
@@ -68,7 +68,6 @@ const MessageActionMenuItems = ({
     copyText,
     addReaction,
     editMessage,
-    speakText,
   } = messageActions;
 
   return (
@@ -144,7 +143,6 @@ const MessageActionMenuItems = ({
           {hasText && (
             <>
               <Menu.Separator />
-
               <Menu.Item
                 p="10px"
                 color="fg.muted"
@@ -153,18 +151,6 @@ const MessageActionMenuItems = ({
                 value="copyText"
               >
                 <Text color="fg">{copyText}</Text> <IoCopy size={18} />
-              </Menu.Item>
-
-              {/*Speak Text */}
-
-              <Menu.Item
-                p="10px"
-                color="fg.muted"
-                justifyContent="space-between"
-                rounded="md"
-                value="speakText"
-              >
-                <Text color="fg">{speakText}</Text> <HiSpeakerphone size={18} />
               </Menu.Item>
             </>
           )}
@@ -196,13 +182,15 @@ const MessageActionToolbar = ({
   messageActions,
   showMessageActionToolbar,
   handleForwardMessage,
-  onMenuSelectFunction,
+  onMenuSelectFunction, hasText, isMine
 }: {
   handleInitiateReply: () => void;
   messageActions: MessageActionTranslations;
   showMessageActionToolbar: boolean;
   handleForwardMessage: () => void;
   onMenuSelectFunction: (event: MenuSelectionDetails) => void;
+  hasText: boolean,
+  isMine: boolean,
 }) => {
   const quickReactArray = [
     { text: "👍", value: "👍" },
@@ -389,8 +377,8 @@ const MessageActionToolbar = ({
             </Menu.Trigger>
           </Tooltip>
           <MessageActionMenuItems
-            hasText
-            isMine
+            hasText={hasText}
+            isMine={isMine}
             messageActions={messageActions}
           />
         </Menu.Root>
@@ -411,7 +399,7 @@ const MessageItemContainer = ({
   handleInitiateReply,
   openAttFullScreen,
   handleShowForwardUI,
-  handleShowDeleteUI,
+  handleShowDeleteUI, handleCopyText
 }: {
   senderProfile: IUser | undefined;
   message: IMessage;
@@ -432,10 +420,12 @@ const MessageItemContainer = ({
     senderProfile: IUser;
   }) => void;
   handleShowForwardUI: (message: IMessage) => void;
-  handleShowDeleteUI: (message: IMessage) => void;
+  handleShowDeleteUI: (message: IMessage) => void; handleCopyText: (message: IMessage) => void
 }) => {
   const hasText =
-    message.type === "default" && !!message.text && message.text.length > 0;
+    message.type === "default" &&
+    !!message.text &&
+    message.text.trim().length > 0;
 
   const [showMessageActionToolbar, setShowMessageActionToolbar] =
     useState(false);
@@ -472,6 +462,9 @@ const MessageItemContainer = ({
         break;
       case "deleteMessage":
         handleShowDeleteUI(message);
+        break;
+
+      case "copyText": handleCopyText(message); break
     }
   };
 
@@ -496,12 +489,10 @@ const MessageItemContainer = ({
         justifyContent="center"
         alignItems="center"
         h={
-          showSimpleStyle
-            ? message.isReplied
-              ? "70px"
-              : "25px"
-            : message.isReplied
-              ? "75px"
+          message.isReplied
+            ? "75px"
+            : showSimpleStyle
+              ? "25px"
               : "50px"
         }
         minW={{ base: "16%", lg: "7%" }}
@@ -527,7 +518,7 @@ const MessageItemContainer = ({
           </Flex>
         )}
 
-        {!showSimpleStyle && (
+        {(!showSimpleStyle || message.isReplied) && (
           <Avatar.Root>
             <Avatar.Fallback>
               <BsRobot size={20} />
@@ -535,7 +526,7 @@ const MessageItemContainer = ({
           </Avatar.Root>
         )}
 
-        {showSimpleStyle && showMessageActionToolbar && (
+        {showSimpleStyle && !message.isReplied && showMessageActionToolbar && (
           <Text userSelect="none" cursor="pointer" fontSize="xs">
             {formatDateSimpleStyle(message.createdAt)}{" "}
           </Text>
@@ -548,7 +539,7 @@ const MessageItemContainer = ({
           <P2PMessageReplyUI replyToMessage={message.replyTo} />
         )}
 
-        {!showSimpleStyle && (
+        {(!showSimpleStyle || message.isReplied) && (
           <Flex gap="5px" alignItems="center">
             <Text
               _hover={{
@@ -634,6 +625,8 @@ const MessageItemContainer = ({
       </Flex>
 
       <MessageActionToolbar
+        hasText={hasText}
+        isMine={isMine}
         onMenuSelectFunction={handleMenuValueSelect}
         handleForwardMessage={handleShowForwardUIHelperFunc}
         showMessageActionToolbar={showMessageActionToolbar}

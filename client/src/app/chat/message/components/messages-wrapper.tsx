@@ -200,6 +200,23 @@ const MessagesWrapper = () => {
     });
   };
 
+  const handleCopyText = (message: IMessage) => {
+    if (message.type !== "default") return
+    const text = message.text
+
+    if (text && text.length > 0) {
+
+      if (navigator.clipboard) {
+        try {
+          navigator.clipboard.writeText(text)
+        } catch (error) {
+          console.log("Failed To Log Text Error --->", (error as Error).message)
+        }
+      }
+    }
+
+  }
+
   return (
     <Flex
       flex={1}
@@ -258,6 +275,7 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
+              handleCopyText={handleCopyText}
               handleShowDeleteUI={handleShowDeleteUI}
               handleShowForwardUI={handleShowForwardUI}
               openAttFullScreen={openAttFullScreen}

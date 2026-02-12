@@ -40,7 +40,6 @@ export type MessageActionTranslations = {
   editMessage: string;
   replyMessage: string;
   forwardMessage: string;
-  speakText: string;
   copyText: string;
   deleteMessage: string;
   moreText: string;

@@ -14,8 +14,6 @@ const P2PMessageReplyUI = ({
     (state) => state.selectedConversation,
   );
 
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
   const authUser = userAuthStore((state) => state.authUser);
 
   const otherUser =
@@ -52,14 +50,27 @@ const P2PMessageReplyUI = ({
 
     if (replyToMessage && replyToMessage.type === "default") {
       return (
-        <Flex onClick={scrollToReplied} alignItems="center" gap="5px" w="full">
+        <Flex onClick={scrollToReplied} alignItems="center" gap="5px" w="full" minW="0">
           {replyToMessage.text && replyToMessage.text.length > 0 && (
-            <Text fontSize="sm" whiteSpace="nowrap" overflow="hidden">
-              {replyToMessage.text.slice(0, isMobile ? 30 : 80).trim()}...
+            <Text 
+              fontSize="sm" 
+              color="fg.muted"
+              fontStyle="italic"
+              overflow="hidden"
+              textOverflow="ellipsis"
+              whiteSpace="nowrap"
+              w="0"
+              flex="1"
+            >
+              {replyToMessage.text}
             </Text>
           )}{" "}
           {replyToMessage.attachments &&
-            replyToMessage.attachments.length > 0 && <BsImageFill />}
+            replyToMessage.attachments.length > 0 && (
+              <Flex flexShrink="0">
+                <BsImageFill color="fg.muted" />
+              </Flex>
+            )}
         </Flex>
       );
     }
@@ -79,9 +90,9 @@ const P2PMessageReplyUI = ({
     }
   };
   return (
-    <Flex userSelect="none" gap="5px" alignItems="center" pl="5px" w="full">
+    <Flex userSelect="none" gap="5px" alignItems="center" pl="5px" w="full" minW="0">
       {otherUser && (
-        <Flex gap="5px" alignItems="center">
+        <Flex gap="5px" alignItems="center" flexShrink="0">
           <Avatar.Root boxSize="20px">
             <Avatar.Fallback>
               <BsRobot style={{ width: "10px", height: "10px" }} />
@@ -98,7 +109,9 @@ const P2PMessageReplyUI = ({
           </Text>
         </Flex>
       )}
-      {getReplyRendition(scrollToReplied)}
+      <Flex flex="1" minW="0">
+        {getReplyRendition(scrollToReplied)}
+      </Flex>
     </Flex>
   );
 };
