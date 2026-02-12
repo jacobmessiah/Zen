@@ -1,7 +1,7 @@
 import Message from "../model/messageModel.js";
 import Conversation from "../model/conversationModel.js";
 import imageKitInstance from "../lib/kitUploader.js";
-import { emitPayLoadToUser } from "../lib/io.js";
+import { emitPayloadToOtherSessions, emitPayLoadToUser } from "../lib/io.js";
 import unClaimedUpload from "../model/UnClaimedUploadModel.js";
 
 export const DOCUMENT_MIME_TYPES = [
@@ -455,6 +455,7 @@ export const handleForwardMessage = async (req, res) => {
 export const handleDeleteMessage = async (req, res) => {
   try {
     const user = req.user;
+    const session = req.session;
 
     const { convoId, messageId } = req?.query || {};
 
@@ -536,6 +537,17 @@ export const handleDeleteMessage = async (req, res) => {
         messageId: findMessage._id,
       });
     }
+
+    emitPayloadToOtherSessions(
+      user._id,
+      "SYNC:REMOVE",
+      {
+        type: "DELETE_MESSAGE",
+        conversationId: findConvo._id,
+        messageId: findMessage._id,
+      },
+      session._id,
+    );
 
     return res.status(204).end();
   } catch (error) {

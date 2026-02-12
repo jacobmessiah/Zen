@@ -18,7 +18,7 @@ import {
   handleEventAdd,
   handleEventRemove,
 } from "./utils/socket-listener/socket-handler";
-import { handleSyncAdd, handleSyncRemove } from "./utils/sync";
+import { handleSyncAdd, handleSyncRemove } from "./utils/sync/sync";
 import MessageContainer, {
   NoConversationSelectedUI,
 } from "./app/chat/message/message-container";

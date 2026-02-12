@@ -175,7 +175,13 @@ const MessagesWrapper = () => {
   };
 
   const handleShowDeleteUI = (message: IMessage) => {
-    if (message.status === "sending" || !authUser) return;
+
+
+    if (!authUser || !selectedConversation) return
+
+    const senderProfile = message.senderId !== authUser._id ? selectedConversation.otherUser : authUser
+
+    if (message.status === "sending") return;
 
     const id = "DeleteMesageUI";
     createDialog.open(id, {
@@ -188,7 +194,7 @@ const MessagesWrapper = () => {
 
       content: (
         <Suspense>
-          <DeleteMessageUI senderProfile={authUser} message={message} />
+          <DeleteMessageUI senderProfile={senderProfile} message={message} />
         </Suspense>
       ),
     });
