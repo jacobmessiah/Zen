@@ -217,6 +217,14 @@ const MessagesWrapper = () => {
 
   }
 
+  const handleEditMessage = (message: IMessage) => {
+    
+
+    
+  }
+
+
+
   return (
     <Flex
       flex={1}

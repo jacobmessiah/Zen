@@ -11,6 +11,7 @@ import {
   Float,
   Image,
   Menu,
+  Popover,
   Portal,
   Separator,
   Text,
@@ -30,6 +31,7 @@ import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
 import { Tooltip } from "@/components/ui/tooltip";
 import MessageGifRender from "./message-gif-render";
+import MessageEmojiReactionUI from "../../emoji-and-reactions/message-emoji-reaction";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -214,6 +216,8 @@ const MessageActionToolbar = ({
 
   const triggerId = useId();
 
+  const id = useId()
+
   return (
     <Float offsetX={{ base: "120px", lg: "150px" }}>
       <Flex
@@ -258,32 +262,35 @@ const MessageActionToolbar = ({
         <Separator ml="2px" mr="2px" orientation="vertical" h="5" />
 
         {/*Reaction */}
-
-        <Tooltip content={addReaction} {...tooltipProps}>
-          <Flex
-            alignItems="center"
-            justifyContent="center"
-            w="30px"
-            h="30px"
-            p="3px"
-            bg="transparent"
-            _hover={{ bg: "bg.muted" }}
-            transition="0.2s ease"
-            rounded="sm"
-            className="group"
-            cursor="pointer"
-          >
-            <Flex
-              as={FaSmile}
-              fontSize="20px"
-              color="fg.muted"
-              transition="transform 0.1s ease"
-              _groupHover={{
-                transform: "scale(1.1)",
-              }}
-            />
-          </Flex>
-        </Tooltip>
+        <MessageEmojiReactionUI id={id} >
+          <Tooltip ids={{ trigger: id }} content={addReaction} {...tooltipProps}>
+            <Popover.Trigger>
+              <Flex
+                alignItems="center"
+                justifyContent="center"
+                w="30px"
+                h="30px"
+                p="3px"
+                bg="transparent"
+                _hover={{ bg: "bg.muted" }}
+                transition="0.2s ease"
+                rounded="sm"
+                className="group"
+                cursor="pointer"
+              >
+                <Flex
+                  as={FaSmile}
+                  fontSize="20px"
+                  color="fg.muted"
+                  transition="transform 0.1s ease"
+                  _groupHover={{
+                    transform: "scale(1.1)",
+                  }}
+                />
+              </Flex>
+            </Popover.Trigger>
+          </Tooltip>
+        </MessageEmojiReactionUI>
 
         {/*Reply */}
         <Tooltip {...tooltipProps} content={replyMessage}>

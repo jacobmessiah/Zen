@@ -210,5 +210,9 @@
     "descriptionText": "Are you sure you want to delete this message?",
     "cancelText": "Cancel",
     "deleteText": "Delete"
+  },
+  "EditMessageTextUI": {
+    "headerText": "Edit Text",
+    "descriptionText": "Make changes to text"
   }
 }

@@ -1,24 +1,40 @@
-import { Input, Popover, Portal, Text } from "@chakra-ui/react"
+import { Popover, Portal, } from "@chakra-ui/react"
+import EmojiMappingUI from "./emojis-mapping";
 
 
-const MessageEmojiReactionUI = ({ children }: { children: React.ReactNode }) => {
+const MessageEmojiReactionUI = ({ children, id }: { children: React.ReactNode, id: string }) => {
+
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+
+    const onEmojiSelect = (emoji: string) => {
+        console.log(emoji)
+    }
+
+
     return (
-        <Popover.Root>
-            <Popover.Trigger asChild>
-                {children}
-            </Popover.Trigger>
+        <Popover.Root
+            unmountOnExit
+            ids={{ trigger: id }}
+            lazyMount
+            positioning={{ placement: isMobile ? "bottom-start" : "left-end" }}
+            size="xs"
+            modal
+        >
+            {children}
+
             <Portal>
                 <Popover.Positioner>
-                    <Popover.Content>
-                        <Popover.Arrow />
-                        <Popover.Body>
-                            <Popover.Title fontWeight="medium">Naruto Form</Popover.Title>
-                            <Text my="4">
-                                Naruto is a Japanese manga series written and illustrated by
-                                Masashi Kishimoto.
-                            </Text>
-                            <Input placeholder="Your fav. character" size="sm" />
-                        </Popover.Body>
+                    <Popover.Content
+                        padding="0px"
+                        h={{ base: "60dvh", lg: "70dvh", md: "70dvh" }}
+                        w={{ base: "98dvw", lg: "35dvw", md: "50dvw" }}
+                        rounded="10px"
+                        pt="10px"
+                    >
+
+                        <EmojiMappingUI onEmojiSelect={onEmojiSelect} />
                     </Popover.Content>
                 </Popover.Positioner>
             </Portal>
