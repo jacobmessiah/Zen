@@ -17,7 +17,7 @@ import {
   Text,
   type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import { useId, useState } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
 import { BiSolidPencil } from "react-icons/bi";
 import { BsRobot, BsThreeDots } from "react-icons/bs";
 import { FaSmile } from "react-icons/fa";
@@ -184,7 +184,7 @@ const MessageActionToolbar = ({
   messageActions,
   showMessageActionToolbar,
   handleForwardMessage,
-  onMenuSelectFunction, hasText, isMine
+  onMenuSelectFunction, hasText, isMine, emojiRef
 }: {
   handleInitiateReply: () => void;
   messageActions: MessageActionTranslations;
@@ -193,6 +193,7 @@ const MessageActionToolbar = ({
   onMenuSelectFunction: (event: MenuSelectionDetails) => void;
   hasText: boolean,
   isMine: boolean,
+  emojiRef: RefObject<HTMLDivElement | null>
 }) => {
   const quickReactArray = [
     { text: "👍", value: "👍" },
@@ -215,13 +216,13 @@ const MessageActionToolbar = ({
   };
 
   const triggerId = useId();
-
   const id = useId()
 
   return (
     <Float offsetX={{ base: "120px", lg: "150px" }}>
       <Flex
         opacity={showMessageActionToolbar ? "100%" : "0%"}
+        pointerEvents={showMessageActionToolbar ? "auto" : "none"}
         gap="2px"
         border="1px solid"
         borderColor="bg.emphasized"
@@ -266,6 +267,7 @@ const MessageActionToolbar = ({
           <Tooltip ids={{ trigger: id }} content={addReaction} {...tooltipProps}>
             <Popover.Trigger>
               <Flex
+                ref={emojiRef}
                 alignItems="center"
                 justifyContent="center"
                 w="30px"
@@ -442,6 +444,8 @@ const MessageItemContainer = ({
     message.status === "sending" &&
     (message.attachments?.length ?? 0) > 0;
 
+  const emojiRef = useRef<HTMLDivElement>(null)
+
   const handleShowForwardUIHelperFunc = () => {
     handleShowForwardUI(message);
   };
@@ -456,8 +460,16 @@ const MessageItemContainer = ({
     }
   };
 
+  const handleShowReactionUI = () => {
+    if (emojiRef.current) {
+      emojiRef.current.click()
+    }
+  }
+
   const handleMenuValueSelect = (event: MenuSelectionDetails) => {
     const value = event.value;
+
+    console.log(value)
 
     switch (value) {
       case "replyMessage":
@@ -472,12 +484,16 @@ const MessageItemContainer = ({
         break;
 
       case "copyText": handleCopyText(message); break
+
+      case "addReaction": handleShowReactionUI(); break
     }
   };
 
   const handleDisplayGifFullScreen = () => {
     disPlayGifFullScreen(message, senderProfile as IUser);
   };
+
+
 
   return (
     <Flex
@@ -632,6 +648,7 @@ const MessageItemContainer = ({
       </Flex>
 
       <MessageActionToolbar
+        emojiRef={emojiRef}
         hasText={hasText}
         isMine={isMine}
         onMenuSelectFunction={handleMenuValueSelect}

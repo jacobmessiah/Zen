@@ -416,7 +416,6 @@
   }
 }
 
-
 .galleryDeleteUI.count-1 > *:first-child:has(img) {
   display: flex;
   justify-content: center;
@@ -606,7 +605,7 @@
 .galleryDeleteUI.count-10 > *:nth-child(10) {
   grid-column: span 2;
   height: 105px;
-} 
+}
 
 input[type="range"] {
   -webkit-appearance: none;
@@ -789,4 +788,31 @@ input[type="range"]::-moz-range-thumb {
   top: 50%;
   transform: translateY(-50%);
   border-radius: 10px;
+}
+
+.emojiItem {
+  padding: 25px;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 45px;
+  height: 45px;
+  background-size: 41px;
+  border-radius: 8px;
+}
+
+.emojiItem {
+  border: none; /* Remove border */
+}
+
+.emojiItem:hover {
+  background-color: var(--chakra-colors-bg-emphasized);
+}
+
+.emojiItem:focus {
+  border: none;
+  outline: none;
+}
+
+.emojiItem:focus-visible {
+  outline: none;
 }

@@ -18,7 +18,7 @@ const MessageEmojiReactionUI = ({ children, id }: { children: React.ReactNode, i
             unmountOnExit
             ids={{ trigger: id }}
             lazyMount
-            positioning={{ placement: isMobile ? "bottom-start" : "left-end" }}
+            positioning={{ placement: isMobile ? "bottom-start" : "left-end", strategy: "fixed" }}
             size="xs"
             modal
         >
