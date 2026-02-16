@@ -25,7 +25,6 @@ const MessageTextRenderer = ({ text, }: { text: string, }) => {
         color: "gray.100",
       }}
       letterSpacing="0.01em"
-      pb="5px"
       userSelect="text"
       maxW="98%"
 
@@ -33,7 +32,7 @@ const MessageTextRenderer = ({ text, }: { text: string, }) => {
       {parts.map((part, index) => {
         if (part.match(emojiRegex)) {
           return (
-            <span key={index}  className="emojiContainer">
+            <span key={index} className="emojiContainer">
               <img
                 draggable={false}
                 onError={(e) => (e.currentTarget.style.display = "none")}
@@ -51,7 +50,7 @@ const MessageTextRenderer = ({ text, }: { text: string, }) => {
             </span>
           );
         } else if (part) {
-          return <span  key={index}>{part}</span>;
+          return <span key={index}>{part}</span>;
         }
         return null;
       })}

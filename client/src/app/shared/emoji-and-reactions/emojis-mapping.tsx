@@ -1,7 +1,7 @@
 import emojiArray, { type EmojiCategory } from "@/lib/emojiArray";
 import { getEmojiUrl } from "@/utils/chatFunctions";
 
-import { Flex, Grid, Image, Input, InputGroup, Text } from "@chakra-ui/react";
+import { Flex, Grid, Input, InputGroup, Text } from "@chakra-ui/react";
 import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
@@ -30,6 +30,7 @@ const EmojiCategoryItem = ({
   categoryText: string;
   onSelect: (emoji: string) => void;
 }) => {
+
   return (
     <Flex direction="column" px="8px" w="full">
       <Text>{categoryText}</Text>
@@ -40,8 +41,9 @@ const EmojiCategoryItem = ({
         gap="3px"
         alignItems="center"
       >
-        {emojiCategory.emojis.map((emoji) => (
+        {emojiCategory.emojis.map((emoji, index) => (
           <button
+            key={index}
             onClick={() => onSelect(emoji.value)}
             className="emojiItem"
             style={{

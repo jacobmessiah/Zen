@@ -4,12 +4,7 @@ import EmojiMappingUI from "./emojis-mapping";
 
 const MessageEmojiReactionUI = ({ children, id, handleReaction }: { children: React.ReactNode, id: string, handleReaction: (emoji: string) => void }) => {
 
-
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-
-
-
-
 
     return (
         <Popover.Root

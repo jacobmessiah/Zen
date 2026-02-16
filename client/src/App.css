@@ -816,3 +816,13 @@ input[type="range"]::-moz-range-thumb {
 .emojiItem:focus-visible {
   outline: none;
 }
+
+
+
+.reactionEmojiItem{
+  width: 25px;
+  height: 25px;
+  background-size: 20px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
