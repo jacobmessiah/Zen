@@ -53,6 +53,19 @@ type userChatStoreTypes = {
   }) => void;
 
   getReactionCount: (count: number, locale: string) => string;
+  addOrRemoveP2PMessageReaction: ({
+    messageId,
+    emoji,
+    conversationId,
+    userId,
+    username,
+  }: {
+    messageId: string;
+    emoji: string;
+    conversationId: string;
+    userId: string;
+    username: string;
+  }) => void;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
@@ -202,6 +215,67 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
       const m = count / 1000000;
       return `${new Intl.NumberFormat(locale, { maximumFractionDigits: m < 10 ? 1 : 0 }).format(m)}M`;
     }
+  },
+
+  addOrRemoveP2PMessageReaction: ({
+    messageId,
+    emoji,
+    username,
+    conversationId,
+    userId,
+  }) => {
+    const allMessages = get().storedMessages[conversationId] || [];
+
+    if (allMessages.length === 0) return;
+
+    const updatedMessages = allMessages.map((msg) => {
+      if (msg._id === messageId) {
+        const existingReactions = msg.reactions || {};
+        const emojiReactions = existingReactions[emoji] || [];
+
+        // Check if user already reacted with this emoji
+        const userAlreadyReacted = emojiReactions.some(
+          reaction => reaction.userId === userId
+        );
+
+        let updatedEmojiReactions;
+        if (userAlreadyReacted) {
+          // Remove user's reaction
+          updatedEmojiReactions = emojiReactions.filter(
+            reaction => reaction.userId !== userId
+          );
+        } else {
+          // Add user's reaction
+          updatedEmojiReactions = [
+            ...emojiReactions,
+            { userId, username }
+          ];
+        }
+
+        // Update reactions object
+        const updatedReactions = {
+          ...existingReactions,
+          [emoji]: updatedEmojiReactions
+        };
+
+        // Remove emoji key if no reactions left
+        if (updatedEmojiReactions.length === 0) {
+          delete updatedReactions[emoji];
+        }
+
+        return {
+          ...msg,
+          reactions: updatedReactions
+        };
+      } else return msg;
+    });
+
+    set((s) => ({
+      storedMessages: {
+        ...s.storedMessages,
+        [conversationId]: updatedMessages,
+      },
+    }));
   },
 }));
 
