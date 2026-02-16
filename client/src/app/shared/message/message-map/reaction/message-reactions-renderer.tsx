@@ -1,8 +1,12 @@
+
 import { Flex } from "@chakra-ui/react";
 
 // P2P
-const MessageReactionsRenderer = () => {
+const P2PMessageReactionsRenderer = ({ reactions }: { reactions: Record<string, { username: string; userId: string }[]> }) => {
+
+  console.log(reactions)
+
   return <Flex></Flex>;
 };
 
-export default MessageReactionsRenderer;
+export { P2PMessageReactionsRenderer };

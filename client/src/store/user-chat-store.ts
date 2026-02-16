@@ -51,6 +51,8 @@ type userChatStoreTypes = {
     messageId: string;
     ignoreDBDelete?: boolean;
   }) => void;
+
+  getReactionCount: (count: number, locale: string) => string;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
@@ -187,6 +189,18 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
       });
     } catch {
       console.log("Failed To Delete Message");
+    }
+  },
+
+  getReactionCount: (count: number, locale: string = "en"): string => {
+    if (count < 1000) {
+      return new Intl.NumberFormat(locale).format(count);
+    } else if (count < 1000000) {
+      const k = count / 1000;
+      return `${new Intl.NumberFormat(locale, { maximumFractionDigits: k < 10 ? 1 : 0 }).format(k)}K`;
+    } else {
+      const m = count / 1000000;
+      return `${new Intl.NumberFormat(locale, { maximumFractionDigits: m < 10 ? 1 : 0 }).format(m)}M`;
     }
   },
 }));

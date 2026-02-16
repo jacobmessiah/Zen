@@ -32,6 +32,7 @@ import MessageAttachmentRenderer from "./message-attachment-render";
 import { Tooltip } from "@/components/ui/tooltip";
 import MessageGifRender from "./message-gif-render";
 import MessageEmojiReactionUI from "../../emoji-and-reactions/message-emoji-reaction";
+import { P2PMessageReactionsRenderer } from "./reaction/message-reactions-renderer";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -47,15 +48,14 @@ const scrollCSS = {
   },
 };
 
-const MessageActionMenuItems = ({
-  messageActions,
-  isMine,
-  hasText,
-}: {
+interface IMessageActionMenuItemsProps {
   messageActions: MessageActionTranslations;
   isMine: boolean;
   hasText: boolean;
-}) => {
+}
+
+const MessageActionMenuItems = (props: IMessageActionMenuItemsProps) => {
+  const { messageActions, isMine, hasText } = props;
   const quickReactArray = [
     { text: "👍", value: "👍" },
     { text: "❤️", value: "❤️" },
@@ -179,22 +179,28 @@ const MessageActionMenuItems = ({
   );
 };
 
-const MessageActionToolbar = ({
-  handleInitiateReply,
-  messageActions,
-  showMessageActionToolbar,
-  handleForwardMessage,
-  onMenuSelectFunction, hasText, isMine, emojiRef
-}: {
+interface IMessageActionToolbarProps {
   handleInitiateReply: () => void;
   messageActions: MessageActionTranslations;
   showMessageActionToolbar: boolean;
   handleForwardMessage: () => void;
   onMenuSelectFunction: (event: MenuSelectionDetails) => void;
-  hasText: boolean,
-  isMine: boolean,
-  emojiRef: RefObject<HTMLDivElement | null>
-}) => {
+  hasText: boolean;
+  isMine: boolean;
+  emojiRef: RefObject<HTMLDivElement | null>;
+}
+
+const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
+  const {
+    handleInitiateReply,
+    messageActions,
+    showMessageActionToolbar,
+    handleForwardMessage,
+    onMenuSelectFunction,
+    hasText,
+    isMine,
+    emojiRef
+  } = props;
   const quickReactArray = [
     { text: "👍", value: "👍" },
     { text: "❤️", value: "❤️" },
@@ -396,20 +402,7 @@ const MessageActionToolbar = ({
   );
 };
 
-const MessageItemContainer = ({
-  senderProfile,
-  message,
-  showSimpleStyle,
-  messageActions,
-  isMine,
-  getUploadingFilesText,
-  forwardText,
-  disPlayGifFullScreen,
-  handleInitiateReply,
-  openAttFullScreen,
-  handleShowForwardUI,
-  handleShowDeleteUI, handleCopyText
-}: {
+interface IMessageItemProps {
   senderProfile: IUser | undefined;
   message: IMessage;
   showSimpleStyle: boolean;
@@ -430,7 +423,22 @@ const MessageItemContainer = ({
   }) => void;
   handleShowForwardUI: (message: IMessage) => void;
   handleShowDeleteUI: (message: IMessage) => void; handleCopyText: (message: IMessage) => void
-}) => {
+}
+
+const MessageItemContainer = (props: IMessageItemProps) => {
+  const { senderProfile,
+    message,
+    showSimpleStyle,
+    messageActions,
+    isMine,
+    getUploadingFilesText,
+    forwardText,
+    disPlayGifFullScreen,
+    handleInitiateReply,
+    openAttFullScreen,
+    handleShowForwardUI,
+    handleShowDeleteUI, handleCopyText } = props
+
   const hasText =
     message.type === "default" &&
     !!message.text &&
@@ -469,7 +477,7 @@ const MessageItemContainer = ({
   const handleMenuValueSelect = (event: MenuSelectionDetails) => {
     const value = event.value;
 
-    console.log(value)
+
 
     switch (value) {
       case "replyMessage":
@@ -636,6 +644,8 @@ const MessageItemContainer = ({
                   disPlayGifFullScreen={handleDisplayGifFullScreen}
                 />
               )}
+
+              {message.reactions && Object.keys(message.reactions).length > 0 && <P2PMessageReactionsRenderer reactions={message.reactions} />}
             </Flex>
           </Menu.ContextTrigger>
 
