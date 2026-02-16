@@ -6,7 +6,7 @@ const P2PMessageReactionsRenderer = ({ reactions }: { reactions: Record<string, 
 
   console.log(reactions)
 
-  return <Flex></Flex>;
+  return <Flex w="full" bg="red"  >REACTIONS</Flex>;
 };
 
 export { P2PMessageReactionsRenderer };

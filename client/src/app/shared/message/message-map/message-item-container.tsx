@@ -188,6 +188,7 @@ interface IMessageActionToolbarProps {
   hasText: boolean;
   isMine: boolean;
   emojiRef: RefObject<HTMLDivElement | null>;
+  handleReaction: (emoji: string) => void;
 }
 
 const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
@@ -199,7 +200,8 @@ const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
     onMenuSelectFunction,
     hasText,
     isMine,
-    emojiRef
+    emojiRef,
+    handleReaction
   } = props;
   const quickReactArray = [
     { text: "👍", value: "👍" },
@@ -222,7 +224,7 @@ const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
   };
 
   const triggerId = useId();
-  const id = useId()
+  const id = useId();
 
   return (
     <Float offsetX={{ base: "120px", lg: "150px" }}>
@@ -269,7 +271,7 @@ const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
         <Separator ml="2px" mr="2px" orientation="vertical" h="5" />
 
         {/*Reaction */}
-        <MessageEmojiReactionUI id={id} >
+        <MessageEmojiReactionUI handleReaction={handleReaction} id={id} >
           <Tooltip ids={{ trigger: id }} content={addReaction} {...tooltipProps}>
             <Popover.Trigger>
               <Flex
@@ -402,6 +404,10 @@ const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
   );
 };
 
+interface handleReactionAddOrRemoveProps {
+  messageId: string, conversationId: string, emoji: string
+}
+
 interface IMessageItemProps {
   senderProfile: IUser | undefined;
   message: IMessage;
@@ -423,7 +429,11 @@ interface IMessageItemProps {
   }) => void;
   handleShowForwardUI: (message: IMessage) => void;
   handleShowDeleteUI: (message: IMessage) => void; handleCopyText: (message: IMessage) => void
+  handleReact: (props: handleReactionAddOrRemoveProps) => void
+
 }
+
+
 
 const MessageItemContainer = (props: IMessageItemProps) => {
   const { senderProfile,
@@ -437,7 +447,7 @@ const MessageItemContainer = (props: IMessageItemProps) => {
     handleInitiateReply,
     openAttFullScreen,
     handleShowForwardUI,
-    handleShowDeleteUI, handleCopyText } = props
+    handleShowDeleteUI, handleCopyText, handleReact } = props
 
   const hasText =
     message.type === "default" &&
@@ -500,6 +510,10 @@ const MessageItemContainer = (props: IMessageItemProps) => {
   const handleDisplayGifFullScreen = () => {
     disPlayGifFullScreen(message, senderProfile as IUser);
   };
+
+  const handleOnReact = (emoji: string) => {
+    handleReact({ messageId: message._id, conversationId: message.conversationId, emoji })
+  }
 
 
 
@@ -658,6 +672,7 @@ const MessageItemContainer = (props: IMessageItemProps) => {
       </Flex>
 
       <MessageActionToolbar
+        handleReaction={handleOnReact}
         emojiRef={emojiRef}
         hasText={hasText}
         isMine={isMine}

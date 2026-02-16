@@ -2,15 +2,13 @@ import { Popover, Portal, } from "@chakra-ui/react"
 import EmojiMappingUI from "./emojis-mapping";
 
 
-const MessageEmojiReactionUI = ({ children, id }: { children: React.ReactNode, id: string }) => {
+const MessageEmojiReactionUI = ({ children, id, handleReaction }: { children: React.ReactNode, id: string, handleReaction: (emoji: string) => void }) => {
 
 
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
 
-    const onEmojiSelect = (emoji: string) => {
-        console.log(emoji)
-    }
+
 
 
     return (
@@ -34,7 +32,7 @@ const MessageEmojiReactionUI = ({ children, id }: { children: React.ReactNode, i
                         pt="10px"
                     >
 
-                        <EmojiMappingUI onEmojiSelect={onEmojiSelect} />
+                        <EmojiMappingUI onEmojiSelect={handleReaction} />
                     </Popover.Content>
                 </Popover.Positioner>
             </Portal>
