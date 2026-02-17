@@ -515,6 +515,8 @@ const MessageItemContainer = (props: IMessageItemProps) => {
   }
 
 
+  const hasReactions = message.reactions && Object.keys(message.reactions).length > 0
+
 
   return (
     <Flex
@@ -571,8 +573,8 @@ const MessageItemContainer = (props: IMessageItemProps) => {
         )}
 
         {showSimpleStyle && !message.isReplied && showMessageActionToolbar && (
-          <Text userSelect="none" cursor="pointer" fontSize="xs">
-            {formatDateSimpleStyle(message.createdAt)}{" "}
+          <Text userSelect="none" cursor="pointer" color="fg.muted" fontWeight="500" fontSize="xs">
+            {formatDateSimpleStyle(message.createdAt)}
           </Text>
         )}
       </Flex>
@@ -614,9 +616,9 @@ const MessageItemContainer = (props: IMessageItemProps) => {
             <Flex
               className={message.isForwarded ? "forwardMsg" : ""}
               direction="column"
-              pt={showSimpleStyle && !message.isReplied ? "5px" : ""}
-              w="full" 
-             
+              pb={showSimpleStyle ? hasReactions ? "5px" : "2.5px" : "3px"}
+              w="full"
+
             >
               {message.isForwarded && (
                 <Flex
@@ -659,7 +661,9 @@ const MessageItemContainer = (props: IMessageItemProps) => {
                 />
               )}
 
-              {message.reactions && Object.keys(message.reactions).length > 0 && <P2PMessageReactionsRenderer reactions={message.reactions} />}
+              {message.reactions && Object.keys(message.reactions).length > 0 &&
+                <P2PMessageReactionsRenderer handleReaction={handleOnReact} reactions={message.reactions} />
+              }
             </Flex>
           </Menu.ContextTrigger>
 
