@@ -4,7 +4,7 @@ import { Flex, Text } from "@chakra-ui/react";
 
 // P2P
 const P2PMessageReactionsRenderer = ({ reactions }: { reactions: Record<string, { username: string; userId: string }[]> }) => {
-  return <Flex w="full"   >
+  return <Flex w="full" maxW="full" flexWrap="wrap" gap="5px"  >
     {Object.entries(reactions).map((reaction, index) => {
       return (
         <Flex
@@ -16,14 +16,13 @@ const P2PMessageReactionsRenderer = ({ reactions }: { reactions: Record<string, 
           bg="bg.emphasized"
           key={index} rounded="8px"
           _hover={{
-            border: "1px solid",
-            borderColor: { _light: "gray.300", _dark: "gray.600" }
+            outline: "1px solid",
+            outlineColor: { _light: "gray.300", _dark: "gray.600" }
           }}
-
         >
           <div style={{ backgroundImage: `url(${getEmojiUrl(reaction[0])})` }} className="reactionEmojiItem">
           </div>
-          <Text>{reaction[1].length}</Text>
+          <Text color="fg.muted" fontWeight="600" >{reaction[1].length}</Text>
         </Flex>
       )
 

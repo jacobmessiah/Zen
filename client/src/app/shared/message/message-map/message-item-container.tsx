@@ -241,6 +241,7 @@ const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
       >
         {quickReactArray.map((emoji, index) => (
           <Flex
+            onClick={() => handleReaction(emoji.value)}
             key={index}
             alignItems="center"
             justifyContent="center"
@@ -433,8 +434,6 @@ interface IMessageItemProps {
 
 }
 
-
-
 const MessageItemContainer = (props: IMessageItemProps) => {
   const { senderProfile,
     message,
@@ -616,7 +615,8 @@ const MessageItemContainer = (props: IMessageItemProps) => {
               className={message.isForwarded ? "forwardMsg" : ""}
               direction="column"
               pt={showSimpleStyle && !message.isReplied ? "5px" : ""}
-              w="full"
+              w="full" 
+             
             >
               {message.isForwarded && (
                 <Flex
@@ -632,8 +632,8 @@ const MessageItemContainer = (props: IMessageItemProps) => {
                   <Text>{forwardText}</Text>
                 </Flex>
               )}
-              {message.type === "default" && !isUploading && message.text && (
-                <MessageTextRenderer text={message.text} />
+              {message.type === "default" && !isUploading && hasText && (
+                <MessageTextRenderer text={message.text!} />
               )}
 
               {isUploading && message.attachments && (
