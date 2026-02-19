@@ -47,7 +47,7 @@ export interface BaseMessage {
   isForwarded?: boolean;
   createdAt: string;
   updatedAt: string;
-  reactions?: Record<string, { username: string; userId: string }[]>;
+  reactions?: Record<string, { _id: string; username: string }[]>;
 }
 
 export type ImageMimeType =

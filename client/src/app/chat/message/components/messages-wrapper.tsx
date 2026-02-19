@@ -37,6 +37,7 @@ const MessagesWrapper = () => {
   );
   const displayMessages = useConversationMessages(selectedConversation?._id)
   const authUser = userAuthStore((state) => state.authUser);
+  const addOrRemoveP2PMessageReaction = userChatStore.getState().addOrRemoveP2PMessageReaction
 
   const { t: translate } = useTranslation(["chat"]);
 
@@ -200,6 +201,36 @@ const MessagesWrapper = () => {
     });
   };
 
+  const handleCopyText = (message: IMessage) => {
+    if (message.type !== "default") return
+    const text = message.text
+
+    if (text && text.length > 0) {
+
+      if (navigator.clipboard) {
+        try {
+          navigator.clipboard.writeText(text)
+        } catch (error) {
+          console.log("Failed To Log Text Error --->", (error as Error).message)
+        }
+      }
+    }
+
+  }
+
+
+
+  interface handleReactionAddOrRemoveProps {
+    messageId: string, conversationId: string, emoji: string
+  }
+
+  const handleReact = (props: handleReactionAddOrRemoveProps) => {
+    const { messageId, conversationId, emoji } = props
+    if (!authUser) return
+    addOrRemoveP2PMessageReaction({ messageId, conversationId, userId: authUser._id, emoji, username: authUser.username })
+  }
+
+
   return (
     <Flex
       flex={1}
@@ -258,6 +289,8 @@ const MessagesWrapper = () => {
             )}
 
             <MessageItemContainer
+              handleReact={handleReact}
+              handleCopyText={handleCopyText}
               handleShowDeleteUI={handleShowDeleteUI}
               handleShowForwardUI={handleShowForwardUI}
               openAttFullScreen={openAttFullScreen}

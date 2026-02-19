@@ -2,7 +2,7 @@ import { getEmojiUrl } from "@/utils/chatFunctions";
 import { Box } from "@chakra-ui/react";
 import { memo } from "react";
 
-const MessageTextRenderer = ({ text }: { text: string }) => {
+const MessageTextRenderer = ({ text, }: { text: string, }) => {
   const emojiRegex =
     /(\p{RI}\p{RI}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F)(?:\u200D(?:\p{Emoji_Presentation}|\p{Emoji}\uFE0F))*/gu;
 
@@ -25,13 +25,14 @@ const MessageTextRenderer = ({ text }: { text: string }) => {
         color: "gray.100",
       }}
       letterSpacing="0.01em"
-      pb="5px"
       userSelect="text"
+      maxW="98%"
+
     >
       {parts.map((part, index) => {
         if (part.match(emojiRegex)) {
           return (
-            <span className="emojiContainer">
+            <span key={index} className="emojiContainer">
               <img
                 draggable={false}
                 onError={(e) => (e.currentTarget.style.display = "none")}

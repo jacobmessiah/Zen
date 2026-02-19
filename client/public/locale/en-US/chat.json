@@ -35,7 +35,6 @@
     "editMessage": "Edit Message",
     "replyMessage": "Reply ",
     "forwardMessage": "Forward ",
-    "speakText": "Speak Text",
     "copyText": "Copy Text",
     "deleteMessage": "Delete Message",
     "moreText": "More"
@@ -211,5 +210,9 @@
     "descriptionText": "Are you sure you want to delete this message?",
     "cancelText": "Cancel",
     "deleteText": "Delete"
+  },
+  "EditMessageTextUI": {
+    "headerText": "Edit Text",
+    "descriptionText": "Make changes to text"
   }
 }

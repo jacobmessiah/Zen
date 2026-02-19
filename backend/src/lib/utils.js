@@ -3,18 +3,6 @@ import ipLocate from "node-iplocate";
 import { UAParser } from "ua-parser-js";
 import Session from "../model/sessionModel.js";
 
-const generateJwtToken = (userId, res) => {
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-  res.cookie("ZenChattyVerb", token, {
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-    sameSite: "Strict",
-    httpOnly: true,
-    secure: process.env.NODE_ENV !== "development",
-  });
-};
-
 export const ipLookupClient = new ipLocate(process.env.IP_LOCATE_API_KEY || "");
 
 export const generateCookieAndSession = async (req, userId) => {
@@ -29,7 +17,7 @@ export const generateCookieAndSession = async (req, userId) => {
 
     //Note always add a temp ip in development when creating a cookie
     const ipLocate = await ipLookupClient.lookup(
-      "2c0f:2a80:a2c:d510:f993:4985:c488:541c"
+      "2c0f:2a80:a2c:d510:f993:4985:c488:541c",
     );
 
     const isUnknownLocation =
@@ -40,7 +28,7 @@ export const generateCookieAndSession = async (req, userId) => {
 
     if (isUnknownLocation) {
       console.log(
-        `Cookie Generation Failed Reason -->  Unknown location for IP --> ${ip}`
+        `Cookie Generation Failed Reason -->  Unknown location for IP --> ${ip}`,
       );
 
       return {
@@ -76,15 +64,15 @@ export const generateCookieAndSession = async (req, userId) => {
       { userId, sessionId: newSession._id.toString() },
       process.env.JWT_SECRET,
       {
-        expiresIn: "7d",
-      }
+        expiresIn: "30d", 
+      },
     );
 
     return { token, isError: false, errorMessage: "" };
   } catch (error) {
     console.log(
       "Error on #generateCookieAndSession #utils.js",
-      error?.message || error
+      error?.message || error,
     );
     return {
       token: null,
@@ -93,5 +81,3 @@ export const generateCookieAndSession = async (req, userId) => {
     };
   }
 };
-
-export default generateJwtToken;

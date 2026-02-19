@@ -32,6 +32,7 @@ const SYNC_TYPES = {
 } as const;
 
 const deleteMessage = userChatStore.getState().deleteMessage;
+const addOrRemoveP2PMessageReaction = userChatStore.getState().addOrRemoveP2PMessageReaction
 
 export const handleSyncRemove = (arg: SYNC_ARGUMENTS) => {
   switch (arg.type) {
@@ -63,5 +64,39 @@ export const handleSyncAdd = (arg: SYNC_ARGUMENTS) => {
       if (arg.connectionData) {
         SYNC_CONNECTIONS(arg.connectionData, arg.documentId);
       }
+  }
+};
+
+type ReactArgs = {
+  messageId: string;
+  emoji: string;
+  reactedBy: string;
+  reactedByUsername: string;
+  type: "react";
+  conversationId: string;
+};
+
+type justArg = {
+  type: "fornow";
+  payload: "foo bar";
+};
+
+type handleSyncUpdateArgs = ReactArgs | justArg;
+
+export const handleSyncUpdate = (args: handleSyncUpdateArgs) => {
+  switch (args.type) {
+    case "react":
+      addOrRemoveP2PMessageReaction({
+        messageId: args.messageId,
+        conversationId: args.conversationId,
+        emoji: args.emoji,
+        userId: args.reactedBy,
+        username: args.reactedByUsername,
+        persistToServer: false,
+      });
+      break;
+
+    case "fornow":
+      break;
   }
 };

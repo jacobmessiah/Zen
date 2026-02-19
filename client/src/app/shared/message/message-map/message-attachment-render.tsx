@@ -712,6 +712,9 @@ const AudioAttachment = ({
           }}
           onEnded={() => {
             setAudioDetails((p) => ({ ...p, isPlaying: false, currentTime: 0 }));
+            if (sliderRef.current) {
+              sliderRef.current.value = "0";
+            }
           }}
           ref={audioRef}
           src={url}

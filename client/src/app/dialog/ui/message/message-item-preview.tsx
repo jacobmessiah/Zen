@@ -36,7 +36,7 @@ const MessageTextRenderer = ({ text }: { text: string }) => {
       }}
       letterSpacing="0.01em"
       pb="5px"
-      userSelect="text"
+      userSelect="none"
     >
       {parts.map((part, index) => {
         if (part.match(emojiRegex)) {
@@ -507,7 +507,7 @@ const MessageItemPreview = ({
 
       <Flex w="full" direction="column">
         <Flex gap="5px" alignItems="center">
-          <Text cursor="pointer" color="fg.muted" fontWeight="600">
+          <Text color="fg.muted" fontWeight="600" userSelect="none">
             {senderProfile?.displayName || "Deleted User"}
           </Text>
 
@@ -523,7 +523,7 @@ const MessageItemPreview = ({
           </ShowFullTimeStampTooltip>
         </Flex>
 
-        <Flex w="full" direction="column"  >
+        <Flex w="full" direction="column" pointerEvents="none" userSelect="none">
           {message.type === "default" && message.text && message.text.length > 0 && <MessageTextRenderer text={message.text} />}
           {message.type === "default" && message.attachments && message.attachments.length > 0 && <MessageAttachmentsRender language={
             language} attachments={message.attachments} />}

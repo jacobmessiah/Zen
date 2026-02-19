@@ -351,7 +351,7 @@ export const sendMessage = (
     }
 
     // Add Text if Any
-    if (inputValue && inputValue.trim().length > 1) {
+    if (inputValue && inputValue.trim().length > 0) {
       newMessage.text = inputValue;
     }
 

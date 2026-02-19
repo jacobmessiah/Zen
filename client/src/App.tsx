@@ -17,8 +17,9 @@ import SpacesContainer from "./app/spaces/spaces-container";
 import {
   handleEventAdd,
   handleEventRemove,
+  handleEventUpdate,
 } from "./utils/socket-listener/socket-handler";
-import { handleSyncAdd, handleSyncRemove } from "./utils/sync/sync";
+import { handleSyncAdd, handleSyncRemove, handleSyncUpdate } from "./utils/sync/sync";
 import MessageContainer, {
   NoConversationSelectedUI,
 } from "./app/chat/message/message-container";
@@ -46,6 +47,8 @@ const App = () => {
     socket.on("EVENT:REMOVE", handleEventRemove);
     socket.on("SYNC:REMOVE", handleSyncRemove);
     socket.on("SYNC:ADD", handleSyncAdd);
+    socket.on("SYNC:UPDATE", handleSyncUpdate)
+    socket.on("EVENT:UPDATE", handleEventUpdate)
 
     return () => {
       if (!socket) return;
@@ -54,6 +57,8 @@ const App = () => {
       socket.off("EVENT:REMOVE", handleEventRemove);
       socket.off("SYNC:REMOVE", handleSyncRemove);
       socket.off("SYNC:ADD", handleSyncAdd);
+      socket.off("SYNC:UPDATE", handleSyncUpdate)
+      socket.off("EVENT:UPDATE", handleEventUpdate)
     };
   }, [socket, authUser]);
 

@@ -1,11 +1,31 @@
-import emojiArray, { type EmojiCategory } from "@/lib/emojiArray";
 import { getEmojiUrl } from "@/utils/chatFunctions";
 
-import { Flex, Grid, Image, Input, InputGroup, Text } from "@chakra-ui/react";
-import { useState, type ChangeEvent } from "react";
+import { Flex, Grid, Input, InputGroup, Text } from "@chakra-ui/react";
+import { useState, useEffect, useMemo, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { RiEmotionSadLine } from "react-icons/ri";
+
+// Lazy load emoji data to reduce initial bundle size
+let emojiData: any = null;
+const loadEmojiData = async () => {
+  if (!emojiData) {
+    const module = await import("@/lib/emojiArray");
+    emojiData = module.default;
+  }
+  return emojiData;
+};
+
+interface EmojiCategory {
+  categoryText: string;
+  value: string;
+  emojis: Array<{
+    text: string;
+    shortCode: string;
+    value: string;
+    searchKeywords: string[];
+  }>;
+}
 
 const scrollYCss = {
   scrollBehavior: "smooth",
@@ -30,33 +50,26 @@ const EmojiCategoryItem = ({
   categoryText: string;
   onSelect: (emoji: string) => void;
 }) => {
+
   return (
     <Flex direction="column" px="8px" w="full">
       <Text>{categoryText}</Text>
 
       <Grid
         w="full"
-        templateColumns={{ base: "repeat(7, 1fr)", lg: "repeat(9, 1fr)" }}
-        gap="10px"
+        templateColumns={{ base: "repeat(7, 1fr)", lg: "repeat(8, 1fr)" }}
+        gap="3px"
         alignItems="center"
       >
-        {emojiCategory.emojis.map((emoji) => (
-          <Flex
+        {emojiCategory.emojis.map((emoji, index) => (
+          <button
+            key={index}
             onClick={() => onSelect(emoji.value)}
-            key={emoji.shortCode.trim()}
-            cursor="pointer"
-            rounded="sm"
-            boxSize="35px"
-            alignItems="center"
-            justifyContent="center"
-          >
-            <Image
-              loading="lazy"
-              w="30px"
-              h="30px"
-              src={getEmojiUrl(emoji.value)}
-            />
-          </Flex>
+            className="emojiItem"
+            style={{
+              backgroundImage: `url(${getEmojiUrl(emoji.value)})`,
+            }}
+          />
         ))}
       </Grid>
     </Flex>
@@ -70,7 +83,66 @@ const EmojiMappingUI = ({
   showSearchBar?: boolean;
   onEmojiSelect: (emoji: string) => void;
 }) => {
-  const [emojisToMap, setEmojisToMap] = useState<EmojiCategory[]>(emojiArray);
+  const [emojisToMap, setEmojisToMap] = useState<EmojiCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Load emoji data on mount
+  useEffect(() => {
+    const loadEmojis = async () => {
+      try {
+        const data = await loadEmojiData();
+        setEmojisToMap(data);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to load emoji data:", error);
+        setIsLoading(false);
+      }
+    };
+    loadEmojis();
+  }, []);
+
+  // Debounced search with useMemo for performance
+  const filteredEmojis = useMemo(() => {
+    if (!searchQuery.trim()) return emojisToMap;
+
+    const normalizedQuery = searchQuery.toLowerCase().trim();
+
+    return emojisToMap
+      .map((category: EmojiCategory) => {
+        const matchedEmojis = category.emojis.filter((emoji: any) => {
+          // Search by shortCode
+          const shortCodeMatch = emoji.shortCode.toLowerCase().includes(normalizedQuery);
+
+          // Search by emoji text (the actual emoji character)
+          const textMatch = emoji.text.includes(searchQuery);
+
+          // Search by category name
+          const categoryMatch = category.value.toLowerCase().includes(normalizedQuery) ||
+            category.categoryText.toLowerCase().includes(normalizedQuery);
+
+          // Search by keywords from the emoji array
+          const keywords = emoji.searchKeywords || [];
+          const keywordMatch = keywords.some((keyword: string) =>
+            keyword.toLowerCase().includes(normalizedQuery)
+          );
+
+          // Search by removing colons from shortCode (for users who type without colons)
+          const shortCodeNoColon = emoji.shortCode.replace(/:/g, '').toLowerCase();
+          const shortCodeNoColonMatch = shortCodeNoColon.includes(normalizedQuery.replace(/:/g, ''));
+
+          return shortCodeMatch || textMatch || categoryMatch || keywordMatch || shortCodeNoColonMatch;
+        });
+
+        if (matchedEmojis.length === 0) return null;
+
+        return {
+          ...category,
+          emojis: matchedEmojis,
+        };
+      })
+      .filter((category): category is EmojiCategory => category !== null);
+  }, [searchQuery, emojisToMap]);
 
   const { t: translate } = useTranslation(["chat"]);
 
@@ -81,35 +153,34 @@ const EmojiMappingUI = ({
     noSearchResults: string;
   };
 
-  const searchEmoji = (query: string) => {
-    const searchResults = emojiArray
-      .map((category) => {
-        const matchedEmojis = category.emojis.filter((emoji) =>
-          emoji.shortCode.includes(query),
-        );
+  // Debounced search handler
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Search is handled by useMemo above
+    }, 300); // 300ms debounce
 
-        if (matchedEmojis.length === 0) return null;
-
-        return {
-          ...category,
-          emojis: matchedEmojis,
-        };
-      })
-      .filter((category): category is EmojiCategory => category !== null);
-
-    setEmojisToMap(searchResults);
-  };
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleSearchInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const rawValue = event.target.value;
-    const query = rawValue.trim();
-
-    if (query.length === 0) {
-      setEmojisToMap(emojiArray);
-      return;
-    }
-    searchEmoji(query);
+    setSearchQuery(event.target.value);
   };
+
+  if (isLoading) {
+    return (
+      <Flex h="100%" w="100%" alignItems="center" justifyContent="center" color="fg.muted">
+        <Flex
+          w="40px"
+          h="40px"
+          borderRadius="50%"
+          border="3px solid"
+          borderColor="bg.muted"
+          borderTopColor="fg.default"
+          animation="spin 1s linear infinite"
+        />
+      </Flex>
+    );
+  }
 
   return (
     <Flex
@@ -143,8 +214,8 @@ const EmojiMappingUI = ({
         py="10px"
         css={scrollYCss}
       >
-        {emojisToMap.length > 0 &&
-          emojisToMap.map((category) => {
+        {filteredEmojis.length > 0 &&
+          filteredEmojis.map((category) => {
             return (
               <EmojiCategoryItem
                 key={category.value}
@@ -155,7 +226,7 @@ const EmojiMappingUI = ({
             );
           })}
 
-        {emojisToMap.length === 0 && (
+        {filteredEmojis.length === 0 && (
           <Flex
             justifyContent="center"
             alignItems="center"

@@ -11,16 +11,17 @@ import {
   Float,
   Image,
   Menu,
+  Popover,
   Portal,
   Separator,
   Text,
   type MenuSelectionDetails,
 } from "@chakra-ui/react";
-import { useId, useState } from "react";
+import { useId, useRef, useState, type RefObject } from "react";
 import { BiSolidPencil } from "react-icons/bi";
 import { BsRobot, BsThreeDots } from "react-icons/bs";
 import { FaSmile } from "react-icons/fa";
-import { HiReply, HiSpeakerphone } from "react-icons/hi";
+import { HiReply, } from "react-icons/hi";
 import { IoCopy } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { P2PMessageReplyUI } from "./message-reply-ui";
@@ -30,6 +31,8 @@ import UploadingFilesUI from "../uploading-files-ui";
 import MessageAttachmentRenderer from "./message-attachment-render";
 import { Tooltip } from "@/components/ui/tooltip";
 import MessageGifRender from "./message-gif-render";
+import MessageEmojiReactionUI from "../../emoji-and-reactions/message-emoji-reaction";
+import { P2PMessageReactionsRenderer } from "./reaction/message-reactions-renderer";
 
 const scrollCSS = {
   scrollBehavior: "smooth",
@@ -45,15 +48,14 @@ const scrollCSS = {
   },
 };
 
-const MessageActionMenuItems = ({
-  messageActions,
-  isMine,
-  hasText,
-}: {
+interface IMessageActionMenuItemsProps {
   messageActions: MessageActionTranslations;
   isMine: boolean;
   hasText: boolean;
-}) => {
+}
+
+const MessageActionMenuItems = (props: IMessageActionMenuItemsProps) => {
+  const { messageActions, isMine, hasText } = props;
   const quickReactArray = [
     { text: "👍", value: "👍" },
     { text: "❤️", value: "❤️" },
@@ -68,7 +70,6 @@ const MessageActionMenuItems = ({
     copyText,
     addReaction,
     editMessage,
-    speakText,
   } = messageActions;
 
   return (
@@ -144,7 +145,6 @@ const MessageActionMenuItems = ({
           {hasText && (
             <>
               <Menu.Separator />
-
               <Menu.Item
                 p="10px"
                 color="fg.muted"
@@ -153,18 +153,6 @@ const MessageActionMenuItems = ({
                 value="copyText"
               >
                 <Text color="fg">{copyText}</Text> <IoCopy size={18} />
-              </Menu.Item>
-
-              {/*Speak Text */}
-
-              <Menu.Item
-                p="10px"
-                color="fg.muted"
-                justifyContent="space-between"
-                rounded="md"
-                value="speakText"
-              >
-                <Text color="fg">{speakText}</Text> <HiSpeakerphone size={18} />
               </Menu.Item>
             </>
           )}
@@ -191,19 +179,30 @@ const MessageActionMenuItems = ({
   );
 };
 
-const MessageActionToolbar = ({
-  handleInitiateReply,
-  messageActions,
-  showMessageActionToolbar,
-  handleForwardMessage,
-  onMenuSelectFunction,
-}: {
+interface IMessageActionToolbarProps {
   handleInitiateReply: () => void;
   messageActions: MessageActionTranslations;
   showMessageActionToolbar: boolean;
   handleForwardMessage: () => void;
   onMenuSelectFunction: (event: MenuSelectionDetails) => void;
-}) => {
+  hasText: boolean;
+  isMine: boolean;
+  emojiRef: RefObject<HTMLDivElement | null>;
+  handleReaction: (emoji: string) => void;
+}
+
+const MessageActionToolbar = (props: IMessageActionToolbarProps) => {
+  const {
+    handleInitiateReply,
+    messageActions,
+    showMessageActionToolbar,
+    handleForwardMessage,
+    onMenuSelectFunction,
+    hasText,
+    isMine,
+    emojiRef,
+    handleReaction
+  } = props;
   const quickReactArray = [
     { text: "👍", value: "👍" },
     { text: "❤️", value: "❤️" },
@@ -225,11 +224,13 @@ const MessageActionToolbar = ({
   };
 
   const triggerId = useId();
+  const id = useId();
 
   return (
     <Float offsetX={{ base: "120px", lg: "150px" }}>
       <Flex
         opacity={showMessageActionToolbar ? "100%" : "0%"}
+        pointerEvents={showMessageActionToolbar ? "auto" : "none"}
         gap="2px"
         border="1px solid"
         borderColor="bg.emphasized"
@@ -240,6 +241,7 @@ const MessageActionToolbar = ({
       >
         {quickReactArray.map((emoji, index) => (
           <Flex
+            onClick={() => handleReaction(emoji.value)}
             key={index}
             alignItems="center"
             justifyContent="center"
@@ -270,32 +272,36 @@ const MessageActionToolbar = ({
         <Separator ml="2px" mr="2px" orientation="vertical" h="5" />
 
         {/*Reaction */}
-
-        <Tooltip content={addReaction} {...tooltipProps}>
-          <Flex
-            alignItems="center"
-            justifyContent="center"
-            w="30px"
-            h="30px"
-            p="3px"
-            bg="transparent"
-            _hover={{ bg: "bg.muted" }}
-            transition="0.2s ease"
-            rounded="sm"
-            className="group"
-            cursor="pointer"
-          >
-            <Flex
-              as={FaSmile}
-              fontSize="20px"
-              color="fg.muted"
-              transition="transform 0.1s ease"
-              _groupHover={{
-                transform: "scale(1.1)",
-              }}
-            />
-          </Flex>
-        </Tooltip>
+        <MessageEmojiReactionUI handleReaction={handleReaction} id={id} >
+          <Tooltip ids={{ trigger: id }} content={addReaction} {...tooltipProps}>
+            <Popover.Trigger>
+              <Flex
+                ref={emojiRef}
+                alignItems="center"
+                justifyContent="center"
+                w="30px"
+                h="30px"
+                p="3px"
+                bg="transparent"
+                _hover={{ bg: "bg.muted" }}
+                transition="0.2s ease"
+                rounded="sm"
+                className="group"
+                cursor="pointer"
+              >
+                <Flex
+                  as={FaSmile}
+                  fontSize="20px"
+                  color="fg.muted"
+                  transition="transform 0.1s ease"
+                  _groupHover={{
+                    transform: "scale(1.1)",
+                  }}
+                />
+              </Flex>
+            </Popover.Trigger>
+          </Tooltip>
+        </MessageEmojiReactionUI>
 
         {/*Reply */}
         <Tooltip {...tooltipProps} content={replyMessage}>
@@ -389,8 +395,8 @@ const MessageActionToolbar = ({
             </Menu.Trigger>
           </Tooltip>
           <MessageActionMenuItems
-            hasText
-            isMine
+            hasText={hasText}
+            isMine={isMine}
             messageActions={messageActions}
           />
         </Menu.Root>
@@ -399,20 +405,11 @@ const MessageActionToolbar = ({
   );
 };
 
-const MessageItemContainer = ({
-  senderProfile,
-  message,
-  showSimpleStyle,
-  messageActions,
-  isMine,
-  getUploadingFilesText,
-  forwardText,
-  disPlayGifFullScreen,
-  handleInitiateReply,
-  openAttFullScreen,
-  handleShowForwardUI,
-  handleShowDeleteUI,
-}: {
+interface handleReactionAddOrRemoveProps {
+  messageId: string, conversationId: string, emoji: string
+}
+
+interface IMessageItemProps {
   senderProfile: IUser | undefined;
   message: IMessage;
   showSimpleStyle: boolean;
@@ -432,10 +429,29 @@ const MessageItemContainer = ({
     senderProfile: IUser;
   }) => void;
   handleShowForwardUI: (message: IMessage) => void;
-  handleShowDeleteUI: (message: IMessage) => void;
-}) => {
+  handleShowDeleteUI: (message: IMessage) => void; handleCopyText: (message: IMessage) => void
+  handleReact: (props: handleReactionAddOrRemoveProps) => void
+
+}
+
+const MessageItemContainer = (props: IMessageItemProps) => {
+  const { senderProfile,
+    message,
+    showSimpleStyle,
+    messageActions,
+    isMine,
+    getUploadingFilesText,
+    forwardText,
+    disPlayGifFullScreen,
+    handleInitiateReply,
+    openAttFullScreen,
+    handleShowForwardUI,
+    handleShowDeleteUI, handleCopyText, handleReact } = props
+
   const hasText =
-    message.type === "default" && !!message.text && message.text.length > 0;
+    message.type === "default" &&
+    !!message.text &&
+    message.text.trim().length > 0;
 
   const [showMessageActionToolbar, setShowMessageActionToolbar] =
     useState(false);
@@ -444,6 +460,8 @@ const MessageItemContainer = ({
     message.type === "default" &&
     message.status === "sending" &&
     (message.attachments?.length ?? 0) > 0;
+
+  const emojiRef = useRef<HTMLDivElement>(null)
 
   const handleShowForwardUIHelperFunc = () => {
     handleShowForwardUI(message);
@@ -459,8 +477,16 @@ const MessageItemContainer = ({
     }
   };
 
+  const handleShowReactionUI = () => {
+    if (emojiRef.current) {
+      emojiRef.current.click()
+    }
+  }
+
   const handleMenuValueSelect = (event: MenuSelectionDetails) => {
     const value = event.value;
+
+
 
     switch (value) {
       case "replyMessage":
@@ -472,12 +498,25 @@ const MessageItemContainer = ({
         break;
       case "deleteMessage":
         handleShowDeleteUI(message);
+        break;
+
+      case "copyText": handleCopyText(message); break
+
+      case "addReaction": handleShowReactionUI(); break
     }
   };
 
   const handleDisplayGifFullScreen = () => {
     disPlayGifFullScreen(message, senderProfile as IUser);
   };
+
+  const handleOnReact = (emoji: string) => {
+    handleReact({ messageId: message._id, conversationId: message.conversationId, emoji })
+  }
+
+
+  const hasReactions = message.reactions && Object.keys(message.reactions).length > 0
+
 
   return (
     <Flex
@@ -496,12 +535,10 @@ const MessageItemContainer = ({
         justifyContent="center"
         alignItems="center"
         h={
-          showSimpleStyle
-            ? message.isReplied
-              ? "70px"
-              : "25px"
-            : message.isReplied
-              ? "75px"
+          message.isReplied
+            ? "75px"
+            : showSimpleStyle
+              ? "25px"
               : "50px"
         }
         minW={{ base: "16%", lg: "7%" }}
@@ -527,7 +564,7 @@ const MessageItemContainer = ({
           </Flex>
         )}
 
-        {!showSimpleStyle && (
+        {(!showSimpleStyle || message.isReplied) && (
           <Avatar.Root>
             <Avatar.Fallback>
               <BsRobot size={20} />
@@ -535,9 +572,9 @@ const MessageItemContainer = ({
           </Avatar.Root>
         )}
 
-        {showSimpleStyle && showMessageActionToolbar && (
-          <Text userSelect="none" cursor="pointer" fontSize="xs">
-            {formatDateSimpleStyle(message.createdAt)}{" "}
+        {showSimpleStyle && !message.isReplied && showMessageActionToolbar && (
+          <Text userSelect="none" cursor="pointer" color="fg.muted" fontWeight="500" fontSize="xs">
+            {formatDateSimpleStyle(message.createdAt)}
           </Text>
         )}
       </Flex>
@@ -548,7 +585,7 @@ const MessageItemContainer = ({
           <P2PMessageReplyUI replyToMessage={message.replyTo} />
         )}
 
-        {!showSimpleStyle && (
+        {(!showSimpleStyle || message.isReplied) && (
           <Flex gap="5px" alignItems="center">
             <Text
               _hover={{
@@ -579,8 +616,9 @@ const MessageItemContainer = ({
             <Flex
               className={message.isForwarded ? "forwardMsg" : ""}
               direction="column"
-              pt={showSimpleStyle && !message.isReplied ? "5px" : ""}
+              pb={showSimpleStyle ? hasReactions ? "5px" : "2.5px" : { base: "3.5px", lg: "3px" }}
               w="full"
+
             >
               {message.isForwarded && (
                 <Flex
@@ -596,8 +634,8 @@ const MessageItemContainer = ({
                   <Text>{forwardText}</Text>
                 </Flex>
               )}
-              {message.type === "default" && !isUploading && message.text && (
-                <MessageTextRenderer text={message.text} />
+              {message.type === "default" && !isUploading && hasText && (
+                <MessageTextRenderer text={message.text!} />
               )}
 
               {isUploading && message.attachments && (
@@ -622,6 +660,10 @@ const MessageItemContainer = ({
                   disPlayGifFullScreen={handleDisplayGifFullScreen}
                 />
               )}
+
+              {message.reactions && Object.keys(message.reactions).length > 0 &&
+                <P2PMessageReactionsRenderer handleReaction={handleOnReact} reactions={message.reactions} />
+              }
             </Flex>
           </Menu.ContextTrigger>
 
@@ -634,6 +676,10 @@ const MessageItemContainer = ({
       </Flex>
 
       <MessageActionToolbar
+        handleReaction={handleOnReact}
+        emojiRef={emojiRef}
+        hasText={hasText}
+        isMine={isMine}
         onMenuSelectFunction={handleMenuValueSelect}
         handleForwardMessage={handleShowForwardUIHelperFunc}
         showMessageActionToolbar={showMessageActionToolbar}

@@ -51,6 +51,23 @@ type userChatStoreTypes = {
     messageId: string;
     ignoreDBDelete?: boolean;
   }) => void;
+
+  getReactionCount: (count: number, locale: string) => string;
+  addOrRemoveP2PMessageReaction: ({
+    messageId,
+    emoji,
+    conversationId,
+    userId,
+    username,
+    persistToServer,
+  }: {
+    messageId: string;
+    emoji: string;
+    conversationId: string;
+    userId: string;
+    username: string;
+    persistToServer?: boolean;
+  }) => void;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
@@ -187,6 +204,68 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
       });
     } catch {
       console.log("Failed To Delete Message");
+    }
+  },
+
+  getReactionCount: (count: number, locale: string = "en"): string => {
+    if (count < 1000) {
+      return new Intl.NumberFormat(locale).format(count);
+    } else if (count < 1000000) {
+      const k = count / 1000;
+      return `${new Intl.NumberFormat(locale, { maximumFractionDigits: k < 10 ? 1 : 0 }).format(k)}K`;
+    } else {
+      const m = count / 1000000;
+      return `${new Intl.NumberFormat(locale, { maximumFractionDigits: m < 10 ? 1 : 0 }).format(m)}M`;
+    }
+  },
+
+  addOrRemoveP2PMessageReaction: ({
+    messageId,
+    emoji,
+    username,
+    conversationId,
+    userId,
+    persistToServer = true,
+  }) => {
+    set((s) => {
+      const allMessages = s.storedMessages[conversationId];
+      if (!allMessages?.length) return s;
+
+      const msgIndex = allMessages.findIndex((msg) => msg._id === messageId);
+      if (msgIndex === -1) return s;
+
+      const msg = allMessages[msgIndex];
+      const emojiReactions = msg.reactions?.[emoji] || [];
+      const userAlreadyReacted = emojiReactions.some((r) => r._id === userId);
+
+      const updatedEmojiReactions = userAlreadyReacted
+        ? emojiReactions.filter((r) => r._id !== userId)
+        : [...emojiReactions, { _id: userId, username }];
+
+      const updatedReactions = { ...msg.reactions };
+      if (updatedEmojiReactions.length === 0) {
+        delete updatedReactions[emoji];
+      } else {
+        updatedReactions[emoji] = updatedEmojiReactions;
+      }
+
+      const updatedMessages = [...allMessages];
+      updatedMessages[msgIndex] = { ...msg, reactions: updatedReactions };
+
+      return {
+        storedMessages: {
+          ...s.storedMessages,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
+
+    if (persistToServer) {
+      axiosInstance
+        .patch("/messages/react", { messageId, conversationId, emoji })
+        .catch((error) => {
+          console.log("Couldn't react to message", (error as Error)?.message);
+        });
     }
   },
 }));
