@@ -44,11 +44,6 @@ const BaseMessageSchema = new mongoose.Schema({
     default: "sent",
     required: true,
   },
-
-  reactions: {
-    type: Object,
-    default: {},
-  },
 });
 
 const MessageSchema = new mongoose.Schema(
@@ -94,6 +89,10 @@ const MessageSchema = new mongoose.Schema(
     },
     isForwarded: {
       type: Boolean,
+    },
+    reactions: {
+      type: Map,
+      of: [{ type: mongoose.Types.ObjectId, ref: "user" }],
     },
   },
   { timestamps: true },

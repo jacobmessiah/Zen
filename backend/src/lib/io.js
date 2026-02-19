@@ -71,7 +71,10 @@ export const emitPayloadToOtherSessions = (
   }
 
   connectedUser.forEach((connected) => {
-    if (connected.sessionId !== sessionIdToAvoid) {
+    const currentSessionId = connected.sessionId.toString();
+    const avoidSessionId = sessionIdToAvoid.toString();
+    
+    if (currentSessionId !== avoidSessionId) {
       const socketId = connected.socketId;
 
       if (socketId) {

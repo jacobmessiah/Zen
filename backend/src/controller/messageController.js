@@ -303,11 +303,11 @@ export const handleGetAllMessages = async (req, res) => {
     // if (!conversation || !conversation.connectionId) {
     //   return res.status(400).json({ message: "UNAUTHORIZED_FETCH" });
     // }
-
     const messages = await Message.find({ conversationId })
       .sort({ createdAt: 1 })
       .limit(100)
-      .populate("replyTo");
+      .populate("replyTo")
+      .populate("reactions.$*", "username");
 
     return res.status(200).json(messages);
   } catch (error) {
@@ -555,5 +555,104 @@ export const handleDeleteMessage = async (req, res) => {
       "Error on handleDeleteMessage Errror message -->",
       error?.message || error,
     );
+  }
+};
+
+export const handleReactToMesssage = async (req, res) => {
+  try {
+    const user = req.user;
+    const session = req.session;
+    const { messageId, conversationId, emoji } = req.body;
+
+    if (!messageId)
+      return res.status(400).json({ message: "MESSAGE_ID_REQUIRED" });
+
+    if (!conversationId)
+      return res.status(400).json({ message: "CONVERSATION_ID_REQUIRED" });
+
+    if (!emoji) return res.status(400).json({ message: "EMOJI_REQUIRED" });
+
+    if (typeof messageId !== "string")
+      return res
+        .status(400)
+        .json({ message: "MESSAGE_ID_INVALID_REQUIRED_STRING" });
+
+    if (typeof conversationId !== "string")
+      return res
+        .status(400)
+        .json({ message: "CONVERSATION_ID_INVALID_REQUIRED_STRING" });
+
+    if (typeof emoji !== "string")
+      return res.status(400).json({ message: "EMOJI_INVALID_REQUIRED_STRING" });
+
+    const findConversation = await Conversation.findById(conversationId);
+
+    if (!findConversation)
+      return res.status(400).json({ message: "NO_CONVERSATION_TARGET" });
+
+    const isUserIncluded = findConversation.participants.find((p) =>
+      p.equals(user._id),
+    );
+
+    const otherUserId = findConversation.participants.find(
+      (p) => !p.equals(user._id),
+    );
+
+    if (!isUserIncluded)
+      return res.status(400).json({ message: "NOT_A_PARTICIPANT" });
+
+    const findMessage = await Message.findById(messageId);
+
+    if (!findMessage) {
+      return res.status(400).json({ message: "MESSAGE_NOT_FOUND" });
+    }
+
+    const message = await Message.findById(messageId);
+    if (!message) return res.status(404).json({ message: "MESSAGE_NOT_FOUND" });
+
+    const emojiReactions = message.reactions?.get(emoji) || [];
+    const userAlreadyReacted = emojiReactions.some(
+      (id) => id.toString() === user._id,
+    );
+
+    if (userAlreadyReacted) {
+      await message.updateOne({
+        $pull: { [`reactions.${emoji}`]: user._id },
+      });
+    } else {
+      await message.updateOne({
+        $addToSet: { [`reactions.${emoji}`]: user._id },
+      });
+    }
+
+    if (otherUserId) {
+      emitPayLoadToUser(otherUserId, "EVENT:UPDATE", {
+        messageId: findMessage._id,
+        conversationId: findConversation._id,
+        emoji,
+        reactedBy: user._id,
+        reactedByUsername: user.username,
+        type: "react",
+      });
+    }
+
+    emitPayloadToOtherSessions(
+      user._id,
+      "SYNC:UPDATE",
+      {
+        messageId: findMessage._id,
+        conversationId: findConversation._id,
+        emoji,
+        reactedBy: user._id,
+        reactedByUsername: user.username,
+        type: "react",
+      },
+      session._id,
+    );
+
+    return res.status(204).end();
+  } catch (error) {
+    console.log("Error on #handleReactToMesssage Error  ---> ", error.message);
+    return res.status(400).json({ message: "SERVER_ERROR" });
   }
 };

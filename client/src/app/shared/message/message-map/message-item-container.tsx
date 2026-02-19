@@ -616,7 +616,7 @@ const MessageItemContainer = (props: IMessageItemProps) => {
             <Flex
               className={message.isForwarded ? "forwardMsg" : ""}
               direction="column"
-              pb={showSimpleStyle ? hasReactions ? "5px" : "2.5px" : "3px"}
+              pb={showSimpleStyle ? hasReactions ? "5px" : "2.5px" : { base: "3.5px", lg: "3px" }}
               w="full"
 
             >

@@ -66,6 +66,8 @@ export const handleEventAdd = (args: ADD_EVENT_CASES_TYPES) => {
 };
 
 const deleteMessage = userChatStore.getState().deleteMessage;
+const addOrRemoveP2PMessageReaction =
+  userChatStore.getState().addOrRemoveP2PMessageReaction;
 
 export const handleEventRemove = (args: REMOVE_EVENT_CASES_TYPES) => {
   switch (args.type) {
@@ -83,5 +85,39 @@ export const handleEventRemove = (args: REMOVE_EVENT_CASES_TYPES) => {
         messageId: args.messageId,
         ignoreDBDelete: true,
       });
+  }
+};
+
+type ReactArgs = {
+  messageId: string;
+  emoji: string;
+  reactedBy: string;
+  reactedByUsername: string;
+  type: "react";
+  conversationId: string;
+};
+
+type justArg = {
+  type: "fornow";
+  payload: "foo bar";
+};
+
+type handleEventUpdateArgs = ReactArgs | justArg;
+
+export const handleEventUpdate = (args: handleEventUpdateArgs) => {
+  switch (args.type) {
+    case "react":
+      addOrRemoveP2PMessageReaction({
+        messageId: args.messageId,
+        conversationId: args.conversationId,
+        emoji: args.emoji,
+        userId: args.reactedBy,
+        username: args.reactedByUsername,
+        persistToServer: false,
+      });
+      break;
+
+    case "fornow":
+      break;
   }
 };

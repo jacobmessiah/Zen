@@ -59,12 +59,14 @@ type userChatStoreTypes = {
     conversationId,
     userId,
     username,
+    persistToServer,
   }: {
     messageId: string;
     emoji: string;
     conversationId: string;
     userId: string;
     username: string;
+    persistToServer?: boolean;
   }) => void;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
@@ -223,59 +225,48 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
     username,
     conversationId,
     userId,
+    persistToServer = true,
   }) => {
-    const allMessages = get().storedMessages[conversationId] || [];
+    set((s) => {
+      const allMessages = s.storedMessages[conversationId];
+      if (!allMessages?.length) return s;
 
-    if (allMessages.length === 0) return;
+      const msgIndex = allMessages.findIndex((msg) => msg._id === messageId);
+      if (msgIndex === -1) return s;
 
-    const updatedMessages = allMessages.map((msg) => {
-      if (msg._id === messageId) {
-        const existingReactions = msg.reactions || {};
-        const emojiReactions = existingReactions[emoji] || [];
+      const msg = allMessages[msgIndex];
+      const emojiReactions = msg.reactions?.[emoji] || [];
+      const userAlreadyReacted = emojiReactions.some((r) => r._id === userId);
 
-        // Check if user already reacted with this emoji
-        const userAlreadyReacted = emojiReactions.some(
-          reaction => reaction.userId === userId
-        );
+      const updatedEmojiReactions = userAlreadyReacted
+        ? emojiReactions.filter((r) => r._id !== userId)
+        : [...emojiReactions, { _id: userId, username }];
 
-        let updatedEmojiReactions;
-        if (userAlreadyReacted) {
-          // Remove user's reaction
-          updatedEmojiReactions = emojiReactions.filter(
-            reaction => reaction.userId !== userId
-          );
-        } else {
-          // Add user's reaction
-          updatedEmojiReactions = [
-            ...emojiReactions,
-            { userId, username }
-          ];
-        }
+      const updatedReactions = { ...msg.reactions };
+      if (updatedEmojiReactions.length === 0) {
+        delete updatedReactions[emoji];
+      } else {
+        updatedReactions[emoji] = updatedEmojiReactions;
+      }
 
-        // Update reactions object
-        const updatedReactions = {
-          ...existingReactions,
-          [emoji]: updatedEmojiReactions
-        };
+      const updatedMessages = [...allMessages];
+      updatedMessages[msgIndex] = { ...msg, reactions: updatedReactions };
 
-        // Remove emoji key if no reactions left
-        if (updatedEmojiReactions.length === 0) {
-          delete updatedReactions[emoji];
-        }
-
-        return {
-          ...msg,
-          reactions: updatedReactions
-        };
-      } else return msg;
+      return {
+        storedMessages: {
+          ...s.storedMessages,
+          [conversationId]: updatedMessages,
+        },
+      };
     });
 
-    set((s) => ({
-      storedMessages: {
-        ...s.storedMessages,
-        [conversationId]: updatedMessages,
-      },
-    }));
+    if (persistToServer) {
+      axiosInstance
+        .patch("/messages/react", { messageId, conversationId, emoji })
+        .catch((error) => {
+          console.log("Couldn't react to message", (error as Error)?.message);
+        });
+    }
   },
 }));
 

@@ -3,6 +3,7 @@ import {
   handleDeleteMessage,
   handleForwardMessage,
   handleGetAllMessages,
+  handleReactToMesssage,
   handleSendMessage,
   handleUploadAttachment,
 } from "../controller/messageController.js";
@@ -75,5 +76,6 @@ messageRoute.post("/send", ProtectRoute, handleSendMessage);
 messageRoute.post("/forward", ProtectRoute, handleForwardMessage);
 
 messageRoute.delete("/delete", ProtectRoute, handleDeleteMessage);
+messageRoute.patch("/react", ProtectRoute, handleReactToMesssage)
 
 export default messageRoute;

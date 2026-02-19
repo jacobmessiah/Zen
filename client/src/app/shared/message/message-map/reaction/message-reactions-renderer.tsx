@@ -4,7 +4,7 @@ import { Flex, Text } from "@chakra-ui/react";
 
 // P2P
 
-interface P2PMessageReactionsRendererProps { reactions: Record<string, { username: string; userId: string }[]>, handleReaction: (emoji: string) => void }
+interface P2PMessageReactionsRendererProps { reactions: Record<string, { _id: string; username: string }[]>, handleReaction: (emoji: string) => void }
 const P2PMessageReactionsRenderer = (props: P2PMessageReactionsRendererProps) => {
 
   const { reactions, handleReaction } = props
