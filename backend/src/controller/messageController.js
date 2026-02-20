@@ -2,70 +2,15 @@ import Message from "../model/messageModel.js";
 import Conversation from "../model/conversationModel.js";
 import imageKitInstance from "../lib/kitUploader.js";
 import { emitPayloadToOtherSessions, emitPayLoadToUser } from "../lib/io.js";
-import unClaimedUpload from "../model/UnClaimedUploadModel.js";
-
-export const DOCUMENT_MIME_TYPES = [
-  "application/pdf",
-  "application/msword",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.ms-powerpoint",
-  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  "text/plain", // TXT
-];
-
-export const AUDIO_MIME_TYPES = [
-  "audio/mpeg",
-  "audio/wav",
-  "audio/ogg",
-  "audio/webm",
-  "audio/flac",
-  "audio/aac",
-  "audio/mp4",
-];
-
-export const IMAGE_MIME_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-];
-
-export const VIDEO_MIME_TYPES = [
-  "video/mp4",
-  "video/webm",
-  "video/ogg",
-  "video/quicktime",
-];
-
-const failedUploads = [];
-
-const getAttachmentType = (mimeType) => {
-  if (
-    !mimeType ||
-    typeof mimeType !== "string" ||
-    mimeType.trim().length === 0
-  ) {
-    return null;
-  }
-
-  const normalized = mimeType.trim();
-
-  if (DOCUMENT_MIME_TYPES.includes(normalized)) return "document";
-  if (IMAGE_MIME_TYPES.includes(normalized)) return "image";
-  if (VIDEO_MIME_TYPES.includes(normalized)) return "video";
-  if (AUDIO_MIME_TYPES.includes(normalized)) return "audio";
-
-  return null;
-};
 
 
 export const handleSendMessage = async (req, res) => {
   try {
     const user = req.user;
-    console.log(req.body)
+    const attachments = req.uploadedAttachments
+
+    console.log("Attachments Received from middleware  --->", attachments)
+
     return res.status(400).json({ message: "BOOM" })
 
   } catch (error) {
