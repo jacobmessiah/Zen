@@ -14,7 +14,6 @@ import AttachmentLimitUI from "@/app/dialog/ui/max-attachment-ui";
 import {
   removeInitiatedReply,
   sendGifMessage,
-  sendMessage,
 } from "@/utils/chatFunctions";
 import FileTooLargeUI from "@/app/dialog/ui/file-too-large";
 import FileInvalidUI from "@/app/dialog/ui/file-invalid-ui";
@@ -380,17 +379,23 @@ const MessageInputUI = ({ inputPlaceHolder }: { inputPlaceHolder: string }) => {
     }
     setAttachments([]);
 
-    // 3. Pass the captured variables, NOT the state
-    void sendMessage(
-      input,
-      atts,
-      authUser?._id,
-      selectedConversation?.otherUser._id,
-      selectedConversation?._id,
-      selectedConversation?.connectionId,
-    );
 
-    setTimeout(() => (isSendingRef.current = false), 500); // Increased slightly for safety
+    if (!authUser) return
+    if (!selectedConversation) return
+    if (!selectedConversation.connectionId) return
+    void userChatStore.getState().sendP2PDefaultMessage({
+      attachments: atts,
+      textInput: input,
+      senderId: authUser._id,
+      receiverId: selectedConversation.otherUser._id,
+      connectionId: selectedConversation.connectionId,
+      conversationId: selectedConversation._id
+    })
+
+
+
+
+    setTimeout(() => (isSendingRef.current = false), 500);
   };
 
   const { t: translate } = useTranslation(["chat"]);
