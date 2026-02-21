@@ -82,6 +82,7 @@ type userChatStoreTypes = {
   sendP2PDefaultMessage: (props: sendP2PDefaultMessageType) => void
   addMessageToState: (message: IMessage, conversationId: string) => void
   updatedMessageOnConvoCreate: ({ message, tempConvoId, receivedConvoData }: { message: IMessage, tempConvoId: string, receivedConvoData: IConversation }) => void
+  updateMessageOnSendComplete: ({ message, conversationId, tempId }: { message: IMessage, conversationId: string, tempId: string }) => void;
 };
 const userChatStore = create<userChatStoreTypes>((set, get) => ({
   conversations: [],
@@ -372,7 +373,7 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
 
     try {
       const sendMsgRes = await axiosInstance.post("/messages/send", formData)
-      console.log(sendMsgRes.data)
+      get().updateMessageOnSendComplete({ message: sendMsgRes.data, conversationId: getConvo._id, tempId: msgTempId })
     } catch (error) {
       console.log("Message Send Failed Show UI")
       return
@@ -431,6 +432,26 @@ const userChatStore = create<userChatStoreTypes>((set, get) => ({
       };
     });
   },
+
+  updateMessageOnSendComplete: ({ message, conversationId, tempId }) => {
+    set((s) => {
+      const messages = s.storedMessages[conversationId] || [];
+
+      const messageIndex = messages.findIndex((msg) => msg._id === tempId || msg.tempId === tempId);
+
+      if (messageIndex === -1) return s;
+
+      const updatedMessages = [...messages];
+      updatedMessages[messageIndex] = message;
+
+      return {
+        storedMessages: {
+          ...s.storedMessages,
+          [conversationId]: updatedMessages,
+        },
+      };
+    });
+  }
 }))
 
 export default userChatStore;

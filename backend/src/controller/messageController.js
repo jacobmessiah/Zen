@@ -9,9 +9,52 @@ export const handleSendMessage = async (req, res) => {
     const user = req.user;
     const attachments = req.uploadedAttachments
 
-    console.log("Attachments Received from middleware  --->", attachments)
+    const { conversationId, type, text, receiverId } = req.body || {}
 
-    return res.status(400).json({ message: "BOOM" })
+
+    if (!type || typeof type !== "string") return res.status(400).json({ message: "MESSAGE_TYPE_REQUIRED" })
+
+
+
+
+    if (!conversationId || typeof conversationId !== "string")
+      return res.status(400).json({ message: "NO_TARGET_CONVO_ID_REQUIRED" })
+
+    const getConversation = await Conversation.findById(conversationId)
+
+    if (!getConversation) return res.status(404).json({ message: "INVALID_CONVO_ID" })
+
+    if (!getConversation.participants.some(p => p.equals(user._id))) {
+      return res.status(403).json({ message: "UNAUTHORIZED" })
+    }
+
+
+
+
+    const otherUserId = getConversation.participants.find(p => !p.equals(user._id))
+
+    const messageObj = {
+      senderId: user._id,
+      receiverId: otherUserId || receiverId,
+      conversationId: getConversation._id,
+    }
+
+    if (type === "default") {
+      if (attachments && Array.isArray(attachments) && attachments.length > 0) {
+        messageObj["attachments"] = attachments
+      }
+
+      if (text && typeof text === "string" && text.trim().length > 0) {
+        messageObj["text"] = text
+      }
+
+    }
+
+
+    const newMessage = await Message.create({ ...messageObj })
+
+
+    return res.status(201).json(newMessage)
 
   } catch (error) {
     console.log(
